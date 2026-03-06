@@ -46,6 +46,7 @@ export default function RootLayout() {
             headerTintColor: COLORS.white,
           }}
         />
+        <Stack.Screen name="game" />
         <Stack.Screen
           name="settings"
           options={{

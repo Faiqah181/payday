@@ -2,6 +2,7 @@ import { COLORS, SPACING, BORDER_RADIUS } from "@/constants/colors";
 import MenuButton from "@/components/menu/MenuButton";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
+import { useRouter } from "expo-router";
 import { useState } from "react";
 import {
   Pressable,
@@ -19,6 +20,7 @@ const ACCOUNT_TYPES = ["Savings", "Loan"] as const;
 type AccountType = (typeof ACCOUNT_TYPES)[number];
 
 export default function GameSetup() {
+  const router = useRouter();
   const [playerCount, setPlayerCount] = useState(2);
   const [monthCount, setMonthCount] = useState(3);
   const [playerNames, setPlayerNames] = useState<string[]>(
@@ -167,7 +169,15 @@ export default function GameSetup() {
             enterDelay={0}
             onPress={() => {
               if (!allNamesFilled) return;
-              // TODO: navigate to game screen with params
+              router.push({
+                pathname: "/game",
+                params: {
+                  playerNames: playerNames.slice(0, playerCount).join(","),
+                  accountTypes: accountTypes.slice(0, playerCount).join(","),
+                  playerCount: String(playerCount),
+                  monthCount: String(monthCount),
+                },
+              });
             }}
           />
         </View>
