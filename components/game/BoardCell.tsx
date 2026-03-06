@@ -15,16 +15,16 @@ const SPACE_CONFIG: Record<
   SpaceType,
   { icon: keyof typeof Ionicons.glyphMap; color: string; label: string }
 > = {
-  start: { icon: "flag", color: "#43A047", label: "GO" },
-  mail: { icon: "mail", color: "#1E88E5", label: "" },
-  deal: { icon: "briefcase", color: "#43A047", label: "" },
-  "mail+deal": { icon: "layers", color: "#7B1FA2", label: "" },
-  buyer: { icon: "cart", color: "#8E24AA", label: "" },
-  lottery: { icon: "ticket", color: "#F9A825", label: "" },
-  birthday: { icon: "gift", color: "#E91E63", label: "" },
-  radio: { icon: "radio", color: "#00897B", label: "" },
-  "yard-sale": { icon: "pricetag", color: "#EF6C00", label: "" },
-  "pay-day": { icon: "cash", color: "#2E7D32", label: "$" },
+  start: { icon: "flag", color: "#43A047", label: "START" },
+  mail: { icon: "mail", color: "#1E88E5", label: "Mail" },
+  deal: { icon: "briefcase", color: "#43A047", label: "Deal" },
+  "mail+deal": { icon: "layers", color: "#7B1FA2", label: "M+D" },
+  buyer: { icon: "cart", color: "#8E24AA", label: "Buyer" },
+  lottery: { icon: "ticket", color: "#F9A825", label: "Lotto" },
+  birthday: { icon: "gift", color: "#E91E63", label: "B-Day" },
+  radio: { icon: "radio", color: "#00897B", label: "Radio" },
+  "yard-sale": { icon: "pricetag", color: "#EF6C00", label: "Sale" },
+  "pay-day": { icon: "cash", color: "#2E7D32", label: "PAY" },
 };
 
 export default function BoardCell({
@@ -60,9 +60,12 @@ export default function BoardCell({
 
       <Ionicons
         name={config.icon}
-        size={cellSize * 0.28}
+        size={cellSize * 0.22}
         color={config.color}
       />
+      <Text style={[styles.label, { color: config.color }]} numberOfLines={1}>
+        {config.label}
+      </Text>
 
       {playerColors.length > 0 && (
         <View style={styles.tokenRow}>
@@ -112,6 +115,11 @@ const styles = StyleSheet.create({
   payDayText: {
     color: "#2E7D32",
     fontWeight: "800",
+  },
+  label: {
+    fontSize: 7,
+    fontWeight: "700",
+    textAlign: "center",
   },
   tokenRow: {
     flexDirection: "row",

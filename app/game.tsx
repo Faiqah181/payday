@@ -75,7 +75,9 @@ export default function Game() {
             <Ionicons name="arrow-back" size={22} color={COLORS.white} />
           </Pressable>
           <Text style={styles.monthText}>Month 1 of {monthCount}</Text>
-          <View style={styles.exitButton} />
+          <Pressable onPress={() => router.replace("/how-to-play")} style={styles.exitButton}>
+            <Ionicons name="help" size={22} color={COLORS.white} />
+          </Pressable>
         </View>
 
         {/* Board */}

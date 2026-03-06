@@ -90,7 +90,7 @@ const styles = StyleSheet.create({
     textAlign: "center",
     fontSize: 10,
     fontWeight: "700",
-    color: COLORS.white,
+    color: COLORS.titleGreen,
   },
   grid: {
     borderWidth: 1,
