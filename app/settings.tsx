@@ -6,7 +6,6 @@ import * as Linking from "expo-linking";
 import {
   BackHandler,
   Pressable,
-  ScrollView,
   StyleSheet,
   Switch,
   Text,
@@ -59,7 +58,7 @@ export default function Settings() {
       colors={[COLORS.background, COLORS.backgroundDark]}
       style={styles.gradient}
     >
-      <ScrollView contentContainerStyle={styles.content}>
+      <View style={styles.content}>
         <SettingsRow
           icon="volume-high"
           label="Sound"
@@ -90,7 +89,7 @@ export default function Settings() {
           color="#D32F2F"
           onPress={() => BackHandler.exitApp()}
         />
-      </ScrollView>
+      </View>
     </LinearGradient>
   );
 }
@@ -100,8 +99,9 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   content: {
+    flex: 1,
+    justifyContent: "center",
     padding: SPACING.md,
-    paddingTop: SPACING.lg,
   },
   row: {
     flexDirection: "row",
@@ -109,6 +109,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.white,
     borderRadius: 16,
     padding: SPACING.md,
+    height: 56,
     marginBottom: 14,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },

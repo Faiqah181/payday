@@ -1,12 +1,12 @@
-import { Audio } from "expo-av";
+import { useAudioPlayer } from "expo-audio";
 import {
   createContext,
   useContext,
-  useEffect,
-  useRef,
   useState,
   type ReactNode,
 } from "react";
+
+const clickSound = require("@/assets/sounds/click.wav");
 
 interface SoundContextType {
   soundEnabled: boolean;
@@ -22,26 +22,14 @@ const SoundContext = createContext<SoundContextType>({
 
 export function SoundProvider({ children }: { children: ReactNode }) {
   const [soundEnabled, setSoundEnabled] = useState(true);
-  const soundRef = useRef<Audio.Sound | null>(null);
-
-  useEffect(() => {
-    let mounted = true;
-    Audio.Sound.createAsync(require("@/assets/sounds/click.wav")).then(
-      ({ sound }) => {
-        if (mounted) soundRef.current = sound;
-      }
-    );
-    return () => {
-      mounted = false;
-      soundRef.current?.unloadAsync();
-    };
-  }, []);
+  const player = useAudioPlayer(clickSound);
 
   const toggleSound = () => setSoundEnabled((prev) => !prev);
 
   const playClick = () => {
-    if (soundEnabled && soundRef.current) {
-      soundRef.current.replayAsync();
+    if (soundEnabled && player) {
+      player.seekTo(0);
+      player.play();
     }
   };
 
