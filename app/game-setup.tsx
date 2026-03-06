@@ -1,19 +1,22 @@
 import { COLORS, SPACING, BORDER_RADIUS } from "@/constants/colors";
 import MenuButton from "@/components/menu/MenuButton";
+import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { useState } from "react";
 import {
   Pressable,
-  ScrollView,
   StyleSheet,
   Text,
   TextInput,
   View,
 } from "react-native";
+import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 const PLAYER_OPTIONS = [2, 3, 4];
 const MONTH_OPTIONS = [1, 2, 3, 4, 5, 6];
+const ACCOUNT_TYPES = ["Savings", "Loan"] as const;
+type AccountType = (typeof ACCOUNT_TYPES)[number];
 
 export default function GameSetup() {
   const [playerCount, setPlayerCount] = useState(2);
@@ -21,11 +24,22 @@ export default function GameSetup() {
   const [playerNames, setPlayerNames] = useState<string[]>(
     Array(PLAYER_OPTIONS[PLAYER_OPTIONS.length - 1]).fill("")
   );
+  const [accountTypes, setAccountTypes] = useState<AccountType[]>(
+    Array(PLAYER_OPTIONS[PLAYER_OPTIONS.length - 1]).fill("Savings")
+  );
 
   const updateName = (index: number, name: string) => {
     setPlayerNames((prev) => {
       const next = [...prev];
       next[index] = name;
+      return next;
+    });
+  };
+
+  const updateAccountType = (index: number, type: AccountType) => {
+    setAccountTypes((prev) => {
+      const next = [...prev];
+      next[index] = type;
       return next;
     });
   };
@@ -40,7 +54,7 @@ export default function GameSetup() {
       style={styles.gradient}
     >
       <SafeAreaView style={styles.container}>
-        <ScrollView contentContainerStyle={styles.scrollContent}>
+        <KeyboardAwareScrollView contentContainerStyle={styles.scrollContent} enableOnAndroid={true} extraScrollHeight={20}>
         <Text style={styles.heading}>Game Setup</Text>
 
         <View style={styles.section}>
@@ -94,17 +108,53 @@ export default function GameSetup() {
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.label}>Player Names</Text>
+          <Text style={styles.label}>Players</Text>
           {Array.from({ length: playerCount }, (_, i) => (
-            <TextInput
-              key={i}
-              style={styles.nameInput}
-              placeholder={`Player ${i + 1}`}
-              placeholderTextColor="#9E9E9E"
-              value={playerNames[i]}
-              onChangeText={(text) => updateName(i, text)}
-              maxLength={15}
-            />
+            <View key={i} style={styles.playerCard}>
+              <TextInput
+                style={styles.nameInput}
+                placeholder={`Player ${i + 1}`}
+                placeholderTextColor="#9E9E9E"
+                value={playerNames[i]}
+                onChangeText={(text) => updateName(i, text)}
+                maxLength={15}
+                underlineColorAndroid="transparent"
+              />
+              <View style={styles.toggleRow}>
+                {ACCOUNT_TYPES.map((type) => (
+                  <Pressable
+                    key={type}
+                    style={[
+                      styles.toggleButton,
+                      accountTypes[i] === type &&
+                        (type === "Savings"
+                          ? styles.toggleButtonSavings
+                          : styles.toggleButtonLoan),
+                    ]}
+                    onPress={() => updateAccountType(i, type)}
+                  >
+                    <Ionicons
+                      name={type === "Savings" ? "wallet" : "card"}
+                      size={16}
+                      color={
+                        accountTypes[i] === type
+                          ? COLORS.white
+                          : COLORS.textDark
+                      }
+                      style={styles.toggleIcon}
+                    />
+                    <Text
+                      style={[
+                        styles.toggleText,
+                        accountTypes[i] === type && styles.toggleTextSelected,
+                      ]}
+                    >
+                      {type}
+                    </Text>
+                  </Pressable>
+                ))}
+              </View>
+            </View>
           ))}
         </View>
 
@@ -122,7 +172,7 @@ export default function GameSetup() {
           />
         </View>
 
-        </ScrollView>
+        </KeyboardAwareScrollView>
       </SafeAreaView>
     </LinearGradient>
   );
@@ -189,20 +239,55 @@ const styles = StyleSheet.create({
   optionTextSelected: {
     color: COLORS.white,
   },
-  nameInput: {
+  playerCard: {
     backgroundColor: COLORS.white,
     borderRadius: BORDER_RADIUS.button,
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    fontSize: 16,
-    fontFamily: "BlueWinter",
-    color: COLORS.textDark,
-    marginBottom: 10,
+    padding: 12,
+    marginBottom: 12,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 3,
     elevation: 3,
+  },
+  nameInput: {
+    fontSize: 16,
+    fontFamily: "BlueWinter",
+    color: COLORS.textDark,
+    paddingVertical: 10,
+    paddingHorizontal: 4,
+    borderBottomWidth: 0,
+  },
+  toggleRow: {
+    flexDirection: "row",
+    marginTop: 8,
+    gap: 8,
+  },
+  toggleButton: {
+    flex: 1,
+    flexDirection: "row",
+    paddingVertical: 8,
+    borderRadius: BORDER_RADIUS.button,
+    backgroundColor: "#F0F0F0",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  toggleButtonSavings: {
+    backgroundColor: "#2E7D32",
+  },
+  toggleButtonLoan: {
+    backgroundColor: COLORS.primary,
+  },
+  toggleIcon: {
+    marginRight: 6,
+  },
+  toggleText: {
+    fontFamily: "BlueWinter",
+    fontSize: 14,
+    color: COLORS.textDark,
+  },
+  toggleTextSelected: {
+    color: COLORS.white,
   },
   scrollContent: {
     paddingBottom: SPACING.xl,
