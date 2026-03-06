@@ -1,17 +1,16 @@
-import { useEffect } from "react";
-import { StyleSheet, Text, View, Image } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
-import { LinearGradient } from "expo-linear-gradient";
-import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withSpring,
-  withTiming,
-} from "react-native-reanimated";
-import { useRouter } from "expo-router";
-import { COLORS, SPACING } from "@/constants/colors";
-import MenuButton from "@/components/menu/MenuButton";
 import IconButton from "@/components/menu/IconButton";
+import MenuButton from "@/components/menu/MenuButton";
+import { COLORS, SPACING } from "@/constants/colors";
+import { LinearGradient } from "expo-linear-gradient";
+import { useRouter } from "expo-router";
+import { useEffect } from "react";
+import { StyleSheet, Text, View } from "react-native";
+import {
+  useSharedValue,
+  withSpring,
+  withTiming
+} from "react-native-reanimated";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function Index() {
   const router = useRouter();
@@ -24,11 +23,6 @@ export default function Index() {
     titleOpacity.value = withTiming(1, { duration: 400 });
   }, []);
 
-  const titleAnimatedStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: titleScale.value }],
-    opacity: titleOpacity.value,
-  }));
-
   return (
     <LinearGradient
       colors={[COLORS.background, COLORS.backgroundDark]}
@@ -36,11 +30,7 @@ export default function Index() {
     >
       <SafeAreaView style={styles.container}>
         <View style={styles.titleContainer}>
-          <Image
-            source={require("@/assets/images/logo.jpeg")}
-            style={styles.logo}
-            resizeMode="contain"
-          />
+          <Text style={styles.titleText}>PAYDAY</Text>
         </View>
 
         <View style={styles.buttonContainer}>
@@ -50,7 +40,7 @@ export default function Index() {
             icon="game-controller"
             size="large"
             enterDelay={0}
-            onPress={() => {}}
+            onPress={() => router.push("/game-setup")}
           />
           <MenuButton
             title="Online"
@@ -86,32 +76,26 @@ const styles = StyleSheet.create({
   },
   container: {
     flex: 1,
-    justifyContent: "space-between",
   },
   titleContainer: {
-    flex: 1,
-    justifyContent: "center",
     alignItems: "center",
-  },
-  logo: {
-    width: 200,
-    height: 120,
+    marginTop: 40,
   },
   titleText: {
-    fontSize: 68,
-    fontWeight: "900",
+    fontFamily: "BlueWinter",
+    fontSize: 72,
     color: COLORS.titleGreen,
     textShadowColor: COLORS.titleOutline,
     textShadowOffset: { width: 3, height: 3 },
     textShadowRadius: 0,
-    letterSpacing: 6,
-    lineHeight: 76,
+    letterSpacing: 8,
   },
   buttonContainer: {
+    flex: 1,
     width: "85%",
     alignSelf: "center",
+    justifyContent: "center",
     gap: 14,
-    marginBottom: SPACING.lg,
   },
   bottomRow: {
     flexDirection: "row",

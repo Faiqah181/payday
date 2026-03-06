@@ -1,13 +1,41 @@
 import "react-native-reanimated";
 import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
+import * as SplashScreen from "expo-splash-screen";
+import { useFonts } from "expo-font";
+import { useEffect } from "react";
 import { COLORS } from "@/constants/colors";
 
+SplashScreen.preventAutoHideAsync();
+
 export default function RootLayout() {
+  const [fontsLoaded] = useFonts({
+    BlueWinter: require("@/assets/fonts/Blue Winter.ttf"),
+  });
+
+  useEffect(() => {
+    if (fontsLoaded) {
+      SplashScreen.hideAsync();
+    }
+  }, [fontsLoaded]);
+
+  if (!fontsLoaded) {
+    return null;
+  }
+
   return (
     <>
       <Stack screenOptions={{ headerShown: false }}>
         <Stack.Screen name="index" />
+        <Stack.Screen
+          name="game-setup"
+          options={{
+            headerShown: true,
+            title: "Game Setup",
+            headerStyle: { backgroundColor: COLORS.backgroundDark },
+            headerTintColor: COLORS.white,
+          }}
+        />
         <Stack.Screen
           name="how-to-play"
           options={{
