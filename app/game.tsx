@@ -1,7 +1,7 @@
-import { COLORS, SPACING } from "@/constants/colors";
 import Board from "@/components/game/Board";
 import Dice from "@/components/game/Dice";
 import PlayerCard from "@/components/game/PlayerCard";
+import { COLORS, SPACING } from "@/constants/colors";
 import { useSound } from "@/contexts/SoundContext";
 import type { Player } from "@/types/game";
 import { PLAYER_COLORS } from "@/types/game";
@@ -87,16 +87,14 @@ export default function Game() {
         {/* Action row: Dice + buttons */}
         <View style={styles.actionRow}>
           <Dice onRoll={(value) => { /* TODO: move player */ }} />
-          <View style={styles.actionButtons}>
-            <Pressable style={[styles.actionButton, styles.actionLoan]}>
-              <Ionicons name="business" size={20} color={COLORS.white} />
-              <Text style={styles.actionText}>Loan</Text>
-            </Pressable>
-            <Pressable style={[styles.actionButton, styles.actionEnd]}>
-              <Ionicons name="arrow-forward" size={20} color={COLORS.white} />
-              <Text style={styles.actionText}>End</Text>
-            </Pressable>
-          </View>
+          <Pressable style={[styles.actionButton, styles.actionLoan]}>
+            <Ionicons name="business" size={20} color={COLORS.white} />
+            <Text style={styles.actionText}>Loan</Text>
+          </Pressable>
+          <Pressable style={[styles.actionButton, styles.actionEnd]}>
+            <Ionicons name="arrow-forward" size={20} color={COLORS.white} />
+            <Text style={styles.actionText}>End</Text>
+          </Pressable>
         </View>
 
         {/* Player cards */}
