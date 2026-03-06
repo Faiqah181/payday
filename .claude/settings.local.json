@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npx tsc --noEmit)",
+      "Bash(npx expo customize tsconfig.json)",
+      "Bash(npx expo export --dump-sourcemap)"
+    ]
+  }
+}
