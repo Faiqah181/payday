@@ -82,8 +82,8 @@ const styles = StyleSheet.create({
     marginRight: 6,
   },
   name: {
-    fontFamily: "BlueWinter",
     fontSize: 14,
+    fontWeight: "700",
     color: COLORS.textDark,
     flex: 1,
   },
@@ -95,7 +95,7 @@ const styles = StyleSheet.create({
   },
   infoText: {
     fontSize: 12,
-    fontFamily: "BlueWinter",
+    fontWeight: "600",
     color: COLORS.textDark,
   },
 });

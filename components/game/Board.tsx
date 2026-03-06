@@ -89,7 +89,7 @@ const styles = StyleSheet.create({
   headerText: {
     textAlign: "center",
     fontSize: 10,
-    fontFamily: "BlueWinter",
+    fontWeight: "700",
     color: COLORS.white,
   },
   grid: {

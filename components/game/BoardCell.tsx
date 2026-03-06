@@ -96,7 +96,7 @@ const styles = StyleSheet.create({
   },
   dayNumber: {
     fontSize: 9,
-    fontFamily: "BlueWinter",
+    fontWeight: "700",
     color: COLORS.textDark,
     position: "absolute",
     top: 1,
