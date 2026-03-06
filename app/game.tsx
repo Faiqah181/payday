@@ -28,22 +28,32 @@ const MAX_POSITION = 31;
 
 type GameAction =
   | { type: "ROLL_DICE"; value: number }
+  | { type: "ANIMATION_COMPLETE" }
   | { type: "END_TURN" };
 
 function gameReducer(state: GameState, action: GameAction): GameState {
   switch (action.type) {
     case "ROLL_DICE": {
+      const player = state.players[state.currentPlayerIndex];
+      const from = player.position;
+      const to = Math.min(from + action.value, MAX_POSITION);
+      return {
+        ...state,
+        diceValue: action.value,
+        animatingMove: { playerIndex: state.currentPlayerIndex, from, to },
+      };
+    }
+    case "ANIMATION_COMPLETE": {
+      if (!state.animatingMove) return state;
+      const { playerIndex, to } = state.animatingMove;
       const updatedPlayers = state.players.map((player, i) => {
-        if (i !== state.currentPlayerIndex) return player;
-        return {
-          ...player,
-          position: Math.min(player.position + action.value, MAX_POSITION),
-        };
+        if (i !== playerIndex) return player;
+        return { ...player, position: to };
       });
       return {
         ...state,
         players: updatedPlayers,
-        diceValue: action.value,
+        animatingMove: null,
         phase: "end-turn",
       };
     }
@@ -105,6 +115,7 @@ function createInitialState(params: {
     totalMonths: params.monthCount,
     phase: "roll",
     diceValue: null,
+    animatingMove: null,
   };
 }
 
@@ -183,14 +194,20 @@ export default function Game() {
   );
 
   const board = (
-    <Board players={players} currentPlayerIndex={currentPlayerIndex} cellSize={cellSize} />
+    <Board
+      players={players}
+      currentPlayerIndex={currentPlayerIndex}
+      cellSize={cellSize}
+      animatingMove={gameState.animatingMove}
+      onAnimationComplete={() => dispatch({ type: "ANIMATION_COMPLETE" })}
+    />
   );
 
   const actions = (
     <View style={[styles.actionRow, isLandscape && styles.actionRowLandscape]}>
       <Dice
         onRoll={(value) => dispatch({ type: "ROLL_DICE", value })}
-        disabled={gameState.phase !== "roll"}
+        disabled={gameState.phase !== "roll" || gameState.animatingMove !== null}
         size={isLandscape ? 50 : 60}
       />
       <Pressable style={[styles.actionButton, styles.actionLoan]}>

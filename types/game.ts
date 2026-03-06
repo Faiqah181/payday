@@ -44,12 +44,19 @@ export interface Player {
   color: string;
 }
 
+export interface AnimatingMove {
+  playerIndex: number;
+  from: number;
+  to: number;
+}
+
 export interface GameState {
   players: Player[];
   currentPlayerIndex: number;
   totalMonths: number;
   phase: "roll" | "event" | "payday" | "end-turn" | "game-over";
   diceValue: number | null;
+  animatingMove: AnimatingMove | null;
 }
 
 export const PLAYER_COLORS = ["#E53935", "#1E88E5", "#43A047", "#FB8C00"];
