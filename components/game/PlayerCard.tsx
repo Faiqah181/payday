@@ -10,6 +10,8 @@ interface PlayerCardProps {
 }
 
 export default function PlayerCard({ player, isCurrentTurn, compact = false }: PlayerCardProps) {
+  const isSavings = player.accountType === "Savings";
+
   if (compact) {
     return (
       <View
@@ -23,6 +25,9 @@ export default function PlayerCard({ player, isCurrentTurn, compact = false }: P
         <Text style={styles.compactName} numberOfLines={1}>
           {player.name}
         </Text>
+        <View style={[styles.accountBadge, { backgroundColor: isSavings ? "#43A047" : "#E53935" }]}>
+          <Text style={styles.accountBadgeText}>{isSavings ? "S" : "L"}</Text>
+        </View>
         <Ionicons name="cash" size={12} color="#43A047" />
         <Text style={styles.compactText}>${player.cash.toLocaleString()}</Text>
         <Ionicons name="card" size={12} color="#E53935" />
@@ -48,6 +53,14 @@ export default function PlayerCard({ player, isCurrentTurn, compact = false }: P
         />
         <Text style={styles.name} numberOfLines={1}>
           {player.name}
+        </Text>
+      </View>
+
+      {/* Account type */}
+      <View style={styles.infoRow}>
+        <Ionicons name={isSavings ? "wallet" : "card"} size={14} color={isSavings ? "#43A047" : "#E53935"} />
+        <Text style={[styles.infoText, { color: isSavings ? "#43A047" : "#E53935" }]}>
+          {player.accountType}
         </Text>
       </View>
 
@@ -125,12 +138,12 @@ const styles = StyleSheet.create({
   compactCard: {
     backgroundColor: COLORS.white,
     borderRadius: 8,
-    paddingHorizontal: 10,
+    paddingHorizontal: 8,
     paddingVertical: 6,
     borderWidth: 2,
     flexDirection: "row",
     alignItems: "center",
-    gap: 6,
+    gap: 4,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.1,
@@ -138,15 +151,25 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   compactName: {
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: "700",
     color: COLORS.textDark,
+    minWidth: 36,
     flex: 1,
   },
   compactText: {
-    fontSize: 11,
+    fontSize: 10,
     fontWeight: "600",
     color: COLORS.textDark,
-    marginRight: 4,
+  },
+  accountBadge: {
+    borderRadius: 4,
+    paddingHorizontal: 5,
+    paddingVertical: 1,
+  },
+  accountBadgeText: {
+    fontSize: 10,
+    fontWeight: "800",
+    color: COLORS.white,
   },
 });
