@@ -67,13 +67,20 @@ export default function BoardCell({
       {playerColors.length > 0 && (
         <View style={styles.tokenRow}>
           {playerColors.map((color, i) => (
-            <View
-              key={i}
-              style={[
-                styles.token,
-                { backgroundColor: color, width: 6, height: 6, borderRadius: 3 },
-              ]}
-            />
+            <View key={i} style={styles.pawn}>
+              {/* Head */}
+              <View
+                style={[styles.pawnHead, { backgroundColor: color }]}
+              />
+              {/* Body */}
+              <View
+                style={[styles.pawnBody, { backgroundColor: color }]}
+              />
+              {/* Base */}
+              <View
+                style={[styles.pawnBase, { backgroundColor: color }]}
+              />
+            </View>
           ))}
         </View>
       )}
@@ -112,8 +119,31 @@ const styles = StyleSheet.create({
     position: "absolute",
     bottom: 2,
   },
-  token: {
+  pawn: {
+    alignItems: "center",
+    marginHorizontal: 1,
+  },
+  pawnHead: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
     borderWidth: 0.5,
-    borderColor: "rgba(0,0,0,0.2)",
+    borderColor: "rgba(0,0,0,0.25)",
+  },
+  pawnBody: {
+    width: 4,
+    height: 4,
+    borderLeftWidth: 0.5,
+    borderRightWidth: 0.5,
+    borderColor: "rgba(0,0,0,0.15)",
+    marginTop: -0.5,
+  },
+  pawnBase: {
+    width: 8,
+    height: 2.5,
+    borderRadius: 1,
+    borderWidth: 0.5,
+    borderColor: "rgba(0,0,0,0.25)",
+    marginTop: -0.5,
   },
 });
