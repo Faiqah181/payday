@@ -5,6 +5,7 @@ import * as SplashScreen from "expo-splash-screen";
 import { useFonts } from "expo-font";
 import { useEffect } from "react";
 import { COLORS } from "@/constants/colors";
+import { SoundProvider } from "@/contexts/SoundContext";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -24,7 +25,7 @@ export default function RootLayout() {
   }
 
   return (
-    <>
+    <SoundProvider>
       <Stack screenOptions={{ headerShown: false }}>
         <Stack.Screen name="index" />
         <Stack.Screen
@@ -56,6 +57,6 @@ export default function RootLayout() {
         />
       </Stack>
       <StatusBar style="light" />
-    </>
+    </SoundProvider>
   );
 }

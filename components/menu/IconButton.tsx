@@ -9,6 +9,7 @@ import Animated, {
 } from "react-native-reanimated";
 import { Ionicons } from "@expo/vector-icons";
 import { COLORS } from "@/constants/colors";
+import { useSound } from "@/contexts/SoundContext";
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
@@ -23,6 +24,7 @@ export default function IconButton({
   onPress,
   enterDelay = 0,
 }: IconButtonProps) {
+  const { playClick } = useSound();
   const opacity = useSharedValue(0);
   const scale = useSharedValue(1);
 
@@ -38,7 +40,7 @@ export default function IconButton({
   return (
     <AnimatedPressable
       style={[styles.button, animatedStyle]}
-      onPress={onPress}
+      onPress={() => { playClick(); onPress(); }}
       onPressIn={() => {
         scale.value = withSpring(0.9);
       }}

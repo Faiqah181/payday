@@ -9,6 +9,7 @@ import Animated, {
 } from "react-native-reanimated";
 import { Ionicons } from "@expo/vector-icons";
 import { COLORS, BORDER_RADIUS } from "@/constants/colors";
+import { useSound } from "@/contexts/SoundContext";
 import ComingSoonBadge from "./ComingSoonBadge";
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
@@ -32,6 +33,7 @@ export default function MenuButton({
   enterDelay = 0,
   size = "normal",
 }: MenuButtonProps) {
+  const { playClick } = useSound();
   const translateY = useSharedValue(30);
   const opacity = useSharedValue(0);
   const scale = useSharedValue(1);
@@ -75,7 +77,7 @@ export default function MenuButton({
         { backgroundColor: bgColor, borderBottomColor },
         animatedStyle,
       ]}
-      onPress={isDisabled ? undefined : onPress}
+      onPress={isDisabled ? undefined : () => { playClick(); onPress(); }}
       onPressIn={() => {
         if (!isDisabled) scale.value = withSpring(0.95);
       }}
