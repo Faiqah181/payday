@@ -6,9 +6,33 @@ import { StyleSheet, Text, View } from "react-native";
 interface PlayerCardProps {
   player: Player;
   isCurrentTurn: boolean;
+  compact?: boolean;
 }
 
-export default function PlayerCard({ player, isCurrentTurn }: PlayerCardProps) {
+export default function PlayerCard({ player, isCurrentTurn, compact = false }: PlayerCardProps) {
+  if (compact) {
+    return (
+      <View
+        style={[
+          styles.compactCard,
+          { borderColor: isCurrentTurn ? player.color : "transparent" },
+          isCurrentTurn && styles.activeCard,
+        ]}
+      >
+        <View style={[styles.colorDot, { backgroundColor: player.color }]} />
+        <Text style={styles.compactName} numberOfLines={1}>
+          {player.name}
+        </Text>
+        <Ionicons name="cash" size={12} color="#43A047" />
+        <Text style={styles.compactText}>${player.cash.toLocaleString()}</Text>
+        <Ionicons name="card" size={12} color="#E53935" />
+        <Text style={styles.compactText}>${player.loanBalance.toLocaleString()}</Text>
+        <Ionicons name="briefcase" size={12} color="#7B1FA2" />
+        <Text style={styles.compactText}>{player.deals.length}</Text>
+      </View>
+    );
+  }
+
   return (
     <View
       style={[
@@ -97,5 +121,32 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: "600",
     color: COLORS.textDark,
+  },
+  compactCard: {
+    backgroundColor: COLORS.white,
+    borderRadius: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderWidth: 2,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 2,
+  },
+  compactName: {
+    fontSize: 12,
+    fontWeight: "700",
+    color: COLORS.textDark,
+    flex: 1,
+  },
+  compactText: {
+    fontSize: 11,
+    fontWeight: "600",
+    color: COLORS.textDark,
+    marginRight: 4,
   },
 });

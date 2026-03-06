@@ -1,24 +1,23 @@
-import { COLORS } from "@/constants/colors";
 import {
   BOARD_COLS,
   BOARD_ROWS,
   DAY_HEADERS,
   getSpaceAt,
 } from "@/constants/board";
+import { COLORS } from "@/constants/colors";
 import type { Player } from "@/types/game";
-import { Dimensions, StyleSheet, Text, View } from "react-native";
+import { StyleSheet, Text, View } from "react-native";
 import BoardCell from "./BoardCell";
 
 interface BoardProps {
   players: Player[];
   currentPlayerIndex: number;
+  cellSize: number;
 }
 
-const BOARD_PADDING = 8;
-const CELL_SIZE =
-  (Dimensions.get("window").width - BOARD_PADDING * 2) / BOARD_COLS;
+const BOARD_PADDING = 2;
 
-export default function Board({ players, currentPlayerIndex }: BoardProps) {
+export default function Board({ players, currentPlayerIndex, cellSize }: BoardProps) {
   // Build a map of position -> player colors for token display
   const positionColors = new Map<number, string[]>();
   players.forEach((player) => {
@@ -36,7 +35,7 @@ export default function Board({ players, currentPlayerIndex }: BoardProps) {
         {DAY_HEADERS.map((name) => (
           <Text
             key={name}
-            style={[styles.headerText, { width: CELL_SIZE }]}
+            style={[styles.headerText, { width: cellSize }]}
           >
             {name}
           </Text>
@@ -55,7 +54,7 @@ export default function Board({ players, currentPlayerIndex }: BoardProps) {
                     key={col}
                     style={[
                       styles.emptyCell,
-                      { width: CELL_SIZE, height: CELL_SIZE },
+                      { width: cellSize, height: cellSize },
                     ]}
                   />
                 );
@@ -67,7 +66,7 @@ export default function Board({ players, currentPlayerIndex }: BoardProps) {
                   type={space.type}
                   playerColors={positionColors.get(space.day) ?? []}
                   isCurrentCell={space.day === currentPlayerPosition}
-                  cellSize={CELL_SIZE}
+                  cellSize={cellSize}
                 />
               );
             })}
