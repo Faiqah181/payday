@@ -1,5 +1,6 @@
 import { COLORS, SPACING } from "@/constants/colors";
 import Board from "@/components/game/Board";
+import Dice from "@/components/game/Dice";
 import PlayerCard from "@/components/game/PlayerCard";
 import { useSound } from "@/contexts/SoundContext";
 import type { Player } from "@/types/game";
@@ -83,20 +84,19 @@ export default function Game() {
         {/* Board */}
         <Board players={players} currentPlayerIndex={currentPlayerIndex} />
 
-        {/* Action buttons */}
+        {/* Action row: Dice + buttons */}
         <View style={styles.actionRow}>
-          <Pressable style={styles.actionButton}>
-            <Ionicons name="dice" size={20} color={COLORS.white} />
-            <Text style={styles.actionText}>Roll</Text>
-          </Pressable>
-          <Pressable style={[styles.actionButton, styles.actionLoan]}>
-            <Ionicons name="business" size={20} color={COLORS.white} />
-            <Text style={styles.actionText}>Loan</Text>
-          </Pressable>
-          <Pressable style={[styles.actionButton, styles.actionEnd]}>
-            <Ionicons name="arrow-forward" size={20} color={COLORS.white} />
-            <Text style={styles.actionText}>End</Text>
-          </Pressable>
+          <Dice onRoll={(value) => { /* TODO: move player */ }} />
+          <View style={styles.actionButtons}>
+            <Pressable style={[styles.actionButton, styles.actionLoan]}>
+              <Ionicons name="business" size={20} color={COLORS.white} />
+              <Text style={styles.actionText}>Loan</Text>
+            </Pressable>
+            <Pressable style={[styles.actionButton, styles.actionEnd]}>
+              <Ionicons name="arrow-forward" size={20} color={COLORS.white} />
+              <Text style={styles.actionText}>End</Text>
+            </Pressable>
+          </View>
         </View>
 
         {/* Player cards */}
@@ -147,10 +147,14 @@ const styles = StyleSheet.create({
   },
   actionRow: {
     flexDirection: "row",
+    alignItems: "center",
     justifyContent: "center",
-    gap: 12,
+    gap: 16,
     paddingVertical: SPACING.sm,
     paddingHorizontal: SPACING.md,
+  },
+  actionButtons: {
+    gap: 8,
   },
   actionButton: {
     flexDirection: "row",
