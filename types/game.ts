@@ -38,6 +38,7 @@ export interface Player {
   loanBalance: number;
   accountType: "Savings" | "Loan";
   position: number; // 0 = start, 1-31 = day
+  currentMonth: number; // 1-based, each player tracks independently
   deals: DealCard[];
   unpaidBills: MailCard[];
   color: string;
@@ -46,7 +47,6 @@ export interface Player {
 export interface GameState {
   players: Player[];
   currentPlayerIndex: number;
-  currentMonth: number;
   totalMonths: number;
   phase: "roll" | "event" | "payday" | "end-turn" | "game-over";
   diceValue: number | null;

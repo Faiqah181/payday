@@ -4,12 +4,12 @@ import PlayerCard from "@/components/game/PlayerCard";
 import { BOARD_COLS, BOARD_ROWS } from "@/constants/board";
 import { COLORS, SPACING } from "@/constants/colors";
 import { useSound } from "@/contexts/SoundContext";
-import type { Player } from "@/types/game";
+import type { GameState } from "@/types/game";
 import { PLAYER_COLORS } from "@/types/game";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { useMemo } from "react";
+import { useEffect, useReducer } from "react";
 import {
   Alert,
   Pressable,
@@ -24,6 +24,89 @@ import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context"
 const BOARD_PADDING = 8;
 const DAY_HEADER_HEIGHT = 16;
 const SIDEBAR_MIN_WIDTH = 200;
+const MAX_POSITION = 31;
+
+type GameAction =
+  | { type: "ROLL_DICE"; value: number }
+  | { type: "END_TURN" };
+
+function gameReducer(state: GameState, action: GameAction): GameState {
+  switch (action.type) {
+    case "ROLL_DICE": {
+      const updatedPlayers = state.players.map((player, i) => {
+        if (i !== state.currentPlayerIndex) return player;
+        return {
+          ...player,
+          position: Math.min(player.position + action.value, MAX_POSITION),
+        };
+      });
+      return {
+        ...state,
+        players: updatedPlayers,
+        diceValue: action.value,
+        phase: "end-turn",
+      };
+    }
+    case "END_TURN": {
+      const currentPlayer = state.players[state.currentPlayerIndex];
+      const atPayDay = currentPlayer.position === MAX_POSITION;
+
+      const updatedPlayers = atPayDay
+        ? state.players.map((player, i) => {
+            if (i !== state.currentPlayerIndex) return player;
+            return { ...player, position: 0, currentMonth: player.currentMonth + 1 };
+          })
+        : state.players;
+
+      // Check game over: all players have completed all months
+      const allDone = updatedPlayers.every((p) => p.currentMonth > state.totalMonths);
+      if (allDone) {
+        return { ...state, players: updatedPlayers, phase: "game-over", diceValue: null };
+      }
+
+      // Skip players who have already finished all months
+      let nextIndex = (state.currentPlayerIndex + 1) % state.players.length;
+      while (updatedPlayers[nextIndex].currentMonth > state.totalMonths) {
+        nextIndex = (nextIndex + 1) % state.players.length;
+      }
+
+      return {
+        ...state,
+        players: updatedPlayers,
+        currentPlayerIndex: nextIndex,
+        diceValue: null,
+        phase: "roll",
+      };
+    }
+    default:
+      return state;
+  }
+}
+
+function createInitialState(params: {
+  playerCount: number;
+  monthCount: number;
+  names: string[];
+  accounts: string[];
+}): GameState {
+  return {
+    players: Array.from({ length: params.playerCount }, (_, i) => ({
+      name: params.names[i] || `Player ${i + 1}`,
+      cash: 3500,
+      loanBalance: 0,
+      accountType: (params.accounts[i] as "Savings" | "Loan") || "Savings",
+      position: 0,
+      currentMonth: 1,
+      deals: [],
+      unpaidBills: [],
+      color: PLAYER_COLORS[i],
+    })),
+    currentPlayerIndex: 0,
+    totalMonths: params.monthCount,
+    phase: "roll",
+    diceValue: null,
+  };
+}
 
 export default function Game() {
   const router = useRouter();
@@ -32,34 +115,34 @@ export default function Game() {
   const insets = useSafeAreaInsets();
   const isLandscape = width > height;
 
-  const params = useLocalSearchParams<{
+  const routeParams = useLocalSearchParams<{
     playerNames: string;
     accountTypes: string;
     playerCount: string;
     monthCount: string;
   }>();
 
-  const playerCount = Number(params.playerCount) || 2;
-  const monthCount = Number(params.monthCount) || 3;
-  const names = params.playerNames?.split(",") ?? [];
-  const accounts = params.accountTypes?.split(",") ?? [];
+  const playerCount = Number(routeParams.playerCount) || 2;
+  const monthCount = Number(routeParams.monthCount) || 3;
+  const names = routeParams.playerNames?.split(",") ?? [];
+  const accounts = routeParams.accountTypes?.split(",") ?? [];
 
-  const players: Player[] = useMemo(
-    () =>
-      Array.from({ length: playerCount }, (_, i) => ({
-        name: names[i] || `Player ${i + 1}`,
-        cash: 3500,
-        loanBalance: 0,
-        accountType: (accounts[i] as "Savings" | "Loan") || "Savings",
-        position: 0,
-        deals: [],
-        unpaidBills: [],
-        color: PLAYER_COLORS[i],
-      })),
-    []
+  const [gameState, dispatch] = useReducer(
+    gameReducer,
+    { playerCount, monthCount, names, accounts },
+    createInitialState,
   );
 
-  const currentPlayerIndex = 0;
+  const { players, currentPlayerIndex } = gameState;
+  const currentPlayer = players[currentPlayerIndex];
+
+  useEffect(() => {
+    if (gameState.phase === "game-over") {
+      Alert.alert("Game Over", "All players have completed all months!", [
+        { text: "OK", onPress: () => router.replace("/") },
+      ]);
+    }
+  }, [gameState.phase]);
 
   // Compute cellSize based on orientation
   const sidebarWidth = isLandscape
@@ -91,7 +174,7 @@ export default function Game() {
         <Ionicons name="arrow-back" size={isLandscape ? 18 : 22} color={COLORS.white} />
       </Pressable>
       <Text style={[styles.monthText, isLandscape && styles.monthTextLandscape]}>
-        Month 1 of {monthCount}
+        Month {currentPlayer.currentMonth} of {gameState.totalMonths}
       </Text>
       <Pressable onPress={() => router.replace("/how-to-play")} style={isLandscape ? styles.exitButtonSmall : styles.exitButton}>
         <Ionicons name="help" size={isLandscape ? 18 : 22} color={COLORS.white} />
@@ -105,12 +188,19 @@ export default function Game() {
 
   const actions = (
     <View style={[styles.actionRow, isLandscape && styles.actionRowLandscape]}>
-      <Dice onRoll={() => { /* TODO: move player */ }} size={isLandscape ? 50 : 60} />
+      <Dice
+        onRoll={(value) => dispatch({ type: "ROLL_DICE", value })}
+        disabled={gameState.phase !== "roll"}
+        size={isLandscape ? 50 : 60}
+      />
       <Pressable style={[styles.actionButton, styles.actionLoan]}>
         <Ionicons name="business" size={20} color={COLORS.white} />
         <Text style={styles.actionText}>Loan</Text>
       </Pressable>
-      <Pressable style={[styles.actionButton, styles.actionEnd]}>
+      <Pressable
+        style={[styles.actionButton, styles.actionEnd, gameState.phase !== "end-turn" && styles.actionDisabled]}
+        onPress={() => { if (gameState.phase === "end-turn") dispatch({ type: "END_TURN" }); }}
+      >
         <Ionicons name="arrow-forward" size={20} color={COLORS.white} />
         <Text style={styles.actionText}>End</Text>
       </Pressable>
@@ -262,6 +352,9 @@ const styles = StyleSheet.create({
   actionEnd: {
     backgroundColor: COLORS.iconButton,
     borderBottomColor: COLORS.iconButtonBorder,
+  },
+  actionDisabled: {
+    opacity: 0.5,
   },
   actionText: {
     fontFamily: "BlueWinter",
