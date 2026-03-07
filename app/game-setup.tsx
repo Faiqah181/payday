@@ -24,7 +24,7 @@ export default function GameSetup() {
   const [playerCount, setPlayerCount] = useState(2);
   const [monthCount, setMonthCount] = useState(3);
   const [playerNames, setPlayerNames] = useState<string[]>(
-    Array(PLAYER_OPTIONS[PLAYER_OPTIONS.length - 1]).fill("")
+    Array.from({ length: PLAYER_OPTIONS[PLAYER_OPTIONS.length - 1] }, (_, i) => `Player ${i + 1}`)
   );
   const [accountTypes, setAccountTypes] = useState<AccountType[]>(
     Array(PLAYER_OPTIONS[PLAYER_OPTIONS.length - 1]).fill("Savings")
@@ -115,7 +115,7 @@ export default function GameSetup() {
             <View key={i} style={styles.playerCard}>
               <TextInput
                 style={styles.nameInput}
-                placeholder={`Player ${i + 1}`}
+                placeholder={`Enter player ${i + 1} name`}
                 placeholderTextColor="#9E9E9E"
                 value={playerNames[i]}
                 onChangeText={(text) => updateName(i, text)}

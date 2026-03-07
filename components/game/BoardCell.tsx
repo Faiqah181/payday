@@ -1,8 +1,8 @@
+import { SPACE_CONFIG } from "@/constants/board";
 import { COLORS } from "@/constants/colors";
 import type { SpaceType } from "@/types/game";
 import { Ionicons } from "@expo/vector-icons";
 import { StyleSheet, Text, View } from "react-native";
-
 interface BoardCellProps {
   day: number;
   type: SpaceType;
@@ -10,22 +10,6 @@ interface BoardCellProps {
   isCurrentCell: boolean;
   cellSize: number;
 }
-
-const SPACE_CONFIG: Record<
-  SpaceType,
-  { icon: keyof typeof Ionicons.glyphMap; color: string; label: string }
-> = {
-  start: { icon: "flag", color: "#43A047", label: "START" },
-  mail: { icon: "mail", color: "#1E88E5", label: "Mail" },
-  deal: { icon: "briefcase", color: "#43A047", label: "Deal" },
-  "mail+deal": { icon: "layers", color: "#7B1FA2", label: "M+D" },
-  buyer: { icon: "cart", color: "#8E24AA", label: "Buyer" },
-  lottery: { icon: "ticket", color: "#F9A825", label: "Lotto" },
-  birthday: { icon: "gift", color: "#E91E63", label: "B-Day" },
-  radio: { icon: "radio", color: "#00897B", label: "Radio" },
-  "yard-sale": { icon: "pricetag", color: "#EF6C00", label: "Sale" },
-  "salary-day": { icon: "cash", color: "#2E7D32", label: "PAY" },
-};
 
 export default function BoardCell({
   day,

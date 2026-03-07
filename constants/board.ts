@@ -1,9 +1,28 @@
-import type { BoardSpace } from "@/types/game";
+import type { BoardSpace, SpaceType } from "@/types/game";
+import { Ionicons } from "@expo/vector-icons";
 
-// Original 1975 Salary Day board layout as a calendar grid
+
+export const SPACE_CONFIG: Record<
+  SpaceType,
+  { icon: keyof typeof Ionicons.glyphMap; color: string; label: string }
+> = {
+  start: { icon: "flag", color: "#43A047", label: "START" },
+  mail: { icon: "mail", color: "#1E88E5", label: "Mail" },
+  deal: { icon: "briefcase", color: "#43A047", label: "Deal" },
+  "mail+deal": { icon: "layers", color: "#7B1FA2", label: "M+D" },
+  buyer: { icon: "cart", color: "#8E24AA", label: "Buyer" },
+  lottery: { icon: "ticket", color: "#F9A825", label: "Lotto" },
+  birthday: { icon: "gift", color: "#E91E63", label: "B-Day" },
+  radio: { icon: "radio", color: "#00897B", label: "Radio" },
+  "yard-sale": { icon: "pricetag", color: "#EF6C00", label: "Sale" },
+  "salary-day": { icon: "cash", color: "#2E7D32", label: "PAY" },
+};
+
+
+// Salary Day board layout as a calendar grid
 // 7 columns (Sun-Sat), 5 rows
 // Day 0 = START (Sunday of week 1)
-// Day 31 = PAY DAY (Wednesday of week 5)
+// Day 31 = SALARY DAY (Wednesday of week 5)
 
 export const BOARD_SPACES: BoardSpace[] = [
   // Row 0 (Week 1): Sun=START, Mon=1, Tue=2, Wed=3, Thu=4, Fri=5, Sat=6
