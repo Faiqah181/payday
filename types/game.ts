@@ -8,7 +8,7 @@ export type SpaceType =
   | "birthday"
   | "radio"
   | "yard-sale"
-  | "pay-day";
+  | "salary-day";
 
 export interface BoardSpace {
   day: number; // 0 = start, 1-31 = calendar day
@@ -54,7 +54,7 @@ export interface GameState {
   players: Player[];
   currentPlayerIndex: number;
   totalMonths: number;
-  phase: "roll" | "event" | "payday" | "end-turn" | "game-over";
+  phase: "roll" | "event" | "salary-day" | "end-turn" | "game-over";
   diceValue: number | null;
   animatingMove: AnimatingMove | null;
 }

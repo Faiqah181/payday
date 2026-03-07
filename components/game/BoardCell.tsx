@@ -24,7 +24,7 @@ const SPACE_CONFIG: Record<
   birthday: { icon: "gift", color: "#E91E63", label: "B-Day" },
   radio: { icon: "radio", color: "#00897B", label: "Radio" },
   "yard-sale": { icon: "pricetag", color: "#EF6C00", label: "Sale" },
-  "pay-day": { icon: "cash", color: "#2E7D32", label: "PAY" },
+  "salary-day": { icon: "cash", color: "#2E7D32", label: "PAY" },
 };
 
 export default function BoardCell({
@@ -35,7 +35,7 @@ export default function BoardCell({
   cellSize,
 }: BoardCellProps) {
   const config = SPACE_CONFIG[type];
-  const isPayDay = type === "pay-day";
+  const isSalaryDay = type === "salary-day";
   const isStart = type === "start";
 
   return (
@@ -45,7 +45,7 @@ export default function BoardCell({
         {
           width: cellSize,
           height: cellSize,
-          backgroundColor: isPayDay
+          backgroundColor: isSalaryDay
             ? "#C8E6C9"
             : isStart
               ? "#E8F5E9"
@@ -54,7 +54,7 @@ export default function BoardCell({
         isCurrentCell && styles.currentCell,
       ]}
     >
-      <Text style={[styles.dayNumber, isPayDay && styles.payDayText]}>
+      <Text style={[styles.dayNumber, isSalaryDay && styles.salaryDayText]}>
         {isStart ? "S" : day}
       </Text>
 
@@ -112,7 +112,7 @@ const styles = StyleSheet.create({
     top: 1,
     left: 3,
   },
-  payDayText: {
+  salaryDayText: {
     color: "#2E7D32",
     fontWeight: "800",
   },

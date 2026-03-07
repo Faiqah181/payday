@@ -30,7 +30,7 @@ export default function Index() {
     >
       <SafeAreaView style={styles.container}>
         <View style={styles.titleContainer}>
-          <Text style={styles.titleText}>PAYDAY</Text>
+          <Text style={styles.titleText}>SALARY DAY</Text>
         </View>
 
         <View style={styles.buttonContainer}>

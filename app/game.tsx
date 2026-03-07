@@ -59,9 +59,9 @@ function gameReducer(state: GameState, action: GameAction): GameState {
     }
     case "END_TURN": {
       const currentPlayer = state.players[state.currentPlayerIndex];
-      const atPayDay = currentPlayer.position === MAX_POSITION;
+      const atSalaryDay = currentPlayer.position === MAX_POSITION;
 
-      const updatedPlayers = atPayDay
+      const updatedPlayers = atSalaryDay
         ? state.players.map((player, i) => {
             if (i !== state.currentPlayerIndex) return player;
             return { ...player, position: 0, currentMonth: player.currentMonth + 1 };

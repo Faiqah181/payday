@@ -20,7 +20,7 @@ That's it. Super simple. Next player goes!`,
     title: "📅 The Board",
     body: `The board is a 31-day calendar — like one month of your life.
 
-You start at Day 1 and move toward Day 31 (Pay Day!). Each space is a different type of event. After reaching Day 31, you start a new month from Day 1 again.
+You start at Day 1 and move toward Day 31 (Salary Day!). Each space is a different type of event. After reaching Day 31, you start a new month from Day 1 again.
 
 You play for a set number of months (agreed before the game starts — usually 3 to 6).`,
   },
@@ -50,7 +50,7 @@ You play for a set number of months (agreed before the game starts — usually 3
 
 💸 Bills — You gotta pay these (utilities, insurance, medical, etc.)
 📺 Ads — Junk mail, nothing happens lol
-💳 Monster Charge — Credit card bill! Must be paid on Pay Day
+💳 Monster Charge — Credit card bill! Must be paid on Salary Day
 🎁 Good Stuff — Tax refunds, small inheritances, surprise money!`,
   },
   {
@@ -64,8 +64,8 @@ Each Deal card has two prices:
 💡 Strategy tip: Buy deals when you can! Selling them later is the #1 way to get ahead. Think of them like flipping items for profit.`,
   },
   {
-    title: "💰 Pay Day (Day 31)",
-    body: `Every time you reach or pass Day 31, it's PAY DAY! Here's what happens:
+    title: "💰 Salary Day (Day 31)",
+    body: `Every time you reach or pass Day 31, it's SALARY DAY! Here's what happens:
 
 1️⃣  Collect your salary — $3,500 cash money 🎉
 2️⃣  Pay all your outstanding Mail bills
@@ -80,14 +80,14 @@ Then start the new month from Day 1!`,
 
 📌 Borrow in amounts of $1,000
 📌 You can borrow at ANY time during your turn
-📌 On Pay Day, you pay 10% interest on whatever you owe
-📌 You can pay back loans (partially or fully) on Pay Day
+📌 On Salary Day, you pay 10% interest on whatever you owe
+📌 You can pay back loans (partially or fully) on Salary Day
 
 ⚠️ Be careful though — interest adds up FAST and eats into your profits!`,
   },
   {
     title: "🏆 How to Win",
-    body: `After the final month ends (everyone reaches the last Pay Day):
+    body: `After the final month ends (everyone reaches the last Salary Day):
 
 1️⃣  Pay off ALL remaining loans
 2️⃣  Sell any unsold Deal cards at their sale price
@@ -115,7 +115,7 @@ export default function HowToPlay() {
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       <Text style={styles.intro}>
-        Welcome to PayDay! 🎉 Here's everything you need to know to play like a
+        Welcome to Salary Day! 🎉 Here's everything you need to know to play like a
         pro.
       </Text>
 

@@ -1,6 +1,6 @@
 import type { BoardSpace } from "@/types/game";
 
-// Original 1975 PayDay board layout as a calendar grid
+// Original 1975 Salary Day board layout as a calendar grid
 // 7 columns (Sun-Sat), 5 rows
 // Day 0 = START (Sunday of week 1)
 // Day 31 = PAY DAY (Wednesday of week 5)
@@ -46,7 +46,7 @@ export const BOARD_SPACES: BoardSpace[] = [
   { day: 28, type: "mail", row: 4, col: 0 },
   { day: 29, type: "deal", row: 4, col: 1 },
   { day: 30, type: "mail", row: 4, col: 2 },
-  { day: 31, type: "pay-day", row: 4, col: 3 },
+  { day: 31, type: "salary-day", row: 4, col: 3 },
 ];
 
 export const DAY_HEADERS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
