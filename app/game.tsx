@@ -1,5 +1,6 @@
 import Board from "@/components/game/Board";
 import DealCardModal from "@/components/game/DealCardModal";
+import DealsViewer from "@/components/game/DealsViewer";
 import Dice from "@/components/game/Dice";
 import EventToast from "@/components/game/EventToast";
 import PlayerCard from "@/components/game/PlayerCard";
@@ -12,7 +13,7 @@ import { PLAYER_COLORS } from "@/types/game";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { useEffect, useReducer } from "react";
+import { useEffect, useReducer, useState } from "react";
 import {
   Alert,
   Pressable,
@@ -205,6 +206,7 @@ export default function Game() {
 
   const { players, currentPlayerIndex } = gameState;
   const currentPlayer = players[currentPlayerIndex];
+  const [showDealsViewer, setShowDealsViewer] = useState(false);
 
   useEffect(() => {
     if (gameState.phase === "game-over") {
@@ -274,6 +276,13 @@ export default function Game() {
         <Text style={styles.actionText}>Loan</Text>
       </Pressable>
       <Pressable
+        style={[styles.actionButton, styles.actionDeals]}
+        onPress={() => setShowDealsViewer(true)}
+      >
+        <Ionicons name="briefcase" size={20} color={COLORS.white} />
+        <Text style={styles.actionText}>Deals</Text>
+      </Pressable>
+      <Pressable
         style={[styles.actionButton, styles.actionEnd, gameState.phase !== "end-turn" && styles.actionDisabled]}
         onPress={() => { if (gameState.phase === "end-turn") dispatch({ type: "END_TURN" }); }}
       >
@@ -308,6 +317,13 @@ export default function Game() {
     />
   ) : null;
 
+  const dealsViewer = showDealsViewer ? (
+    <DealsViewer
+      deals={currentPlayer.deals}
+      onClose={() => setShowDealsViewer(false)}
+    />
+  ) : null;
+
   const dealModal = gameState.currentDeal ? (
     <DealCardModal
       deal={gameState.currentDeal}
@@ -338,6 +354,7 @@ export default function Game() {
           </View>
           {eventToast}
           {dealModal}
+          {dealsViewer}
         </SafeAreaView>
       </LinearGradient>
     );
@@ -355,6 +372,7 @@ export default function Game() {
         {playerCards}
         {eventToast}
         {dealModal}
+        {dealsViewer}
       </SafeAreaView>
     </LinearGradient>
   );
@@ -443,6 +461,10 @@ const styles = StyleSheet.create({
   actionLoan: {
     backgroundColor: COLORS.secondary,
     borderBottomColor: COLORS.secondaryBorder,
+  },
+  actionDeals: {
+    backgroundColor: "#7B1FA2",
+    borderBottomColor: "#6A1B9A",
   },
   actionEnd: {
     backgroundColor: COLORS.iconButton,
