@@ -1,13 +1,19 @@
 export type SpaceType =
   | "start"
-  | "mail"
+  | "post-mail"
   | "deal"
-  | "mail+deal"
-  | "buyer"
-  | "lottery"
-  | "birthday"
-  | "radio"
-  | "yard-sale"
+  | "asset-buyer"
+  | "lazy-sunday"
+  | "birthday-gift"
+  | "visitor-surprise"
+  | "performance-bonus"
+  | "poker-game"
+  | "school-reunion"
+  | "household-essentials"
+  | "home-rent"
+  | "election"
+  | "daylight-saving"
+  | "lottery-result"
   | "salary-day";
 
 export interface BoardSpace {

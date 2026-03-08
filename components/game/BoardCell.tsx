@@ -21,6 +21,15 @@ export default function BoardCell({
   const config = SPACE_CONFIG[type];
   const isSalaryDay = type === "salary-day";
   const isStart = type === "start";
+  const isLazySunday = type === "lazy-sunday";
+
+  const cellBg = isSalaryDay
+    ? "#C8E6C9"
+    : isStart
+      ? "#E8F5E9"
+      : isLazySunday
+        ? "#ECEFF1"
+        : COLORS.white;
 
   return (
     <View
@@ -29,11 +38,7 @@ export default function BoardCell({
         {
           width: cellSize,
           height: cellSize,
-          backgroundColor: isSalaryDay
-            ? "#C8E6C9"
-            : isStart
-              ? "#E8F5E9"
-              : COLORS.white,
+          backgroundColor: cellBg,
         },
         isCurrentCell && styles.currentCell,
       ]}
