@@ -56,6 +56,12 @@ export interface AnimatingMove {
   to: number;
 }
 
+export interface EventMessage {
+  title: string;
+  description: string;
+  amount: number;
+}
+
 export interface GameState {
   players: Player[];
   currentPlayerIndex: number;
@@ -63,6 +69,7 @@ export interface GameState {
   phase: "roll" | "event" | "salary-day" | "end-turn" | "game-over";
   diceValue: number | null;
   animatingMove: AnimatingMove | null;
+  eventMessage: EventMessage | null;
 }
 
 export const PLAYER_COLORS = ["#E53935", "#1E88E5", "#43A047", "#FB8C00"];

@@ -1,7 +1,8 @@
 import Board from "@/components/game/Board";
 import Dice from "@/components/game/Dice";
+import EventToast from "@/components/game/EventToast";
 import PlayerCard from "@/components/game/PlayerCard";
-import { BOARD_COLS, BOARD_ROWS } from "@/constants/board";
+import { BOARD_COLS, BOARD_ROWS, SPACE_EVENTS, getSpaceByDay } from "@/constants/board";
 import { COLORS, SPACING } from "@/constants/colors";
 import { useSound } from "@/contexts/SoundContext";
 import type { GameState } from "@/types/game";
@@ -29,6 +30,7 @@ const MAX_POSITION = 31;
 type GameAction =
   | { type: "ROLL_DICE"; value: number }
   | { type: "ANIMATION_COMPLETE" }
+  | { type: "DISMISS_EVENT" }
   | { type: "END_TURN" };
 
 function gameReducer(state: GameState, action: GameAction): GameState {
@@ -46,16 +48,26 @@ function gameReducer(state: GameState, action: GameAction): GameState {
     case "ANIMATION_COMPLETE": {
       if (!state.animatingMove) return state;
       const { playerIndex, to } = state.animatingMove;
+      const space = getSpaceByDay(to);
+      const event = space ? SPACE_EVENTS[space.type] : undefined;
       const updatedPlayers = state.players.map((player, i) => {
         if (i !== playerIndex) return player;
-        return { ...player, position: to };
+        return {
+          ...player,
+          position: to,
+          ...(event ? { cash: player.cash + event.amount } : {}),
+        };
       });
       return {
         ...state,
         players: updatedPlayers,
         animatingMove: null,
-        phase: "end-turn",
+        phase: event ? "event" : "end-turn",
+        eventMessage: event ?? null,
       };
+    }
+    case "DISMISS_EVENT": {
+      return { ...state, eventMessage: null, phase: "end-turn" };
     }
     case "END_TURN": {
       const currentPlayer = state.players[state.currentPlayerIndex];
@@ -102,7 +114,7 @@ function createInitialState(params: {
   return {
     players: Array.from({ length: params.playerCount }, (_, i) => ({
       name: params.names[i] || `Player ${i + 1}`,
-      cash: 3500,
+      cash: 500,
       loanBalance: 0,
       accountType: (params.accounts[i] as "Savings" | "Loan") || "Savings",
       position: 0,
@@ -116,6 +128,7 @@ function createInitialState(params: {
     phase: "roll",
     diceValue: null,
     animatingMove: null,
+    eventMessage: null,
   };
 }
 
@@ -242,6 +255,13 @@ export default function Game() {
     </ScrollView>
   );
 
+  const eventToast = gameState.eventMessage ? (
+    <EventToast
+      event={gameState.eventMessage}
+      onDismiss={() => dispatch({ type: "DISMISS_EVENT" })}
+    />
+  ) : null;
+
   if (isLandscape) {
     return (
       <LinearGradient
@@ -262,6 +282,7 @@ export default function Game() {
               {playerCards}
             </View>
           </View>
+          {eventToast}
         </SafeAreaView>
       </LinearGradient>
     );
@@ -277,6 +298,7 @@ export default function Game() {
         {board}
         {actions}
         {playerCards}
+        {eventToast}
       </SafeAreaView>
     </LinearGradient>
   );

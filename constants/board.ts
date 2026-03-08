@@ -1,4 +1,4 @@
-import type { BoardSpace, SpaceType } from "@/types/game";
+import type { BoardSpace, EventMessage, SpaceType } from "@/types/game";
 import { Ionicons } from "@expo/vector-icons";
 
 
@@ -24,6 +24,14 @@ export const SPACE_CONFIG: Record<
   "salary-day": { icon: "cash", color: "#2E7D32", label: "PAY" },
 };
 
+export const SPACE_EVENTS: Partial<Record<SpaceType, EventMessage>> = {
+  "birthday-gift": { title: "Happy Birthday!", description: "It's your birthday! 🎂", amount: 400 },
+  "performance-bonus": { title: "Performance Bonus!", description: "Great work this month! 🏆", amount: 100 },
+  "visitor-surprise": { title: "Surprise Visitor!", description: "An unexpected guest drops by 👋", amount: -50 },
+  "school-reunion": { title: "School Reunion!", description: "Dinner with old friends 🎓", amount: -40 },
+  "household-essentials": { title: "Household Bills!", description: "Time to restock supplies 🏠", amount: -75 },
+  "home-rent": { title: "Rent Due!", description: "Monthly rent payment 🔑", amount: -50 },
+};
 
 // Salary Day board layout as a calendar grid
 // 7 columns (Sun-Sat), 5 rows
