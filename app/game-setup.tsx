@@ -1,5 +1,5 @@
-import { COLORS, SPACING, BORDER_RADIUS } from "@/constants/colors";
 import MenuButton from "@/components/menu/MenuButton";
+import { BORDER_RADIUS, COLORS, SPACING } from "@/constants/colors";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
@@ -15,7 +15,7 @@ import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view
 import { SafeAreaView } from "react-native-safe-area-context";
 
 const PLAYER_OPTIONS = [2, 3, 4];
-const MONTH_OPTIONS = [1, 2, 3, 4, 5, 6];
+const MONTH_OPTIONS = [2, 3, 4, 5, 6];
 const ACCOUNT_TYPES = ["Savings", "Loan"] as const;
 type AccountType = (typeof ACCOUNT_TYPES)[number];
 
