@@ -26,8 +26,10 @@ export interface BoardSpace {
 export interface DealCard {
   id: number;
   title: string;
+  description: string;
   buyPrice: number;
   sellPrice: number;
+  commission: number;
 }
 
 export interface MailCard {
@@ -66,10 +68,12 @@ export interface GameState {
   players: Player[];
   currentPlayerIndex: number;
   totalMonths: number;
-  phase: "roll" | "event" | "salary-day" | "end-turn" | "game-over";
+  phase: "roll" | "event" | "deal" | "salary-day" | "end-turn" | "game-over";
   diceValue: number | null;
   animatingMove: AnimatingMove | null;
   eventMessage: EventMessage | null;
+  dealDeck: DealCard[];
+  currentDeal: DealCard | null;
 }
 
 export const PLAYER_COLORS = ["#E53935", "#1E88E5", "#43A047", "#FB8C00"];

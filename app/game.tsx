@@ -1,8 +1,10 @@
 import Board from "@/components/game/Board";
+import DealCardModal from "@/components/game/DealCardModal";
 import Dice from "@/components/game/Dice";
 import EventToast from "@/components/game/EventToast";
 import PlayerCard from "@/components/game/PlayerCard";
 import { BOARD_COLS, BOARD_ROWS, SPACE_EVENTS, getSpaceByDay } from "@/constants/board";
+import { ALL_DEALS, shuffleDeck } from "@/constants/deals";
 import { COLORS, SPACING } from "@/constants/colors";
 import { useSound } from "@/contexts/SoundContext";
 import type { GameState } from "@/types/game";
@@ -31,6 +33,8 @@ type GameAction =
   | { type: "ROLL_DICE"; value: number }
   | { type: "ANIMATION_COMPLETE" }
   | { type: "DISMISS_EVENT" }
+  | { type: "BUY_DEAL" }
+  | { type: "DISCARD_DEAL" }
   | { type: "END_TURN" };
 
 function gameReducer(state: GameState, action: GameAction): GameState {
@@ -50,6 +54,8 @@ function gameReducer(state: GameState, action: GameAction): GameState {
       const { playerIndex, to } = state.animatingMove;
       const space = getSpaceByDay(to);
       const event = space ? SPACE_EVENTS[space.type] : undefined;
+      const isDeal = space?.type === "deal";
+
       const updatedPlayers = state.players.map((player, i) => {
         if (i !== playerIndex) return player;
         return {
@@ -58,6 +64,22 @@ function gameReducer(state: GameState, action: GameAction): GameState {
           ...(event ? { cash: player.cash + event.amount } : {}),
         };
       });
+
+      // Deal space: draw a card from the deck
+      if (isDeal) {
+        let deck = [...state.dealDeck];
+        if (deck.length === 0) deck = shuffleDeck([...ALL_DEALS]);
+        const [drawnCard, ...remainingDeck] = deck;
+        return {
+          ...state,
+          players: updatedPlayers,
+          animatingMove: null,
+          phase: "deal",
+          dealDeck: remainingDeck,
+          currentDeal: drawnCard,
+        };
+      }
+
       return {
         ...state,
         players: updatedPlayers,
@@ -68,6 +90,28 @@ function gameReducer(state: GameState, action: GameAction): GameState {
     }
     case "DISMISS_EVENT": {
       return { ...state, eventMessage: null, phase: "end-turn" };
+    }
+    case "BUY_DEAL": {
+      if (!state.currentDeal) return state;
+      const deal = state.currentDeal;
+      const updatedPlayers = state.players.map((player, i) => {
+        if (i !== state.currentPlayerIndex) return player;
+        return {
+          ...player,
+          cash: player.cash - deal.buyPrice,
+          deals: [...player.deals, deal],
+        };
+      });
+      return { ...state, players: updatedPlayers, currentDeal: null, phase: "end-turn" };
+    }
+    case "DISCARD_DEAL": {
+      if (!state.currentDeal) return state;
+      return {
+        ...state,
+        dealDeck: [...state.dealDeck, state.currentDeal],
+        currentDeal: null,
+        phase: "end-turn",
+      };
     }
     case "END_TURN": {
       const currentPlayer = state.players[state.currentPlayerIndex];
@@ -129,6 +173,8 @@ function createInitialState(params: {
     diceValue: null,
     animatingMove: null,
     eventMessage: null,
+    dealDeck: shuffleDeck([...ALL_DEALS]),
+    currentDeal: null,
   };
 }
 
@@ -262,6 +308,14 @@ export default function Game() {
     />
   ) : null;
 
+  const dealModal = gameState.currentDeal ? (
+    <DealCardModal
+      deal={gameState.currentDeal}
+      onBuy={() => dispatch({ type: "BUY_DEAL" })}
+      onDiscard={() => dispatch({ type: "DISCARD_DEAL" })}
+    />
+  ) : null;
+
   if (isLandscape) {
     return (
       <LinearGradient
@@ -283,6 +337,7 @@ export default function Game() {
             </View>
           </View>
           {eventToast}
+          {dealModal}
         </SafeAreaView>
       </LinearGradient>
     );
@@ -299,6 +354,7 @@ export default function Game() {
         {actions}
         {playerCards}
         {eventToast}
+        {dealModal}
       </SafeAreaView>
     </LinearGradient>
   );
