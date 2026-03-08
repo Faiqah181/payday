@@ -68,7 +68,7 @@ export interface GameState {
   players: Player[];
   currentPlayerIndex: number;
   totalMonths: number;
-  phase: "roll" | "event" | "deal" | "salary-day" | "end-turn" | "game-over";
+  phase: "roll" | "event" | "deal" | "asset-buyer" | "salary-day" | "end-turn" | "game-over";
   diceValue: number | null;
   animatingMove: AnimatingMove | null;
   eventMessage: EventMessage | null;

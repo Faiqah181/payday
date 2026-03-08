@@ -36,6 +36,8 @@ type GameAction =
   | { type: "DISMISS_EVENT" }
   | { type: "BUY_DEAL" }
   | { type: "DISCARD_DEAL" }
+  | { type: "SELL_DEAL"; dealId: number }
+  | { type: "SKIP_ASSET_BUYER" }
   | { type: "END_TURN" };
 
 function gameReducer(state: GameState, action: GameAction): GameState {
@@ -81,6 +83,26 @@ function gameReducer(state: GameState, action: GameAction): GameState {
         };
       }
 
+      // Asset-buyer space: sell a deal
+      if (space?.type === "asset-buyer") {
+        const hasDeals = updatedPlayers[playerIndex].deals.length > 0;
+        if (hasDeals) {
+          return {
+            ...state,
+            players: updatedPlayers,
+            animatingMove: null,
+            phase: "asset-buyer",
+          };
+        }
+        return {
+          ...state,
+          players: updatedPlayers,
+          animatingMove: null,
+          phase: "event",
+          eventMessage: { title: "Asset Buyer", description: "You have no deals to sell!", amount: 0 },
+        };
+      }
+
       return {
         ...state,
         players: updatedPlayers,
@@ -113,6 +135,22 @@ function gameReducer(state: GameState, action: GameAction): GameState {
         currentDeal: null,
         phase: "end-turn",
       };
+    }
+    case "SELL_DEAL": {
+      const updatedPlayers = state.players.map((player, i) => {
+        if (i !== state.currentPlayerIndex) return player;
+        const deal = player.deals.find((d) => d.id === action.dealId);
+        if (!deal) return player;
+        return {
+          ...player,
+          cash: player.cash + deal.sellPrice,
+          deals: player.deals.filter((d) => d.id !== action.dealId),
+        };
+      });
+      return { ...state, players: updatedPlayers, phase: "end-turn" };
+    }
+    case "SKIP_ASSET_BUYER": {
+      return { ...state, phase: "end-turn" };
     }
     case "END_TURN": {
       const currentPlayer = state.players[state.currentPlayerIndex];
@@ -324,6 +362,15 @@ export default function Game() {
     />
   ) : null;
 
+  const assetBuyerViewer = gameState.phase === "asset-buyer" ? (
+    <DealsViewer
+      deals={currentPlayer.deals}
+      onClose={() => dispatch({ type: "SKIP_ASSET_BUYER" })}
+      mode="sell"
+      onSell={(deal) => dispatch({ type: "SELL_DEAL", dealId: deal.id })}
+    />
+  ) : null;
+
   const dealModal = gameState.currentDeal ? (
     <DealCardModal
       deal={gameState.currentDeal}
@@ -355,6 +402,7 @@ export default function Game() {
           {eventToast}
           {dealModal}
           {dealsViewer}
+          {assetBuyerViewer}
         </SafeAreaView>
       </LinearGradient>
     );
@@ -373,6 +421,7 @@ export default function Game() {
         {eventToast}
         {dealModal}
         {dealsViewer}
+        {assetBuyerViewer}
       </SafeAreaView>
     </LinearGradient>
   );

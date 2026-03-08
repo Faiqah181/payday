@@ -9,19 +9,24 @@ const MODAL_MAX_HEIGHT = Dimensions.get("window").height * 0.65;
 interface DealsViewerProps {
   deals: DealCard[];
   onClose: () => void;
+  mode?: "view" | "sell";
+  onSell?: (deal: DealCard) => void;
 }
 
-export default function DealsViewer({ deals, onClose }: DealsViewerProps) {
+export default function DealsViewer({ deals, onClose, mode = "view", onSell }: DealsViewerProps) {
+  const isSellMode = mode === "sell";
   return (
     <Animated.View
       entering={FadeIn.duration(300)}
       exiting={FadeOut.duration(200)}
       style={styles.overlay}
     >
-      <View style={styles.modal}>
+      <View style={[styles.modal, isSellMode && styles.modalSell]}>
         {/* Header */}
         <View style={styles.header}>
-          <Text style={styles.headerTitle}>Your Deals ({deals.length})</Text>
+          <Text style={styles.headerTitle}>
+            {isSellMode ? "Sell a Deal" : `Your Deals (${deals.length})`}
+          </Text>
           <Pressable onPress={onClose} style={styles.closeButton}>
             <Ionicons name="close" size={22} color={COLORS.textDark} />
           </Pressable>
@@ -50,6 +55,12 @@ export default function DealsViewer({ deals, onClose }: DealsViewerProps) {
                   <Text style={styles.valueText}>Value: ${deal.sellPrice}</Text>
                 </View>
                 <Text style={styles.commissionText}>Commission: ${deal.commission}</Text>
+                {isSellMode && onSell && (
+                  <Pressable style={styles.sellButton} onPress={() => onSell(deal)}>
+                    <Ionicons name="cart" size={16} color={COLORS.white} />
+                    <Text style={styles.sellButtonText}>Sell ${deal.sellPrice}</Text>
+                  </Pressable>
+                )}
               </View>
             ))}
           </ScrollView>
@@ -171,5 +182,25 @@ const styles = StyleSheet.create({
   commissionText: {
     fontSize: 11,
     color: "#9E9E9E",
+  },
+  modalSell: {
+    borderColor: "#8E24AA",
+  },
+  sellButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 6,
+    backgroundColor: "#43A047",
+    paddingVertical: 8,
+    borderRadius: 16,
+    marginTop: 8,
+    borderBottomWidth: 2,
+    borderBottomColor: "#2E7D32",
+  },
+  sellButtonText: {
+    fontFamily: "BlueWinter",
+    fontSize: 14,
+    color: COLORS.white,
   },
 });
