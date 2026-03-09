@@ -11,6 +11,7 @@ interface MailCardModalProps {
 
 export default function MailCardModal({ mail, onDismiss }: MailCardModalProps) {
   const isLottery = mail.type === "lottery";
+  const isAd = mail.type === "ad";
 
   return (
     <Animated.View
@@ -18,42 +19,61 @@ export default function MailCardModal({ mail, onDismiss }: MailCardModalProps) {
       exiting={FadeOut.duration(200)}
       style={styles.overlay}
     >
-      <View style={[styles.card, isLottery && styles.cardLottery]}>
+      <View style={[styles.card, isLottery && styles.cardLottery, isAd && styles.cardAd]}>
+        {/* Close button for ads */}
+        {isAd && (
+          <Pressable onPress={onDismiss} style={styles.closeButton}>
+            <Ionicons name="close" size={20} color="#757575" />
+          </Pressable>
+        )}
+
         {/* Header */}
         <View style={styles.header}>
           <Ionicons
-            name={isLottery ? "ticket" : "mail"}
+            name={isAd ? "megaphone" : isLottery ? "ticket" : "mail"}
             size={20}
-            color={isLottery ? "#F9A825" : "#1E88E5"}
+            color={isAd ? "#78909C" : isLottery ? "#F9A825" : "#1E88E5"}
           />
-          <Text style={[styles.headerText, isLottery && styles.headerTextLottery]}>
-            {isLottery ? "LOTTERY TICKET" : "MAIL"}
+          <Text style={[styles.headerText, isLottery && styles.headerTextLottery, isAd && styles.headerTextAd]}>
+            {isAd ? "ADVERTISEMENT" : isLottery ? "LOTTERY TICKET" : "MAIL"}
           </Text>
         </View>
 
         <View style={styles.divider} />
 
         {/* Title */}
-        <Text style={styles.title}>{mail.title}</Text>
+        <Text style={styles.title}>{isAd ? `Buy ${mail.title}` : mail.title}</Text>
 
         {/* Description */}
         <Text style={styles.description}>{mail.description}</Text>
 
-        {/* Amount */}
-        <View style={[styles.amountBox, isLottery ? styles.amountBoxLottery : styles.amountBoxMail]}>
-          <Text style={styles.amountLabel}>{isLottery ? "COLLECT" : "AMOUNT"}</Text>
-          <Text style={[styles.amountValue, isLottery ? styles.amountValueLottery : styles.amountValueMail]}>
-            ${mail.amount}
-          </Text>
-        </View>
+        {/* Ad dismiss note */}
+        {isAd && (
+          <View style={styles.adNote}>
+            <Ionicons name="information-circle" size={14} color="#90A4AE" />
+            <Text style={styles.adNoteText}>No action needed — this card is discarded.</Text>
+          </View>
+        )}
 
-        {/* OK button */}
-        <Pressable
-          style={[styles.okButton, isLottery ? styles.okButtonLottery : styles.okButtonMail]}
-          onPress={onDismiss}
-        >
-          <Text style={styles.okButtonText}>OK</Text>
-        </Pressable>
+        {/* Amount (hidden for ads) */}
+        {!isAd && (
+          <View style={[styles.amountBox, isLottery ? styles.amountBoxLottery : styles.amountBoxMail]}>
+            <Text style={styles.amountLabel}>{isLottery ? "COLLECT" : "AMOUNT"}</Text>
+            <Text style={[styles.amountValue, isLottery ? styles.amountValueLottery : styles.amountValueMail]}>
+              ${mail.amount}
+            </Text>
+          </View>
+        )}
+
+        {/* OK button (hidden for ads — they use the X button) */}
+        {!isAd && (
+          <Pressable
+            style={[styles.okButton, isLottery ? styles.okButtonLottery : styles.okButtonMail]}
+            onPress={onDismiss}
+          >
+            <Text style={styles.okButtonText}>OK</Text>
+          </Pressable>
+        )}
       </View>
     </Animated.View>
   );
@@ -85,6 +105,21 @@ const styles = StyleSheet.create({
   cardLottery: {
     borderColor: "#F9A825",
   },
+  cardAd: {
+    borderColor: "#B0BEC5",
+  },
+  closeButton: {
+    position: "absolute",
+    top: 12,
+    right: 12,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: "#ECEFF1",
+    alignItems: "center",
+    justifyContent: "center",
+    zIndex: 1,
+  },
   header: {
     flexDirection: "row",
     alignItems: "center",
@@ -98,6 +133,9 @@ const styles = StyleSheet.create({
   },
   headerTextLottery: {
     color: "#F9A825",
+  },
+  headerTextAd: {
+    color: "#78909C",
   },
   divider: {
     width: "100%",
@@ -119,6 +157,20 @@ const styles = StyleSheet.create({
     textAlign: "center",
     marginBottom: 16,
     lineHeight: 20,
+  },
+  adNote: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    backgroundColor: "#ECEFF1",
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+  },
+  adNoteText: {
+    fontSize: 12,
+    color: "#78909C",
+    fontWeight: "600",
   },
   amountBox: {
     borderRadius: 12,
