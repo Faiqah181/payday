@@ -8,6 +8,11 @@
     "scheme": "salaryday",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
+    "splash": {
+      "image": "./assets/images/splash-screen.png",
+      "resizeMode": "cover",
+      "backgroundColor": "#ffffff"
+    },
     "ios": {
       "supportsTablet": true
     },
@@ -32,8 +37,9 @@
         "expo-splash-screen",
         {
           "image": "./assets/images/splash-screen.png",
+          "imageWidth": 768,
           "resizeMode": "cover",
-          "backgroundColor": "#1a6b5a"
+          "backgroundColor": "#ffffff"
         }
       ],
       "expo-audio"
