@@ -42,6 +42,7 @@ type GameAction =
   | { type: "SELL_DEAL"; dealId: number }
   | { type: "SKIP_ASSET_BUYER" }
   | { type: "DISMISS_MAIL" }
+  | { type: "BUY_INSURANCE" }
   | { type: "REDEEM_LOTTERY"; ticketIds: number[] }
   | { type: "SKIP_LOTTERY" }
   | { type: "END_TURN" };
@@ -212,8 +213,36 @@ function gameReducer(state: GameState, action: GameAction): GameState {
         });
         return { ...state, players: updatedPlayers, currentMail: null, phase: "end-turn" };
       }
-      // For other mail types (future): just dismiss
+      if (mail.type === "bill") {
+        const currentPlayer = state.players[state.currentPlayerIndex];
+        const isCancelled = mail.billCategory && mail.billCategory !== "other" &&
+          currentPlayer.insurance.some((ins) =>
+            ins.cancelsCategories?.includes(mail.billCategory!),
+          );
+        if (isCancelled) {
+          return { ...state, currentMail: null, phase: "end-turn" };
+        }
+        const updatedPlayers = state.players.map((player, i) => {
+          if (i !== state.currentPlayerIndex) return player;
+          return { ...player, unpaidBills: [...player.unpaidBills, mail] };
+        });
+        return { ...state, players: updatedPlayers, currentMail: null, phase: "end-turn" };
+      }
+      // Insurance discard (chose not to buy) / ad / other: just dismiss
       return { ...state, currentMail: null, phase: "end-turn" };
+    }
+    case "BUY_INSURANCE": {
+      if (!state.currentMail || state.currentMail.type !== "insurance") return state;
+      const insuranceCard = state.currentMail;
+      const updatedPlayers = state.players.map((player, i) => {
+        if (i !== state.currentPlayerIndex) return player;
+        return {
+          ...player,
+          cash: player.cash - insuranceCard.amount,
+          insurance: [...player.insurance, insuranceCard],
+        };
+      });
+      return { ...state, players: updatedPlayers, currentMail: null, phase: "end-turn" };
     }
     case "REDEEM_LOTTERY": {
       const updatedPlayers = state.players.map((player, i) => {
@@ -239,10 +268,13 @@ function gameReducer(state: GameState, action: GameAction): GameState {
       const updatedPlayers = atSalaryDay
         ? state.players.map((player, i) => {
             if (i !== state.currentPlayerIndex) return player;
+            const billTotal = player.unpaidBills.reduce((sum, b) => sum + b.amount, 0);
             return {
               ...player,
               position: 0,
               currentMonth: player.currentMonth + 1,
+              cash: player.cash - billTotal,
+              unpaidBills: [],
               // Discard expired lottery tickets at month end
               lotteryTickets: player.lotteryTickets.filter(
                 (t) => t.monthReceived !== player.currentMonth,
@@ -293,6 +325,7 @@ function createInitialState(params: {
       deals: [],
       unpaidBills: [],
       lotteryTickets: [],
+      insurance: [],
       color: PLAYER_COLORS[i],
     })),
     currentPlayerIndex: 0,
@@ -460,6 +493,7 @@ export default function Game() {
       deals={currentPlayer.deals}
       lotteryTickets={currentPlayer.lotteryTickets}
       unpaidBills={currentPlayer.unpaidBills}
+      insurance={currentPlayer.insurance}
       onClose={() => setShowCardsViewer(null)}
       defaultTab={showCardsViewer}
     />
@@ -469,6 +503,15 @@ export default function Game() {
     <MailCardModal
       mail={gameState.currentMail}
       onDismiss={() => dispatch({ type: "DISMISS_MAIL" })}
+      onBuyInsurance={() => dispatch({ type: "BUY_INSURANCE" })}
+      isCancelledByInsurance={
+        gameState.currentMail.type === "bill" &&
+        gameState.currentMail.billCategory !== "other" &&
+        !!gameState.currentMail.billCategory &&
+        currentPlayer.insurance.some((ins) =>
+          ins.cancelsCategories?.includes(gameState.currentMail!.billCategory!),
+        )
+      }
     />
   ) : null;
 

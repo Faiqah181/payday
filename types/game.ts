@@ -33,6 +33,7 @@ export interface DealCard {
 }
 
 export type MailCardType = "ad" | "bill" | "insurance" | "lottery" | "swellfare";
+export type BillCategory = "auto" | "doctor" | "dentist" | "other";
 
 export interface MailCard {
   id: number;
@@ -40,6 +41,8 @@ export interface MailCard {
   description: string;
   type: MailCardType;
   amount: number;
+  billCategory?: BillCategory;
+  cancelsCategories?: BillCategory[];
 }
 
 export interface HeldLotteryTicket {
@@ -57,6 +60,7 @@ export interface Player {
   deals: DealCard[];
   unpaidBills: MailCard[];
   lotteryTickets: HeldLotteryTicket[];
+  insurance: MailCard[];
   color: string;
 }
 

@@ -11,7 +11,7 @@ interface PlayerCardProps {
 
 export default function PlayerCard({ player, isCurrentTurn, compact = false }: PlayerCardProps) {
   const isSavings = player.accountType === "Savings";
-  const mailCount = player.lotteryTickets.length + player.unpaidBills.length;
+  const mailCount = player.lotteryTickets.length + player.unpaidBills.length + player.insurance.length;
 
   if (compact) {
     return (

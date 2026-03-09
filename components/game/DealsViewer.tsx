@@ -11,6 +11,7 @@ interface DealsViewerProps {
   deals: DealCard[];
   lotteryTickets?: HeldLotteryTicket[];
   unpaidBills?: MailCard[];
+  insurance?: MailCard[];
   onClose: () => void;
   mode?: "view" | "sell";
   onSell?: (deal: DealCard) => void;
@@ -21,6 +22,7 @@ export default function DealsViewer({
   deals,
   lotteryTickets = [],
   unpaidBills = [],
+  insurance = [],
   onClose,
   mode = "view",
   onSell,
@@ -28,7 +30,7 @@ export default function DealsViewer({
 }: DealsViewerProps) {
   const isSellMode = mode === "sell";
   const [activeTab, setActiveTab] = useState<"deals" | "mail">(defaultTab);
-  const mailCount = lotteryTickets.length + unpaidBills.length;
+  const mailCount = lotteryTickets.length + unpaidBills.length + insurance.length;
 
   return (
     <Animated.View
@@ -132,13 +134,24 @@ export default function DealsViewer({
                   <Text style={styles.mailCardAmount}>Collect ${ticket.card.amount}</Text>
                 </View>
               ))}
-              {unpaidBills.map((bill) => (
-                <View key={`bill-${bill.id}`} style={styles.billCard}>
+              {unpaidBills.map((bill, idx) => (
+                <View key={`bill-${bill.id}-${idx}`} style={styles.billCard}>
                   <View style={styles.mailCardHeader}>
-                    <Ionicons name="document-text" size={16} color="#E53935" />
+                    <Ionicons name="receipt" size={16} color="#E53935" />
                     <Text style={styles.mailCardTitle}>{bill.title}</Text>
                   </View>
                   <Text style={styles.billAmount}>${bill.amount}</Text>
+                </View>
+              ))}
+              {insurance.map((ins, idx) => (
+                <View key={`ins-${ins.id}-${idx}`} style={styles.insuranceCard}>
+                  <View style={styles.mailCardHeader}>
+                    <Ionicons name="shield" size={16} color="#43A047" />
+                    <Text style={styles.mailCardTitle}>{ins.title}</Text>
+                  </View>
+                  <Text style={styles.insuranceCoverage}>
+                    {ins.cancelsCategories?.includes("auto") ? "Covers: Auto Repair" : "Covers: Doctor & Dentist"}
+                  </Text>
                 </View>
               ))}
             </ScrollView>
@@ -371,5 +384,22 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: "700",
     color: "#C62828",
+  },
+  insuranceCard: {
+    backgroundColor: COLORS.white,
+    borderRadius: 12,
+    padding: 14,
+    borderLeftWidth: 4,
+    borderLeftColor: "#43A047",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.08,
+    shadowRadius: 2,
+    elevation: 2,
+  },
+  insuranceCoverage: {
+    fontSize: 13,
+    fontWeight: "600",
+    color: "#2E7D32",
   },
 });
