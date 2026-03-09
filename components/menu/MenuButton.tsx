@@ -136,7 +136,7 @@ const styles = StyleSheet.create({
     marginRight: 10,
   },
   text: {
-    fontFamily: "BlueWinter",
+    fontWeight: "800" as const,
     letterSpacing: 1,
   },
   textLarge: {

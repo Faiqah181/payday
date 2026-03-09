@@ -82,7 +82,7 @@ const styles = StyleSheet.create({
     marginTop: 40,
   },
   titleText: {
-    fontFamily: "BlueWinter",
+    fontWeight: "800" as const,
     fontSize: 72,
     color: COLORS.titleGreen,
     textShadowColor: COLORS.titleOutline,

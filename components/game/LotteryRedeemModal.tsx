@@ -128,7 +128,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   headerText: {
-    fontFamily: "BlueWinter",
+    fontWeight: "800" as const,
     fontSize: 16,
     color: "#F9A825",
     letterSpacing: 1,
@@ -185,7 +185,7 @@ const styles = StyleSheet.create({
     color: COLORS.textDark,
   },
   ticketAmount: {
-    fontFamily: "BlueWinter",
+    fontWeight: "800" as const,
     fontSize: 16,
     color: "#F57F17",
   },
@@ -202,7 +202,7 @@ const styles = StyleSheet.create({
     color: "#616161",
   },
   totalValue: {
-    fontFamily: "BlueWinter",
+    fontWeight: "800" as const,
     fontSize: 20,
     color: "#F57F17",
   },
@@ -222,7 +222,7 @@ const styles = StyleSheet.create({
     borderBottomColor: "#B0BEC5",
   },
   skipButtonText: {
-    fontFamily: "BlueWinter",
+    fontWeight: "800" as const,
     fontSize: 14,
     color: "#546E7A",
   },
@@ -242,7 +242,7 @@ const styles = StyleSheet.create({
     opacity: 0.5,
   },
   redeemButtonText: {
-    fontFamily: "BlueWinter",
+    fontWeight: "800" as const,
     fontSize: 14,
     color: COLORS.white,
   },

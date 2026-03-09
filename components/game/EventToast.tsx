@@ -60,7 +60,7 @@ const styles = StyleSheet.create({
     borderColor: "#E53935",
   },
   title: {
-    fontFamily: "BlueWinter",
+    fontWeight: "800" as const,
     fontSize: 22,
     color: COLORS.textDark,
     textAlign: "center",
@@ -73,7 +73,7 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   amount: {
-    fontFamily: "BlueWinter",
+    fontWeight: "800" as const,
     fontSize: 32,
     marginBottom: 16,
   },
@@ -92,7 +92,7 @@ const styles = StyleSheet.create({
     borderBottomColor: COLORS.primaryBorder,
   },
   buttonText: {
-    fontFamily: "BlueWinter",
+    fontWeight: "800" as const,
     fontSize: 16,
     color: COLORS.white,
   },

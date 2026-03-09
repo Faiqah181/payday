@@ -170,7 +170,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   headerText: {
-    fontFamily: "BlueWinter",
+    fontWeight: "800" as const,
     fontSize: 16,
     letterSpacing: 1,
   },
@@ -181,7 +181,7 @@ const styles = StyleSheet.create({
     marginVertical: 12,
   },
   title: {
-    fontFamily: "BlueWinter",
+    fontWeight: "800" as const,
     fontSize: 24,
     color: COLORS.textDark,
     textAlign: "center",
@@ -222,7 +222,7 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   amountValue: {
-    fontFamily: "BlueWinter",
+    fontWeight: "800" as const,
     fontSize: 28,
   },
   amountValueLottery: {
@@ -304,7 +304,7 @@ const styles = StyleSheet.create({
     borderBottomColor: "#1565C0",
   },
   okButtonText: {
-    fontFamily: "BlueWinter",
+    fontWeight: "800" as const,
     fontSize: 16,
     color: COLORS.white,
   },
@@ -323,7 +323,7 @@ const styles = StyleSheet.create({
     borderBottomColor: "#B0BEC5",
   },
   discardButtonText: {
-    fontFamily: "BlueWinter",
+    fontWeight: "800" as const,
     fontSize: 14,
     color: "#546E7A",
   },
@@ -340,7 +340,7 @@ const styles = StyleSheet.create({
     borderBottomColor: "#2E7D32",
   },
   buyButtonText: {
-    fontFamily: "BlueWinter",
+    fontWeight: "800" as const,
     fontSize: 14,
     color: COLORS.white,
   },

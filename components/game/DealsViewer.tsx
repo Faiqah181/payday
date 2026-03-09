@@ -198,7 +198,7 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 17,
   },
   headerTitle: {
-    fontFamily: "BlueWinter",
+    fontWeight: "800" as const,
     fontSize: 20,
     color: COLORS.textDark,
   },
@@ -279,7 +279,7 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   dealTitle: {
-    fontFamily: "BlueWinter",
+    fontWeight: "800" as const,
     fontSize: 16,
     color: COLORS.textDark,
     flex: 1,
@@ -323,7 +323,7 @@ const styles = StyleSheet.create({
     borderBottomColor: "#2E7D32",
   },
   sellButtonText: {
-    fontFamily: "BlueWinter",
+    fontWeight: "800" as const,
     fontSize: 14,
     color: COLORS.white,
   },
@@ -347,7 +347,7 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   mailCardTitle: {
-    fontFamily: "BlueWinter",
+    fontWeight: "800" as const,
     fontSize: 16,
     color: COLORS.textDark,
     flex: 1,

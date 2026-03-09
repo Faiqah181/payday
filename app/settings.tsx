@@ -122,7 +122,7 @@ const styles = StyleSheet.create({
   },
   rowLabel: {
     flex: 1,
-    fontFamily: "BlueWinter",
+    fontWeight: "800" as const,
     fontSize: 18,
   },
 });

@@ -197,7 +197,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: SPACING.sm,
   },
   heading: {
-    fontFamily: "BlueWinter",
+    fontWeight: "800" as const,
     fontSize: 42,
     color: COLORS.titleGreen,
     textShadowColor: COLORS.titleOutline,
@@ -211,7 +211,7 @@ const styles = StyleSheet.create({
     marginBottom: SPACING.lg,
   },
   label: {
-    fontFamily: "BlueWinter",
+    fontWeight: "800" as const,
     fontSize: 20,
     color: COLORS.textDark,
     marginBottom: SPACING.sm,
@@ -242,7 +242,7 @@ const styles = StyleSheet.create({
     borderColor: COLORS.primaryBorder,
   },
   optionText: {
-    fontFamily: "BlueWinter",
+    fontWeight: "800" as const,
     fontSize: 22,
     color: COLORS.textDark,
   },
@@ -262,7 +262,7 @@ const styles = StyleSheet.create({
   },
   nameInput: {
     fontSize: 16,
-    fontFamily: "BlueWinter",
+    fontWeight: "800" as const,
     color: COLORS.textDark,
     paddingVertical: 10,
     paddingHorizontal: 4,
@@ -292,7 +292,7 @@ const styles = StyleSheet.create({
     marginRight: 6,
   },
   toggleText: {
-    fontFamily: "BlueWinter",
+    fontWeight: "800" as const,
     fontSize: 14,
     color: COLORS.textDark,
   },
