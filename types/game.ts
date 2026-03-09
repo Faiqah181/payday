@@ -32,12 +32,19 @@ export interface DealCard {
   commission: number;
 }
 
+export type MailCardType = "ad" | "bill" | "insurance" | "lottery" | "swellfare";
+
 export interface MailCard {
   id: number;
   title: string;
   description: string;
-  type: "bill" | "ad" | "monster-charge" | "good-stuff";
+  type: MailCardType;
   amount: number;
+}
+
+export interface HeldLotteryTicket {
+  card: MailCard;
+  monthReceived: number;
 }
 
 export interface Player {
@@ -49,6 +56,7 @@ export interface Player {
   currentMonth: number; // 1-based, each player tracks independently
   deals: DealCard[];
   unpaidBills: MailCard[];
+  lotteryTickets: HeldLotteryTicket[];
   color: string;
 }
 
@@ -68,12 +76,14 @@ export interface GameState {
   players: Player[];
   currentPlayerIndex: number;
   totalMonths: number;
-  phase: "roll" | "event" | "deal" | "asset-buyer" | "salary-day" | "end-turn" | "game-over";
+  phase: "roll" | "event" | "deal" | "asset-buyer" | "mail" | "lottery-result" | "salary-day" | "end-turn" | "game-over";
   diceValue: number | null;
   animatingMove: AnimatingMove | null;
   eventMessage: EventMessage | null;
   dealDeck: DealCard[];
   currentDeal: DealCard | null;
+  mailDeck: MailCard[];
+  currentMail: MailCard | null;
 }
 
 export const PLAYER_COLORS = ["#E53935", "#1E88E5", "#43A047", "#FB8C00"];

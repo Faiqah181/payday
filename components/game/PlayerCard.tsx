@@ -11,6 +11,7 @@ interface PlayerCardProps {
 
 export default function PlayerCard({ player, isCurrentTurn, compact = false }: PlayerCardProps) {
   const isSavings = player.accountType === "Savings";
+  const mailCount = player.lotteryTickets.length + player.unpaidBills.length;
 
   if (compact) {
     return (
@@ -34,6 +35,8 @@ export default function PlayerCard({ player, isCurrentTurn, compact = false }: P
         <Text style={styles.compactText}>${player.loanBalance.toLocaleString()}</Text>
         <Ionicons name="briefcase" size={12} color="#7B1FA2" />
         <Text style={styles.compactText}>{player.deals.length}</Text>
+        <Ionicons name="mail" size={12} color="#1E88E5" />
+        <Text style={styles.compactText}>{mailCount}</Text>
       </View>
     );
   }
@@ -84,6 +87,12 @@ export default function PlayerCard({ player, isCurrentTurn, compact = false }: P
       <View style={styles.infoRow}>
         <Ionicons name="briefcase" size={14} color="#7B1FA2" />
         <Text style={styles.infoText}>{player.deals.length}</Text>
+      </View>
+
+      {/* Mail */}
+      <View style={styles.infoRow}>
+        <Ionicons name="mail" size={14} color="#1E88E5" />
+        <Text style={styles.infoText}>{mailCount}</Text>
       </View>
     </View>
   );

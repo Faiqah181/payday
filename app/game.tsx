@@ -3,9 +3,12 @@ import DealCardModal from "@/components/game/DealCardModal";
 import DealsViewer from "@/components/game/DealsViewer";
 import Dice from "@/components/game/Dice";
 import EventToast from "@/components/game/EventToast";
+import LotteryRedeemModal from "@/components/game/LotteryRedeemModal";
+import MailCardModal from "@/components/game/MailCardModal";
 import PlayerCard from "@/components/game/PlayerCard";
 import { BOARD_COLS, BOARD_ROWS, SPACE_EVENTS, getSpaceByDay } from "@/constants/board";
 import { ALL_DEALS, shuffleDeck } from "@/constants/deals";
+import { ALL_MAIL, shuffleMailDeck } from "@/constants/mail";
 import { COLORS, SPACING } from "@/constants/colors";
 import { useSound } from "@/contexts/SoundContext";
 import type { GameState } from "@/types/game";
@@ -38,6 +41,9 @@ type GameAction =
   | { type: "DISCARD_DEAL" }
   | { type: "SELL_DEAL"; dealId: number }
   | { type: "SKIP_ASSET_BUYER" }
+  | { type: "DISMISS_MAIL" }
+  | { type: "REDEEM_LOTTERY"; ticketIds: number[] }
+  | { type: "SKIP_LOTTERY" }
   | { type: "END_TURN" };
 
 function gameReducer(state: GameState, action: GameAction): GameState {
@@ -80,6 +86,44 @@ function gameReducer(state: GameState, action: GameAction): GameState {
           phase: "deal",
           dealDeck: remainingDeck,
           currentDeal: drawnCard,
+        };
+      }
+
+      // Post-mail space: draw a mail card
+      if (space?.type === "post-mail") {
+        let mailDeck = [...state.mailDeck];
+        if (mailDeck.length === 0) mailDeck = shuffleMailDeck([...ALL_MAIL]);
+        const [drawnMail, ...remainingMail] = mailDeck;
+        return {
+          ...state,
+          players: updatedPlayers,
+          animatingMove: null,
+          phase: "mail",
+          mailDeck: remainingMail,
+          currentMail: drawnMail,
+        };
+      }
+
+      // Lottery-result space: redeem lottery tickets
+      if (space?.type === "lottery-result") {
+        const player = updatedPlayers[playerIndex];
+        const validTickets = player.lotteryTickets.filter(
+          (t) => t.monthReceived === player.currentMonth,
+        );
+        if (validTickets.length > 0) {
+          return {
+            ...state,
+            players: updatedPlayers,
+            animatingMove: null,
+            phase: "lottery-result",
+          };
+        }
+        return {
+          ...state,
+          players: updatedPlayers,
+          animatingMove: null,
+          phase: "event",
+          eventMessage: { title: "Lottery Result", description: "You have no lottery tickets!", amount: 0 },
         };
       }
 
@@ -152,6 +196,42 @@ function gameReducer(state: GameState, action: GameAction): GameState {
     case "SKIP_ASSET_BUYER": {
       return { ...state, phase: "end-turn" };
     }
+    case "DISMISS_MAIL": {
+      if (!state.currentMail) return state;
+      const mail = state.currentMail;
+      if (mail.type === "lottery") {
+        const updatedPlayers = state.players.map((player, i) => {
+          if (i !== state.currentPlayerIndex) return player;
+          return {
+            ...player,
+            lotteryTickets: [
+              ...player.lotteryTickets,
+              { card: mail, monthReceived: player.currentMonth },
+            ],
+          };
+        });
+        return { ...state, players: updatedPlayers, currentMail: null, phase: "end-turn" };
+      }
+      // For other mail types (future): just dismiss
+      return { ...state, currentMail: null, phase: "end-turn" };
+    }
+    case "REDEEM_LOTTERY": {
+      const updatedPlayers = state.players.map((player, i) => {
+        if (i !== state.currentPlayerIndex) return player;
+        const ticketIds = new Set(action.ticketIds);
+        const redeemed = player.lotteryTickets.filter((t) => ticketIds.has(t.card.id));
+        const totalAmount = redeemed.reduce((sum, t) => sum + t.card.amount, 0);
+        return {
+          ...player,
+          cash: player.cash + totalAmount,
+          lotteryTickets: player.lotteryTickets.filter((t) => !ticketIds.has(t.card.id)),
+        };
+      });
+      return { ...state, players: updatedPlayers, phase: "end-turn" };
+    }
+    case "SKIP_LOTTERY": {
+      return { ...state, phase: "end-turn" };
+    }
     case "END_TURN": {
       const currentPlayer = state.players[state.currentPlayerIndex];
       const atSalaryDay = currentPlayer.position === MAX_POSITION;
@@ -159,7 +239,15 @@ function gameReducer(state: GameState, action: GameAction): GameState {
       const updatedPlayers = atSalaryDay
         ? state.players.map((player, i) => {
             if (i !== state.currentPlayerIndex) return player;
-            return { ...player, position: 0, currentMonth: player.currentMonth + 1 };
+            return {
+              ...player,
+              position: 0,
+              currentMonth: player.currentMonth + 1,
+              // Discard expired lottery tickets at month end
+              lotteryTickets: player.lotteryTickets.filter(
+                (t) => t.monthReceived !== player.currentMonth,
+              ),
+            };
           })
         : state.players;
 
@@ -204,6 +292,7 @@ function createInitialState(params: {
       currentMonth: 1,
       deals: [],
       unpaidBills: [],
+      lotteryTickets: [],
       color: PLAYER_COLORS[i],
     })),
     currentPlayerIndex: 0,
@@ -214,6 +303,8 @@ function createInitialState(params: {
     eventMessage: null,
     dealDeck: shuffleDeck([...ALL_DEALS]),
     currentDeal: null,
+    mailDeck: shuffleMailDeck([...ALL_MAIL]),
+    currentMail: null,
   };
 }
 
@@ -244,7 +335,7 @@ export default function Game() {
 
   const { players, currentPlayerIndex } = gameState;
   const currentPlayer = players[currentPlayerIndex];
-  const [showDealsViewer, setShowDealsViewer] = useState(false);
+  const [showCardsViewer, setShowCardsViewer] = useState<"deals" | "mail" | null>(null);
 
   useEffect(() => {
     if (gameState.phase === "game-over") {
@@ -303,30 +394,39 @@ export default function Game() {
   );
 
   const actions = (
-    <View style={[styles.actionRow, isLandscape && styles.actionRowLandscape]}>
+    <View style={[styles.actionsContainer, isLandscape && styles.actionsContainerLandscape]}>
       <Dice
         onRoll={(value) => dispatch({ type: "ROLL_DICE", value })}
         disabled={gameState.phase !== "roll" || gameState.animatingMove !== null}
-        size={isLandscape ? 50 : 60}
+        size={isLandscape ? 50 : 56}
       />
-      <Pressable style={[styles.actionButton, styles.actionLoan]}>
-        <Ionicons name="business" size={20} color={COLORS.white} />
-        <Text style={styles.actionText}>Loan</Text>
-      </Pressable>
-      <Pressable
-        style={[styles.actionButton, styles.actionDeals]}
-        onPress={() => setShowDealsViewer(true)}
-      >
-        <Ionicons name="briefcase" size={20} color={COLORS.white} />
-        <Text style={styles.actionText}>Deals</Text>
-      </Pressable>
-      <Pressable
-        style={[styles.actionButton, styles.actionEnd, gameState.phase !== "end-turn" && styles.actionDisabled]}
-        onPress={() => { if (gameState.phase === "end-turn") dispatch({ type: "END_TURN" }); }}
-      >
-        <Ionicons name="arrow-forward" size={20} color={COLORS.white} />
-        <Text style={styles.actionText}>End</Text>
-      </Pressable>
+      <View style={[styles.actionRow, isLandscape && styles.actionRowLandscape]}>
+        <Pressable style={[styles.actionButton, styles.actionLoan]}>
+          <Ionicons name="business" size={18} color={COLORS.white} />
+          <Text style={styles.actionText}>Loan</Text>
+        </Pressable>
+        <Pressable
+          style={[styles.actionButton, styles.actionDeals]}
+          onPress={() => setShowCardsViewer("deals")}
+        >
+          <Ionicons name="briefcase" size={18} color={COLORS.white} />
+          <Text style={styles.actionText}>Deals</Text>
+        </Pressable>
+        <Pressable
+          style={[styles.actionButton, styles.actionMail]}
+          onPress={() => setShowCardsViewer("mail")}
+        >
+          <Ionicons name="mail" size={18} color={COLORS.white} />
+          <Text style={styles.actionText}>Mail</Text>
+        </Pressable>
+        <Pressable
+          style={[styles.actionButton, styles.actionEnd, gameState.phase !== "end-turn" && styles.actionDisabled]}
+          onPress={() => { if (gameState.phase === "end-turn") dispatch({ type: "END_TURN" }); }}
+        >
+          <Ionicons name="arrow-forward" size={18} color={COLORS.white} />
+          <Text style={styles.actionText}>End</Text>
+        </Pressable>
+      </View>
     </View>
   );
 
@@ -355,10 +455,30 @@ export default function Game() {
     />
   ) : null;
 
-  const dealsViewer = showDealsViewer ? (
+  const cardsViewer = showCardsViewer ? (
     <DealsViewer
       deals={currentPlayer.deals}
-      onClose={() => setShowDealsViewer(false)}
+      lotteryTickets={currentPlayer.lotteryTickets}
+      unpaidBills={currentPlayer.unpaidBills}
+      onClose={() => setShowCardsViewer(null)}
+      defaultTab={showCardsViewer}
+    />
+  ) : null;
+
+  const mailModal = gameState.currentMail ? (
+    <MailCardModal
+      mail={gameState.currentMail}
+      onDismiss={() => dispatch({ type: "DISMISS_MAIL" })}
+    />
+  ) : null;
+
+  const lotteryModal = gameState.phase === "lottery-result" ? (
+    <LotteryRedeemModal
+      tickets={currentPlayer.lotteryTickets.filter(
+        (t) => t.monthReceived === currentPlayer.currentMonth,
+      )}
+      onRedeem={(ticketIds) => dispatch({ type: "REDEEM_LOTTERY", ticketIds })}
+      onSkip={() => dispatch({ type: "SKIP_LOTTERY" })}
     />
   ) : null;
 
@@ -401,7 +521,9 @@ export default function Game() {
           </View>
           {eventToast}
           {dealModal}
-          {dealsViewer}
+          {cardsViewer}
+          {mailModal}
+          {lotteryModal}
           {assetBuyerViewer}
         </SafeAreaView>
       </LinearGradient>
@@ -420,7 +542,9 @@ export default function Game() {
         {playerCards}
         {eventToast}
         {dealModal}
-        {dealsViewer}
+        {cardsViewer}
+        {mailModal}
+        {lotteryModal}
         {assetBuyerViewer}
       </SafeAreaView>
     </LinearGradient>
@@ -484,26 +608,33 @@ const styles = StyleSheet.create({
   monthTextLandscape: {
     fontSize: 16,
   },
+  actionsContainer: {
+    alignItems: "center",
+    gap: 8,
+    paddingVertical: SPACING.sm,
+    paddingHorizontal: SPACING.md,
+  },
+  actionsContainerLandscape: {
+    gap: 6,
+  },
   actionRow: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    gap: 16,
-    paddingVertical: SPACING.sm,
-    paddingHorizontal: SPACING.md,
+    gap: 10,
   },
   actionRowLandscape: {
     flexWrap: "wrap",
-    gap: 10,
+    gap: 8,
   },
   actionButton: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 6,
+    gap: 5,
     backgroundColor: COLORS.primary,
-    paddingHorizontal: 18,
-    paddingVertical: 10,
-    borderRadius: 20,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 8,
     borderBottomWidth: 3,
     borderBottomColor: COLORS.primaryBorder,
   },
@@ -515,6 +646,10 @@ const styles = StyleSheet.create({
     backgroundColor: "#7B1FA2",
     borderBottomColor: "#6A1B9A",
   },
+  actionMail: {
+    backgroundColor: "#1E88E5",
+    borderBottomColor: "#1565C0",
+  },
   actionEnd: {
     backgroundColor: COLORS.iconButton,
     borderBottomColor: COLORS.iconButtonBorder,
@@ -523,8 +658,8 @@ const styles = StyleSheet.create({
     opacity: 0.5,
   },
   actionText: {
-    fontFamily: "BlueWinter",
-    fontSize: 14,
+    fontSize: 13,
+    fontWeight: "700",
     color: COLORS.white,
   },
   playerRow: {
