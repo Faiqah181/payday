@@ -81,7 +81,7 @@ export default function RootLayout() {
           options={{
             headerShown: true,
             title: "How to Play",
-            headerStyle: { backgroundColor: COLORS.backgroundDark },
+            headerStyle: { backgroundColor: "#1a6b5a" },
             headerTintColor: COLORS.white,
           }}
         />
@@ -91,7 +91,7 @@ export default function RootLayout() {
           options={{
             headerShown: true,
             title: "Settings",
-            headerStyle: { backgroundColor: COLORS.backgroundDark },
+            headerStyle: { backgroundColor: "#1a6b5a" },
             headerTintColor: COLORS.white,
           }}
         />

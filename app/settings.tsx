@@ -1,10 +1,10 @@
 import { COLORS, SPACING } from "@/constants/colors";
 import { useSound } from "@/contexts/SoundContext";
 import { Ionicons } from "@expo/vector-icons";
-import { LinearGradient } from "expo-linear-gradient";
 import * as Linking from "expo-linking";
 import {
   BackHandler,
+  ImageBackground,
   Pressable,
   StyleSheet,
   Switch,
@@ -54,9 +54,10 @@ export default function Settings() {
   const { soundEnabled, toggleSound, playClick } = useSound();
 
   return (
-    <LinearGradient
-      colors={[COLORS.background, COLORS.backgroundDark]}
-      style={styles.gradient}
+    <ImageBackground
+      source={require("@/assets/images/generic-background.png")}
+      style={styles.background}
+      resizeMode="cover"
     >
       <View style={styles.content}>
         <SettingsRow
@@ -90,12 +91,12 @@ export default function Settings() {
           onPress={() => BackHandler.exitApp()}
         />
       </View>
-    </LinearGradient>
+    </ImageBackground>
   );
 }
 
 const styles = StyleSheet.create({
-  gradient: {
+  background: {
     flex: 1,
   },
   content: {

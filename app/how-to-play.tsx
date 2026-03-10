@@ -1,4 +1,4 @@
-import { ScrollView, StyleSheet, Text, View } from "react-native";
+import { ImageBackground, ScrollView, StyleSheet, Text, View } from "react-native";
 import { COLORS, SPACING } from "@/constants/colors";
 
 const sections = [
@@ -113,6 +113,11 @@ That's literally it. May the richest player win! 🎉`,
 
 export default function HowToPlay() {
   return (
+    <ImageBackground
+      source={require("@/assets/images/generic-background.png")}
+      style={styles.background}
+      resizeMode="cover"
+    >
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       <Text style={styles.intro}>
         Welcome to Salary Day! 🎉 Here's everything you need to know to play like a
@@ -128,20 +133,23 @@ export default function HowToPlay() {
 
       <Text style={styles.footer}>Now go get that bread! 🍞💰</Text>
     </ScrollView>
+    </ImageBackground>
   );
 }
 
 const styles = StyleSheet.create({
+  background: {
+    flex: 1,
+  },
   container: {
     flex: 1,
-    backgroundColor: COLORS.backgroundDark,
   },
   content: {
     padding: SPACING.md,
     paddingBottom: 40,
   },
   intro: {
-    color: COLORS.white,
+    color: COLORS.textDark,
     fontSize: 17,
     fontWeight: "700",
     textAlign: "center",
@@ -171,7 +179,7 @@ const styles = StyleSheet.create({
     lineHeight: 23,
   },
   footer: {
-    color: COLORS.white,
+    color: COLORS.textDark,
     fontSize: 18,
     fontWeight: "800",
     textAlign: "center",
