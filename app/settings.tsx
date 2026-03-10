@@ -58,6 +58,7 @@ export default function Settings() {
       source={require("@/assets/images/generic-background.png")}
       style={styles.background}
       resizeMode="cover"
+      imageStyle={{ opacity: 0.3 }}
     >
       <View style={styles.content}>
         <SettingsRow

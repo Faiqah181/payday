@@ -1,16 +1,16 @@
 import "react-native-reanimated";
 import { Stack } from "expo-router";
-import { StatusBar } from "expo-status-bar";
 import * as SplashScreen from "expo-splash-screen";
 import { Asset } from "expo-asset";
 import { useEffect, useState } from "react";
-import { ImageBackground, StyleSheet, View } from "react-native";
+import { ImageBackground, StatusBar, StyleSheet, View } from "react-native";
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
   withTiming,
   Easing,
 } from "react-native-reanimated";
+import * as NavigationBar from "expo-navigation-bar";
 import { COLORS } from "@/constants/colors";
 import { SoundProvider } from "@/contexts/SoundContext";
 
@@ -19,6 +19,12 @@ SplashScreen.preventAutoHideAsync();
 export default function RootLayout() {
   const [appReady, setAppReady] = useState(false);
   const progress = useSharedValue(0);
+
+  useEffect(() => {
+    StatusBar.setHidden(true);
+    NavigationBar.setVisibilityAsync("hidden");
+    NavigationBar.setBehaviorAsync("overlay-swipe");
+  }, []);
 
   useEffect(() => {
     async function prepare() {
@@ -53,7 +59,7 @@ export default function RootLayout() {
         style={styles.loadingBackground}
         resizeMode="cover"
       >
-        <StatusBar style="dark" />
+        <StatusBar barStyle="dark-content" />
         <View style={styles.barContainer}>
           <View style={styles.barTrack}>
             <Animated.View style={[styles.barFill, barStyle]} />
@@ -70,10 +76,7 @@ export default function RootLayout() {
         <Stack.Screen
           name="game-setup"
           options={{
-            headerShown: true,
-            title: "Game Setup",
-            headerStyle: { backgroundColor: COLORS.backgroundDark },
-            headerTintColor: COLORS.white,
+            headerShown: false,
           }}
         />
         <Stack.Screen
@@ -96,7 +99,7 @@ export default function RootLayout() {
           }}
         />
       </Stack>
-      <StatusBar style="light" />
+      <StatusBar barStyle="light-content" />
     </SoundProvider>
   );
 }

@@ -117,6 +117,7 @@ export default function HowToPlay() {
       source={require("@/assets/images/generic-background.png")}
       style={styles.background}
       resizeMode="cover"
+      imageStyle={{ opacity: 0.5 }}
     >
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       <Text style={styles.intro}>
