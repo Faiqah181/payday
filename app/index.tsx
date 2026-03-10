@@ -25,12 +25,30 @@ export default function Index() {
             onPress={() => router.push("/game-setup")}
           />
           <MenuButton
+            title="Play with Friends"
+            variant="disabled"
+            icon="people"
+            badge="Coming Soon"
+            size="normal"
+            enterDelay={100}
+            onPress={() => {}}
+          />
+          <MenuButton
+            title="vs Computer"
+            variant="disabled"
+            icon="desktop"
+            badge="Coming Soon"
+            size="normal"
+            enterDelay={200}
+            onPress={() => {}}
+          />
+          <MenuButton
             title="Online"
             variant="disabled"
             icon="globe"
             badge="Coming Soon"
             size="normal"
-            enterDelay={100}
+            enterDelay={300}
             onPress={() => {}}
           />
         </View>
@@ -38,12 +56,12 @@ export default function Index() {
         <View style={styles.bottomRow}>
           <IconButton
             icon="settings-sharp"
-            enterDelay={200}
+            enterDelay={400}
             onPress={() => router.push("/settings")}
           />
           <IconButton
             icon="help-circle"
-            enterDelay={300}
+            enterDelay={500}
             onPress={() => router.push("/how-to-play")}
           />
         </View>
@@ -59,11 +77,12 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-buttonContainer: {
+  buttonContainer: {
     flex: 1,
     width: "85%",
     alignSelf: "center",
     justifyContent: "center",
+    paddingTop: 60,
     gap: 14,
   },
   bottomRow: {
