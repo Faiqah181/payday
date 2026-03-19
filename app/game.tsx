@@ -346,6 +346,7 @@ export default function Game() {
   const { width, height } = useWindowDimensions();
   const insets = useSafeAreaInsets();
   const isLandscape = width > height;
+  const [boardContainerHeight, setBoardContainerHeight] = useState(0);
 
   const routeParams = useLocalSearchParams<{
     playerNames: string;
@@ -387,7 +388,12 @@ export default function Game() {
         (height - insets.top - insets.bottom - DAY_HEADER_HEIGHT - 16) / BOARD_ROWS,
         (width - sidebarWidth - BOARD_PADDING * 2 - insets.left - insets.right) / BOARD_COLS
       )
-    : (width - BOARD_PADDING * 2) / BOARD_COLS;
+    : (width - 6) / BOARD_COLS;
+
+  // Portrait: cells grow taller to fill available vertical space
+  const portraitCellHeight = boardContainerHeight > 0
+    ? (boardContainerHeight - DAY_HEADER_HEIGHT) / BOARD_ROWS
+    : cellSize;
 
   const handleExit = () => {
     playClick();
@@ -568,7 +574,16 @@ export default function Game() {
     >
       <SafeAreaView style={styles.container}>
         {header}
-        {board}
+        <View style={{ flex: 1 }} onLayout={(e) => setBoardContainerHeight(e.nativeEvent.layout.height)}>
+          <Board
+            players={players}
+            currentPlayerIndex={currentPlayerIndex}
+            cellSize={cellSize}
+            cellHeight={portraitCellHeight}
+            animatingMove={gameState.animatingMove}
+            onAnimationComplete={() => dispatch({ type: "ANIMATION_COMPLETE" })}
+          />
+        </View>
         <View style={styles.bottomPanel}>
           {actions}
           {playerCards}

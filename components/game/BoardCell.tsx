@@ -2,14 +2,23 @@ import { SPACE_CONFIG } from "@/constants/board";
 import { COLORS } from "@/constants/colors";
 import type { SpaceType } from "@/types/game";
 import { Ionicons } from "@expo/vector-icons";
-import { StyleSheet, Text, View } from "react-native";
+import { Image, StyleSheet, Text, View } from "react-native";
+
 interface BoardCellProps {
   day: number;
   type: SpaceType;
-  playerColors: string[]; // colors of players on this cell
+  playerColors: string[];
   isCurrentCell: boolean;
   cellSize: number;
+  cellHeight?: number;
 }
+
+const CELL_IMAGES: Partial<Record<SpaceType, ReturnType<typeof require>>> = {
+  "lazy-sunday": require("@/assets/images/board-cells/1.lazy sunday.png"),
+  "asset-buyer": require("@/assets/images/board-cells/2.buyer.png"),
+  "post-mail":   require("@/assets/images/board-cells/3.Mail.png"),
+  "deal":        require("@/assets/images/board-cells/4.Deal.png"),
+};
 
 export default function BoardCell({
   day,
@@ -17,98 +26,121 @@ export default function BoardCell({
   playerColors,
   isCurrentCell,
   cellSize,
+  cellHeight,
 }: BoardCellProps) {
+  const ch = cellHeight ?? cellSize;
   const config = SPACE_CONFIG[type];
   const isSalaryDay = type === "salary-day";
   const isStart = type === "start";
-  const isLazySunday = type === "lazy-sunday";
 
   const cellBg = isSalaryDay
     ? "#C8E6C9"
     : isStart
       ? "#E8F5E9"
-      : isLazySunday
-        ? "#ECEFF1"
-        : COLORS.white;
+      : COLORS.white;
+
+  const cellImage = CELL_IMAGES[type] ?? null;
+  const iconSize = Math.min(cellSize, ch) * 0.32;
 
   return (
     <View
       style={[
         styles.cell,
-        {
-          width: cellSize,
-          height: cellSize,
-          backgroundColor: cellBg,
-        },
+        { width: cellSize, height: ch, backgroundColor: cellBg },
         isCurrentCell && styles.currentCell,
       ]}
     >
-      <Text style={[styles.dayNumber, isSalaryDay && styles.salaryDayText]}>
-        {isStart ? "S" : day}
-      </Text>
+      {/* Header strip: day number + label */}
+      <View style={styles.header}>
+        <Text style={[styles.dayNumber, isSalaryDay && styles.salaryDayText]}>
+          {isStart ? "S" : day}
+        </Text>
+        <Text style={styles.label} numberOfLines={1}>
+          {config.label}
+        </Text>
+      </View>
 
-      <Ionicons
-        name={config.icon}
-        size={cellSize * 0.22}
-        color={config.color}
-      />
-      <Text style={[styles.label, { color: config.color }]} numberOfLines={1}>
-        {config.label}
-      </Text>
+      {/* Body: image or fallback icon, with player tokens overlaid */}
+      <View style={styles.body}>
+        {cellImage ? (
+          <View style={styles.imageWrapper}>
+            <Image source={cellImage} style={styles.cellImage} resizeMode="cover" />
+          </View>
+        ) : (
+          <Ionicons name={config.icon} size={iconSize} color={config.color} />
+        )}
 
-      {playerColors.length > 0 && (
-        <View style={styles.tokenRow}>
-          {playerColors.map((color, i) => (
-            <View key={i} style={styles.pawn}>
-              {/* Head */}
-              <View
-                style={[styles.pawnHead, { backgroundColor: color }]}
-              />
-              {/* Body */}
-              <View
-                style={[styles.pawnBody, { backgroundColor: color }]}
-              />
-              {/* Base */}
-              <View
-                style={[styles.pawnBase, { backgroundColor: color }]}
-              />
-            </View>
-          ))}
-        </View>
-      )}
+        {playerColors.length > 0 && (
+          <View style={styles.tokenRow}>
+            {playerColors.map((color, i) => (
+              <View key={i} style={styles.pawn}>
+                <View style={[styles.pawnHead, { backgroundColor: color }]} />
+                <View style={[styles.pawnBody, { backgroundColor: color }]} />
+                <View style={[styles.pawnBase, { backgroundColor: color }]} />
+              </View>
+            ))}
+          </View>
+        )}
+      </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   cell: {
-    alignItems: "center",
-    justifyContent: "center",
-    borderWidth: 0.5,
-    borderColor: "#E0E0E0",
-    padding: 1,
+    alignItems: "stretch",
+    borderWidth: 1,
+    borderColor: "#a8a8a8",
+    overflow: "hidden",
   },
   currentCell: {
     borderWidth: 2,
     borderColor: "#FFA726",
     backgroundColor: "#FFF8E1",
   },
+  header: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 2,
+    paddingTop: 3,
+    paddingBottom: 3,
+    gap: 2,
+    borderBottomWidth: 1,
+    borderBottomColor: "#E0E0E0",
+  },
   dayNumber: {
-    fontSize: 9,
+    fontSize: 10,
     fontWeight: "700",
     color: COLORS.textDark,
-    position: "absolute",
-    top: 1,
-    left: 3,
   },
   salaryDayText: {
     color: "#2E7D32",
     fontWeight: "800",
   },
   label: {
-    fontSize: 7,
+    fontSize: 9,
     fontWeight: "700",
+    flex: 1,
     textAlign: "center",
+    color: "#2D3436",
+  },
+  body: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    overflow: "hidden",
+    width: "100%",
+  },
+  imageWrapper: {
+    width: "100%",
+    flex: 1,
+    paddingHorizontal: 4,
+    paddingVertical: 2,
+  },
+  cellImage: {
+    width: "100%",
+    height: "100%",
+    borderRadius: 2,
   },
   tokenRow: {
     flexDirection: "row",

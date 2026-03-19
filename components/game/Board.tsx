@@ -21,6 +21,7 @@ interface BoardProps {
   players: Player[];
   currentPlayerIndex: number;
   cellSize: number;
+  cellHeight?: number;
   animatingMove: AnimatingMove | null;
   onAnimationComplete: () => void;
 }
@@ -28,19 +29,21 @@ interface BoardProps {
 const BOARD_PADDING = 2;
 const STEP_DURATION = 120; // ms per cell hop
 
-function getCellPosition(day: number, cellSize: number) {
+function getCellPosition(day: number, cellSize: number, ch: number) {
   const space = getSpaceByDay(day);
   if (!space) return { x: 0, y: 0 };
-  return { x: space.col * cellSize, y: space.row * cellSize };
+  return { x: space.col * cellSize, y: space.row * ch };
 }
 
 export default function Board({
   players,
   currentPlayerIndex,
   cellSize,
+  cellHeight,
   animatingMove,
   onAnimationComplete,
 }: BoardProps) {
+  const ch = cellHeight ?? cellSize;
   // Build a map of position -> player colors for token display
   const positionColors = new Map<number, string[]>();
   players.forEach((player, index) => {
@@ -61,7 +64,7 @@ export default function Board({
     if (!animatingMove) return;
 
     const { from, to } = animatingMove;
-    const startPos = getCellPosition(from, cellSize);
+    const startPos = getCellPosition(from, cellSize, ch);
     animX.value = startPos.x;
     animY.value = startPos.y;
 
@@ -76,7 +79,7 @@ export default function Board({
     const stepsY: number[] = [];
 
     for (let day = from + 1; day <= to; day++) {
-      const pos = getCellPosition(day, cellSize);
+      const pos = getCellPosition(day, cellSize, ch);
       stepsX.push(pos.x);
       stepsY.push(pos.y);
     }
@@ -127,7 +130,7 @@ export default function Board({
                       key={col}
                       style={[
                         styles.emptyCell,
-                        { width: cellSize, height: cellSize },
+                        { width: cellSize, height: ch },
                       ]}
                     />
                   );
@@ -140,6 +143,7 @@ export default function Board({
                     playerColors={positionColors.get(space.day) ?? []}
                     isCurrentCell={space.day === currentPlayerPosition}
                     cellSize={cellSize}
+                    cellHeight={ch}
                   />
                 );
               })}
@@ -152,7 +156,7 @@ export default function Board({
           <Animated.View
             style={[
               styles.overlayPawn,
-              { width: cellSize, height: cellSize },
+              { width: cellSize, height: ch },
               overlayStyle,
             ]}
             pointerEvents="none"
@@ -175,18 +179,20 @@ const styles = StyleSheet.create({
   },
   headerRow: {
     flexDirection: "row",
-    marginBottom: 2,
   },
   headerText: {
     textAlign: "center",
-    fontSize: 10,
+    fontSize: 12,
     fontWeight: "700",
     color: COLORS.titleGreen,
+    backgroundColor: "#FFFFFF",
+    borderWidth: 1,
+    borderBottomWidth: 0,
+    borderColor: "#BDBDBD",
+    paddingVertical: 3,
+    overflow: "hidden",
   },
   grid: {
-    borderWidth: 1,
-    borderColor: "#BDBDBD",
-    borderRadius: 4,
     overflow: "hidden",
     backgroundColor: COLORS.white,
   },
