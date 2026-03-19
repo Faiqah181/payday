@@ -1,4 +1,5 @@
-import { COLORS } from "@/constants/colors";
+import CoinSvg from "@/assets/svg/coin.svg";
+import BankSvg from "@/assets/svg/bank.svg";
 import type { Player } from "@/types/game";
 import { Ionicons } from "@expo/vector-icons";
 import { StyleSheet, Text, View } from "react-native";
@@ -9,90 +10,79 @@ interface PlayerCardProps {
   compact?: boolean;
 }
 
-export default function PlayerCard({ player, isCurrentTurn, compact = false }: PlayerCardProps) {
+function InfoRow({
+  icon,
+  label,
+  value,
+  compact,
+}: {
+  icon?: React.ReactNode;
+  label: string;
+  value: string;
+  compact: boolean;
+}) {
+  return (
+    <View style={compact ? styles.infoRowCompact : styles.infoRow}>
+      {icon && <View style={styles.iconWrap}>{icon}</View>}
+      <Text style={[compact ? styles.labelCompact : styles.label]}>{label}</Text>
+      <Text style={[compact ? styles.valueCompact : styles.value]}>{value}</Text>
+    </View>
+  );
+}
+
+export default function PlayerCard({ player, compact = false }: PlayerCardProps) {
   const isSavings = player.accountType === "Savings";
+  const iconSize = compact ? 12 : 16;
   const mailCount = player.lotteryTickets.length + player.unpaidBills.length + player.insurance.length;
 
-  if (compact) {
-    return (
-      <View
-        style={[
-          styles.compactCard,
-          { borderColor: isCurrentTurn ? player.color : "transparent" },
-          isCurrentTurn && styles.activeCard,
-        ]}
-      >
-        <View style={[styles.colorDot, { backgroundColor: player.color }]} />
-        <Text style={styles.compactName} numberOfLines={1}>
-          {player.name}
-        </Text>
-        <View style={[styles.accountBadge, { backgroundColor: isSavings ? "#43A047" : "#E53935" }]}>
-          <Text style={styles.accountBadgeText}>{isSavings ? "S" : "L"}</Text>
-        </View>
-        <Ionicons name="cash" size={12} color="#43A047" />
-        <Text style={styles.compactText}>${player.cash.toLocaleString()}</Text>
-        <Ionicons name="card" size={12} color="#E53935" />
-        <Text style={styles.compactText}>${player.loanBalance.toLocaleString()}</Text>
-        <Ionicons name="briefcase" size={12} color="#7B1FA2" />
-        <Text style={styles.compactText}>{player.deals.length}</Text>
-        <Ionicons name="mail" size={12} color="#1E88E5" />
-        <Text style={styles.compactText}>{mailCount}</Text>
-      </View>
-    );
-  }
+  const avatar = (
+    <View style={[compact ? styles.avatarCompact : styles.avatar, { backgroundColor: player.color }]}>
+      <Text style={compact ? styles.avatarInitialCompact : styles.avatarInitial}>
+        {player.name.charAt(0).toUpperCase()}
+      </Text>
+    </View>
+  );
+
+  const infoRows = (
+    <View style={styles.infoSection}>
+      <InfoRow label="Player:" value={player.name} compact={compact} />
+      <InfoRow
+        icon={<CoinSvg width={iconSize} height={iconSize} />}
+        label="Cash:"
+        value={`$${player.cash.toLocaleString()}`}
+        compact={compact}
+      />
+      <InfoRow
+        icon={<BankSvg width={iconSize} height={iconSize} />}
+        label={isSavings ? "Savings:" : "Loan:"}
+        value={`$${player.loanBalance.toLocaleString()}`}
+        compact={compact}
+      />
+      <InfoRow
+        icon={<Ionicons name="briefcase" size={iconSize} color="#7B1FA2" />}
+        label="Deals:"
+        value={String(player.deals.length)}
+        compact={compact}
+      />
+      <InfoRow
+        icon={<Ionicons name="mail" size={iconSize} color="#1E88E5" />}
+        label="Mail:"
+        value={String(mailCount)}
+        compact={compact}
+      />
+    </View>
+  );
 
   return (
-    <View
-      style={[
-        styles.card,
-        { borderColor: isCurrentTurn ? player.color : "transparent" },
-        isCurrentTurn && styles.activeCard,
-      ]}
-    >
-      {/* Color dot + name */}
-      <View style={styles.nameRow}>
-        <View
-          style={[styles.colorDot, { backgroundColor: player.color }]}
-        />
-        <Text style={styles.name} numberOfLines={1}>
-          {player.name}
-        </Text>
-      </View>
+    <View style={compact ? styles.cardCompact : styles.card}>
+      {/* Header */}
+      <Text style={compact ? styles.titleCompact : styles.title}>Player Status</Text>
+      <View style={styles.divider} />
 
-      {/* Account type */}
-      <View style={styles.infoRow}>
-        <Ionicons name={isSavings ? "wallet" : "card"} size={14} color={isSavings ? "#43A047" : "#E53935"} />
-        <Text style={[styles.infoText, { color: isSavings ? "#43A047" : "#E53935" }]}>
-          {player.accountType}
-        </Text>
-      </View>
-
-      {/* Cash */}
-      <View style={styles.infoRow}>
-        <Ionicons name="cash" size={14} color="#43A047" />
-        <Text style={styles.infoText}>
-          ${player.cash.toLocaleString()}
-        </Text>
-      </View>
-
-      {/* Loan */}
-      <View style={styles.infoRow}>
-        <Ionicons name="card" size={14} color="#E53935" />
-        <Text style={styles.infoText}>
-          ${player.loanBalance.toLocaleString()}
-        </Text>
-      </View>
-
-      {/* Deals */}
-      <View style={styles.infoRow}>
-        <Ionicons name="briefcase" size={14} color="#7B1FA2" />
-        <Text style={styles.infoText}>{player.deals.length}</Text>
-      </View>
-
-      {/* Mail */}
-      <View style={styles.infoRow}>
-        <Ionicons name="mail" size={14} color="#1E88E5" />
-        <Text style={styles.infoText}>{mailCount}</Text>
+      {/* Body */}
+      <View style={styles.body}>
+        {avatar}
+        {infoRows}
       </View>
     </View>
   );
@@ -100,85 +90,111 @@ export default function PlayerCard({ player, isCurrentTurn, compact = false }: P
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: COLORS.white,
+    backgroundColor: "#FFFFFF",
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: "#E1E1E1",
+    padding: 12,
+  },
+  cardCompact: {
+    backgroundColor: "#FFFFFF",
     borderRadius: 12,
-    padding: 10,
-    marginRight: 10,
-    minWidth: 120,
-    borderWidth: 2,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 3,
-    elevation: 3,
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.6)",
+    padding: 8,
   },
-  activeCard: {
-    shadowOpacity: 0.25,
-    elevation: 5,
+  title: {
+    color: "#0984E3",
+    fontWeight: "800",
+    fontSize: 16,
+    textAlign: "center",
+    marginBottom: 8,
   },
-  nameRow: {
-    flexDirection: "row",
-    alignItems: "center",
+  titleCompact: {
+    color: "#0984E3",
+    fontWeight: "800",
+    fontSize: 13,
+    textAlign: "center",
     marginBottom: 6,
   },
-  colorDot: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-    marginRight: 6,
+  divider: {
+    height: 2,
+    backgroundColor: "rgba(255,255,255,0.4)",
+    marginBottom: 10,
   },
-  name: {
-    fontSize: 14,
-    fontWeight: "700",
-    color: COLORS.textDark,
+  body: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+  },
+  avatar: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 2,
+    borderColor: "rgba(255,255,255,0.8)",
+  },
+  avatarCompact: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 2,
+    borderColor: "rgba(255,255,255,0.8)",
+  },
+  avatarInitial: {
+    color: "#fff",
+    fontWeight: "800",
+    fontSize: 20,
+  },
+  avatarInitialCompact: {
+    color: "#fff",
+    fontWeight: "800",
+    fontSize: 15,
+  },
+  infoSection: {
     flex: 1,
+    gap: 4,
   },
   infoRow: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 4,
-    marginBottom: 2,
+    gap: 6,
   },
-  infoText: {
-    fontSize: 12,
-    fontWeight: "600",
-    color: COLORS.textDark,
-  },
-  compactCard: {
-    backgroundColor: COLORS.white,
-    borderRadius: 8,
-    paddingHorizontal: 8,
-    paddingVertical: 6,
-    borderWidth: 2,
+  infoRowCompact: {
     flexDirection: "row",
     alignItems: "center",
     gap: 4,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-    elevation: 2,
   },
-  compactName: {
+  iconWrap: {
+    width: 18,
+    alignItems: "center",
+  },
+  label: {
+    color: "#2D3436",
+    fontSize: 13,
+    fontWeight: "600",
+    width: 68,
+  },
+  labelCompact: {
+    color: "#2D3436",
     fontSize: 11,
-    fontWeight: "700",
-    color: COLORS.textDark,
-    minWidth: 36,
+    fontWeight: "600",
+    width: 56,
+  },
+  value: {
+    color: "#2D3436",
+    fontSize: 13,
+    fontWeight: "800",
     flex: 1,
   },
-  compactText: {
-    fontSize: 10,
-    fontWeight: "600",
-    color: COLORS.textDark,
-  },
-  accountBadge: {
-    borderRadius: 4,
-    paddingHorizontal: 5,
-    paddingVertical: 1,
-  },
-  accountBadgeText: {
-    fontSize: 10,
+  valueCompact: {
+    color: "#2D3436",
+    fontSize: 11,
     fontWeight: "800",
-    color: COLORS.white,
+    flex: 1,
   },
 });

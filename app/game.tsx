@@ -14,13 +14,12 @@ import { useSound } from "@/contexts/SoundContext";
 import type { GameState } from "@/types/game";
 import { PLAYER_COLORS } from "@/types/game";
 import { Ionicons } from "@expo/vector-icons";
-import { LinearGradient } from "expo-linear-gradient";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useReducer, useState } from "react";
 import {
   Alert,
+  ImageBackground,
   Pressable,
-  ScrollView,
   StyleSheet,
   Text,
   View,
@@ -464,21 +463,11 @@ export default function Game() {
   );
 
   const playerCards = (
-    <ScrollView
-      horizontal={!isLandscape}
-      showsHorizontalScrollIndicator={false}
-      showsVerticalScrollIndicator={false}
-      contentContainerStyle={isLandscape ? styles.playerColLandscape : styles.playerRow}
-    >
-      {players.map((player, index) => (
-        <PlayerCard
-          key={index}
-          player={player}
-          isCurrentTurn={index === currentPlayerIndex}
-          compact={isLandscape}
-        />
-      ))}
-    </ScrollView>
+    <PlayerCard
+      player={players[currentPlayerIndex]}
+      isCurrentTurn={true}
+      compact={isLandscape}
+    />
   );
 
   const eventToast = gameState.eventMessage ? (
@@ -544,10 +533,7 @@ export default function Game() {
 
   if (isLandscape) {
     return (
-      <LinearGradient
-        colors={[COLORS.background, COLORS.backgroundDark]}
-        style={styles.gradient}
-      >
+      <ImageBackground source={require("@/assets/images/generic-background.png")} style={styles.gradient} resizeMode="cover">
         <SafeAreaView style={styles.landscapeContainer}>
           {/* Left: Board */}
           <View style={styles.leftPanel}>
@@ -569,20 +555,24 @@ export default function Game() {
           {lotteryModal}
           {assetBuyerViewer}
         </SafeAreaView>
-      </LinearGradient>
+      </ImageBackground>
     );
   }
 
   return (
-    <LinearGradient
-      colors={[COLORS.background, COLORS.backgroundDark]}
+    <ImageBackground
+      source={require("@/assets/images/generic-background.png")}
       style={styles.gradient}
+      resizeMode="cover"
+      imageStyle={{opacity:0.5}}
     >
       <SafeAreaView style={styles.container}>
         {header}
         {board}
-        {actions}
-        {playerCards}
+        <View style={styles.bottomPanel}>
+          {actions}
+          {playerCards}
+        </View>
         {eventToast}
         {dealModal}
         {cardsViewer}
@@ -590,7 +580,7 @@ export default function Game() {
         {lotteryModal}
         {assetBuyerViewer}
       </SafeAreaView>
-    </LinearGradient>
+    </ImageBackground>
   );
 }
 
@@ -619,6 +609,13 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     gap: 12,
+  },
+  bottomPanel: {
+    marginTop: "auto",
+    marginLeft: 10,
+    marginRight: 10,
+    marginBottom: 20,
+
   },
   header: {
     flexDirection: "row",
