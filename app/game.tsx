@@ -539,7 +539,7 @@ export default function Game() {
 
   if (isLandscape) {
     return (
-      <ImageBackground source={require("@/assets/images/generic-background.png")} style={styles.gradient} resizeMode="cover">
+      <ImageBackground source={require("@/assets/images/generic-background.png")} style={styles.gradient} resizeMode="cover" imageStyle={{ opacity: 0.5 }}>
         <SafeAreaView style={styles.landscapeContainer}>
           {/* Left: Board */}
           <View style={styles.leftPanel}>

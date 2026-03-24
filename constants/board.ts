@@ -18,7 +18,7 @@ export const SPACE_CONFIG: Record<
   "school-reunion": { icon: "shirt", color: "#AD1457", label: "Reun." },
   "household-essentials": { icon: "home", color: "#EF6C00", label: "Bills" },
   "home-rent": { icon: "key", color: "#6D4C41", label: "Rent" },
-  election: { icon: "megaphone", color: "#1565C0", label: "Elect" },
+  election: { icon: "megaphone", color: "#1565C0", label: "Election" },
   "daylight-saving": { icon: "sunny", color: "#FFA000", label: "DST" },
   "lottery-result": { icon: "ticket", color: "#F9A825", label: "Lotto" },
   "salary-day": { icon: "cash", color: "#2E7D32", label: "PAY" },

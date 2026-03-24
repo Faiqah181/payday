@@ -1,6 +1,8 @@
 import { SPACE_CONFIG } from "@/constants/board";
 import { COLORS } from "@/constants/colors";
 import type { SpaceType } from "@/types/game";
+import ElectionSvg from "@/assets/svg/election.svg";
+import PartyPopperSvg from "@/assets/svg/party-popper.svg";
 import { Ionicons } from "@expo/vector-icons";
 import { Image, StyleSheet, Text, View } from "react-native";
 
@@ -14,10 +16,16 @@ interface BoardCellProps {
 }
 
 const CELL_IMAGES: Partial<Record<SpaceType, ReturnType<typeof require>>> = {
-  "lazy-sunday": require("@/assets/images/board-cells/1.lazy sunday.png"),
-  "asset-buyer": require("@/assets/images/board-cells/2.buyer.png"),
-  "post-mail":   require("@/assets/images/board-cells/3.Mail.png"),
-  "deal":        require("@/assets/images/board-cells/4.Deal.png"),
+  "lazy-sunday":    require("@/assets/images/board-cells/1.lazy sunday.png"),
+  "asset-buyer":    require("@/assets/images/board-cells/2.buyer.png"),
+  "post-mail":      require("@/assets/images/board-cells/3.Mail.png"),
+  "deal":           require("@/assets/images/board-cells/4.Deal.png"),
+  "lottery-result": require("@/assets/images/board-cells/lottery.png"),
+};
+
+const EVENT_CONTENT: Partial<Record<SpaceType, { title: string; collect: string }>> = {
+  "birthday-gift":     { title: "Your Birthday\nGift", collect: "Collect $400" },
+  "performance-bonus": { title: "Salary Bonus",        collect: "Collect $100" },
 };
 
 export default function BoardCell({
@@ -32,6 +40,8 @@ export default function BoardCell({
   const config = SPACE_CONFIG[type];
   const isSalaryDay = type === "salary-day";
   const isStart = type === "start";
+  const isEventCell = type === "birthday-gift" || type === "performance-bonus";
+  const isElection = type === "election";
 
   const cellBg = isSalaryDay
     ? "#C8E6C9"
@@ -50,22 +60,32 @@ export default function BoardCell({
         isCurrentCell && styles.currentCell,
       ]}
     >
-      {/* Header strip: day number + label */}
+      {/* Header strip: day number + label (label hidden for event cells) */}
       <View style={styles.header}>
         <Text style={[styles.dayNumber, isSalaryDay && styles.salaryDayText]}>
           {isStart ? "S" : day}
         </Text>
-        <Text style={styles.label} numberOfLines={1}>
-          {config.label}
-        </Text>
+        {!isEventCell && (
+          <Text style={styles.label} numberOfLines={1}>
+            {config.label}
+          </Text>
+        )}
       </View>
 
-      {/* Body: image or fallback icon, with player tokens overlaid */}
+      {/* Body */}
       <View style={styles.body}>
-        {cellImage ? (
+        {isEventCell ? (
+          <View style={styles.eventBody}>
+            <PartyPopperSvg width={iconSize * 1.2} height={iconSize * 1.2} />
+            <Text style={styles.eventTitle}>{EVENT_CONTENT[type]!.title}</Text>
+            <Text style={styles.eventCollect}>{EVENT_CONTENT[type]!.collect}</Text>
+          </View>
+        ) : cellImage ? (
           <View style={styles.imageWrapper}>
             <Image source={cellImage} style={styles.cellImage} resizeMode="cover" />
           </View>
+        ) : isElection ? (
+          <ElectionSvg width={iconSize} height={iconSize} />
         ) : (
           <Ionicons name={config.icon} size={iconSize} color={config.color} />
         )}
@@ -141,6 +161,25 @@ const styles = StyleSheet.create({
     width: "100%",
     height: "100%",
     borderRadius: 2,
+  },
+  eventBody: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    paddingHorizontal: 2,
+    gap: 2,
+  },
+  eventTitle: {
+    fontSize: 8,
+    fontWeight: "700",
+    color: "#2D3436",
+    textAlign: "center",
+  },
+  eventCollect: {
+    fontSize: 7,
+    fontWeight: "500",
+    color: "#636E72",
+    textAlign: "center",
   },
   tokenRow: {
     flexDirection: "row",

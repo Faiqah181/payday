@@ -75,10 +75,6 @@ export default function PlayerCard({ player, compact = false }: PlayerCardProps)
 
   return (
     <View style={compact ? styles.cardCompact : styles.card}>
-      {/* Header */}
-      <Text style={compact ? styles.titleCompact : styles.title}>Player Status</Text>
-      <View style={styles.divider} />
-
       {/* Body */}
       <View style={styles.body}>
         {avatar}
