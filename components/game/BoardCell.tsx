@@ -3,6 +3,8 @@ import { COLORS } from "@/constants/colors";
 import type { SpaceType } from "@/types/game";
 import ElectionSvg from "@/assets/svg/election.svg";
 import PartyPopperSvg from "@/assets/svg/party-popper.svg";
+import PriceTagSvg from "@/assets/svg/price-tag.svg";
+import RocketSvg from "@/assets/svg/rocket.svg";
 import { Ionicons } from "@expo/vector-icons";
 import { Image, StyleSheet, Text, View } from "react-native";
 
@@ -23,9 +25,13 @@ const CELL_IMAGES: Partial<Record<SpaceType, ReturnType<typeof require>>> = {
   "lottery-result": require("@/assets/images/board-cells/lottery.png"),
 };
 
-const EVENT_CONTENT: Partial<Record<SpaceType, { title: string; collect: string }>> = {
-  "birthday-gift":     { title: "Your Birthday\nGift", collect: "Collect $400" },
-  "performance-bonus": { title: "Salary Bonus",        collect: "Collect $100" },
+const EVENT_CONTENT: Partial<Record<SpaceType, { title: string; amount: string }>> = {
+  "birthday-gift":        { title: "Your Birthday\nGift", amount: "Collect $400" },
+  "performance-bonus":    { title: "Salary Bonus",        amount: "Collect $100" },
+  "visitor-surprise":     { title: "Surprise\nVisitor",   amount: "Pay $50" },
+  "school-reunion":       { title: "School Reunion",      amount: "Pay $40" },
+  "household-essentials": { title: "Household\nBills",    amount: "Pay $75" },
+  "home-rent":            { title: "Home Rent",           amount: "Pay $50" },
 };
 
 export default function BoardCell({
@@ -40,13 +46,16 @@ export default function BoardCell({
   const config = SPACE_CONFIG[type];
   const isSalaryDay = type === "salary-day";
   const isStart = type === "start";
-  const isEventCell = type === "birthday-gift" || type === "performance-bonus";
+  const isPartyCell = type === "birthday-gift" || type === "performance-bonus";
+  const isPayCell   = type === "visitor-surprise" || type === "school-reunion"
+                   || type === "household-essentials" || type === "home-rent";
+  const isEventCell = isPartyCell || isPayCell;
   const isElection = type === "election";
 
   const cellBg = isSalaryDay
     ? "#C8E6C9"
     : isStart
-      ? "#E8F5E9"
+      ? "#E1EEDD"
       : COLORS.white;
 
   const cellImage = CELL_IMAGES[type] ?? null;
@@ -76,16 +85,21 @@ export default function BoardCell({
       <View style={styles.body}>
         {isEventCell ? (
           <View style={styles.eventBody}>
-            <PartyPopperSvg width={iconSize * 1.2} height={iconSize * 1.2} />
+            {isPartyCell
+              ? <PartyPopperSvg width={iconSize * 1.2} height={iconSize * 1.2} />
+              : <PriceTagSvg    width={iconSize * 1.2} height={iconSize * 1.2} />
+            }
             <Text style={styles.eventTitle}>{EVENT_CONTENT[type]!.title}</Text>
-            <Text style={styles.eventCollect}>{EVENT_CONTENT[type]!.collect}</Text>
+            <Text style={styles.eventCollect}>{EVENT_CONTENT[type]!.amount}</Text>
           </View>
         ) : cellImage ? (
           <View style={styles.imageWrapper}>
             <Image source={cellImage} style={styles.cellImage} resizeMode="cover" />
           </View>
         ) : isElection ? (
-          <ElectionSvg width={iconSize} height={iconSize} />
+          <ElectionSvg width={cellSize * 0.7} height={cellSize * 0.7} />
+        ) : isStart ? (
+          <RocketSvg width={cellSize * 0.7} height={cellSize * 0.7} />
         ) : (
           <Ionicons name={config.icon} size={iconSize} color={config.color} />
         )}
@@ -109,9 +123,11 @@ export default function BoardCell({
 const styles = StyleSheet.create({
   cell: {
     alignItems: "stretch",
-    borderWidth: 1,
-    borderColor: "#a8a8a8",
+    borderWidth: 0.5,
+    borderColor: "rgba(189, 189, 189, 0.3)",
     overflow: "hidden",
+    borderRadius: 10,
+    backgroundColor: "#F7F3E7",
   },
   currentCell: {
     borderWidth: 2,
@@ -131,18 +147,18 @@ const styles = StyleSheet.create({
   dayNumber: {
     fontSize: 10,
     fontWeight: "700",
-    color: COLORS.textDark,
+    color: "#212121",
   },
   salaryDayText: {
     color: "#2E7D32",
     fontWeight: "800",
   },
   label: {
-    fontSize: 9,
-    fontWeight: "700",
+    fontSize: 10,
+    fontWeight: "600",
     flex: 1,
     textAlign: "center",
-    color: "#2D3436",
+    color: "#212121",
   },
   body: {
     flex: 1,
@@ -154,7 +170,7 @@ const styles = StyleSheet.create({
   imageWrapper: {
     width: "100%",
     flex: 1,
-    paddingHorizontal: 4,
+
     paddingVertical: 2,
   },
   cellImage: {

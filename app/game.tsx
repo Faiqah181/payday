@@ -6,10 +6,15 @@ import EventToast from "@/components/game/EventToast";
 import LotteryRedeemModal from "@/components/game/LotteryRedeemModal";
 import MailCardModal from "@/components/game/MailCardModal";
 import PlayerCard from "@/components/game/PlayerCard";
-import { BOARD_COLS, BOARD_ROWS, SPACE_EVENTS, getSpaceByDay } from "@/constants/board";
+import {
+  BOARD_COLS,
+  BOARD_ROWS,
+  SPACE_EVENTS,
+  getSpaceByDay,
+} from "@/constants/board";
+import { COLORS, SPACING } from "@/constants/colors";
 import { ALL_DEALS, shuffleDeck } from "@/constants/deals";
 import { ALL_MAIL, shuffleMailDeck } from "@/constants/mail";
-import { COLORS, SPACING } from "@/constants/colors";
 import { useSound } from "@/contexts/SoundContext";
 import type { GameState } from "@/types/game";
 import { PLAYER_COLORS } from "@/types/game";
@@ -25,7 +30,10 @@ import {
   View,
   useWindowDimensions,
 } from "react-native";
-import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
+import {
+  SafeAreaView,
+  useSafeAreaInsets,
+} from "react-native-safe-area-context";
 
 const BOARD_PADDING = 8;
 const DAY_HEADER_HEIGHT = 16;
@@ -123,7 +131,11 @@ function gameReducer(state: GameState, action: GameAction): GameState {
           players: updatedPlayers,
           animatingMove: null,
           phase: "event",
-          eventMessage: { title: "Lottery Result", description: "You have no lottery tickets!", amount: 0 },
+          eventMessage: {
+            title: "Lottery Result",
+            description: "You have no lottery tickets!",
+            amount: 0,
+          },
         };
       }
 
@@ -143,7 +155,11 @@ function gameReducer(state: GameState, action: GameAction): GameState {
           players: updatedPlayers,
           animatingMove: null,
           phase: "event",
-          eventMessage: { title: "Asset Buyer", description: "You have no deals to sell!", amount: 0 },
+          eventMessage: {
+            title: "Asset Buyer",
+            description: "You have no deals to sell!",
+            amount: 0,
+          },
         };
       }
 
@@ -169,7 +185,12 @@ function gameReducer(state: GameState, action: GameAction): GameState {
           deals: [...player.deals, deal],
         };
       });
-      return { ...state, players: updatedPlayers, currentDeal: null, phase: "end-turn" };
+      return {
+        ...state,
+        players: updatedPlayers,
+        currentDeal: null,
+        phase: "end-turn",
+      };
     }
     case "DISCARD_DEAL": {
       if (!state.currentDeal) return state;
@@ -210,11 +231,18 @@ function gameReducer(state: GameState, action: GameAction): GameState {
             ],
           };
         });
-        return { ...state, players: updatedPlayers, currentMail: null, phase: "end-turn" };
+        return {
+          ...state,
+          players: updatedPlayers,
+          currentMail: null,
+          phase: "end-turn",
+        };
       }
       if (mail.type === "bill") {
         const currentPlayer = state.players[state.currentPlayerIndex];
-        const isCancelled = mail.billCategory && mail.billCategory !== "other" &&
+        const isCancelled =
+          mail.billCategory &&
+          mail.billCategory !== "other" &&
           currentPlayer.insurance.some((ins) =>
             ins.cancelsCategories?.includes(mail.billCategory!),
           );
@@ -225,13 +253,19 @@ function gameReducer(state: GameState, action: GameAction): GameState {
           if (i !== state.currentPlayerIndex) return player;
           return { ...player, unpaidBills: [...player.unpaidBills, mail] };
         });
-        return { ...state, players: updatedPlayers, currentMail: null, phase: "end-turn" };
+        return {
+          ...state,
+          players: updatedPlayers,
+          currentMail: null,
+          phase: "end-turn",
+        };
       }
       // Insurance discard (chose not to buy) / ad / other: just dismiss
       return { ...state, currentMail: null, phase: "end-turn" };
     }
     case "BUY_INSURANCE": {
-      if (!state.currentMail || state.currentMail.type !== "insurance") return state;
+      if (!state.currentMail || state.currentMail.type !== "insurance")
+        return state;
       const insuranceCard = state.currentMail;
       const updatedPlayers = state.players.map((player, i) => {
         if (i !== state.currentPlayerIndex) return player;
@@ -241,18 +275,27 @@ function gameReducer(state: GameState, action: GameAction): GameState {
           insurance: [...player.insurance, insuranceCard],
         };
       });
-      return { ...state, players: updatedPlayers, currentMail: null, phase: "end-turn" };
+      return {
+        ...state,
+        players: updatedPlayers,
+        currentMail: null,
+        phase: "end-turn",
+      };
     }
     case "REDEEM_LOTTERY": {
       const updatedPlayers = state.players.map((player, i) => {
         if (i !== state.currentPlayerIndex) return player;
         const ticketIds = new Set(action.ticketIds);
-        const redeemed = player.lotteryTickets.filter((t) => ticketIds.has(t.card.id));
+        const redeemed = player.lotteryTickets.filter((t) =>
+          ticketIds.has(t.card.id),
+        );
         const totalAmount = redeemed.reduce((sum, t) => sum + t.card.amount, 0);
         return {
           ...player,
           cash: player.cash + totalAmount,
-          lotteryTickets: player.lotteryTickets.filter((t) => !ticketIds.has(t.card.id)),
+          lotteryTickets: player.lotteryTickets.filter(
+            (t) => !ticketIds.has(t.card.id),
+          ),
         };
       });
       return { ...state, players: updatedPlayers, phase: "end-turn" };
@@ -267,7 +310,10 @@ function gameReducer(state: GameState, action: GameAction): GameState {
       const updatedPlayers = atSalaryDay
         ? state.players.map((player, i) => {
             if (i !== state.currentPlayerIndex) return player;
-            const billTotal = player.unpaidBills.reduce((sum, b) => sum + b.amount, 0);
+            const billTotal = player.unpaidBills.reduce(
+              (sum, b) => sum + b.amount,
+              0,
+            );
             return {
               ...player,
               position: 0,
@@ -283,9 +329,16 @@ function gameReducer(state: GameState, action: GameAction): GameState {
         : state.players;
 
       // Check game over: all players have completed all months
-      const allDone = updatedPlayers.every((p) => p.currentMonth > state.totalMonths);
+      const allDone = updatedPlayers.every(
+        (p) => p.currentMonth > state.totalMonths,
+      );
       if (allDone) {
-        return { ...state, players: updatedPlayers, phase: "game-over", diceValue: null };
+        return {
+          ...state,
+          players: updatedPlayers,
+          phase: "game-over",
+          diceValue: null,
+        };
       }
 
       // Skip players who have already finished all months
@@ -368,7 +421,9 @@ export default function Game() {
 
   const { players, currentPlayerIndex } = gameState;
   const currentPlayer = players[currentPlayerIndex];
-  const [showCardsViewer, setShowCardsViewer] = useState<"deals" | "mail" | null>(null);
+  const [showCardsViewer, setShowCardsViewer] = useState<
+    "deals" | "mail" | null
+  >(null);
 
   useEffect(() => {
     if (gameState.phase === "game-over") {
@@ -385,15 +440,22 @@ export default function Game() {
 
   const cellSize = isLandscape
     ? Math.min(
-        (height - insets.top - insets.bottom - DAY_HEADER_HEIGHT - 16) / BOARD_ROWS,
-        (width - sidebarWidth - BOARD_PADDING * 2 - insets.left - insets.right) / BOARD_COLS
+        (height - insets.top - insets.bottom - DAY_HEADER_HEIGHT - 16) /
+          BOARD_ROWS,
+        (width -
+          sidebarWidth -
+          BOARD_PADDING * 2 -
+          insets.left -
+          insets.right) /
+          BOARD_COLS,
       )
     : (width - 6) / BOARD_COLS;
 
   // Portrait: cells grow taller to fill available vertical space
-  const portraitCellHeight = boardContainerHeight > 0
-    ? (boardContainerHeight - DAY_HEADER_HEIGHT) / BOARD_ROWS
-    : cellSize;
+  const portraitCellHeight =
+    boardContainerHeight > 0
+      ? (boardContainerHeight - DAY_HEADER_HEIGHT) / BOARD_ROWS
+      : cellSize;
 
   const handleExit = () => {
     playClick();
@@ -409,14 +471,30 @@ export default function Game() {
 
   const header = (
     <View style={styles.header}>
-      <Pressable onPress={handleExit} style={isLandscape ? styles.exitButtonSmall : styles.exitButton}>
-        <Ionicons name="arrow-back" size={isLandscape ? 18 : 22} color={COLORS.white} />
+      <Pressable
+        onPress={handleExit}
+        style={isLandscape ? styles.exitButtonSmall : styles.exitButton}
+      >
+        <Ionicons
+          name="arrow-back"
+          size={isLandscape ? 18 : 22}
+          color={COLORS.white}
+        />
       </Pressable>
-      <Text style={[styles.monthText, isLandscape && styles.monthTextLandscape]}>
+      <Text
+        style={[styles.monthText, isLandscape && styles.monthTextLandscape]}
+      >
         Month {currentPlayer.currentMonth} of {gameState.totalMonths}
       </Text>
-      <Pressable onPress={() => router.replace("/how-to-play")} style={isLandscape ? styles.exitButtonSmall : styles.exitButton}>
-        <Ionicons name="help" size={isLandscape ? 18 : 22} color={COLORS.white} />
+      <Pressable
+        onPress={() => router.replace("/how-to-play")}
+        style={isLandscape ? styles.exitButtonSmall : styles.exitButton}
+      >
+        <Ionicons
+          name="help"
+          size={isLandscape ? 18 : 22}
+          color={COLORS.white}
+        />
       </Pressable>
     </View>
   );
@@ -432,38 +510,62 @@ export default function Game() {
   );
 
   const actions = (
-    <View style={[styles.actionsContainer, isLandscape && styles.actionsContainerLandscape]}>
+    <View
+      style={[
+        styles.actionsContainer,
+        isLandscape && styles.actionsContainerLandscape,
+      ]}
+    >
       <Dice
         onRoll={(value) => dispatch({ type: "ROLL_DICE", value })}
-        disabled={gameState.phase !== "roll" || gameState.animatingMove !== null}
+        disabled={
+          gameState.phase !== "roll" || gameState.animatingMove !== null
+        }
         size={isLandscape ? 50 : 56}
       />
-      <View style={[styles.actionRow, isLandscape && styles.actionRowLandscape]}>
-        <Pressable style={[styles.actionButton, styles.actionLoan]}>
-          <Ionicons name="business" size={18} color={COLORS.white} />
-          <Text style={styles.actionText}>Loan</Text>
-        </Pressable>
-        <Pressable
-          style={[styles.actionButton, styles.actionDeals]}
-          onPress={() => setShowCardsViewer("deals")}
-        >
-          <Ionicons name="briefcase" size={18} color={COLORS.white} />
-          <Text style={styles.actionText}>Deals</Text>
-        </Pressable>
-        <Pressable
-          style={[styles.actionButton, styles.actionMail]}
-          onPress={() => setShowCardsViewer("mail")}
-        >
-          <Ionicons name="mail" size={18} color={COLORS.white} />
-          <Text style={styles.actionText}>Mail</Text>
-        </Pressable>
-        <Pressable
-          style={[styles.actionButton, styles.actionEnd, gameState.phase !== "end-turn" && styles.actionDisabled]}
-          onPress={() => { if (gameState.phase === "end-turn") dispatch({ type: "END_TURN" }); }}
-        >
-          <Ionicons name="arrow-forward" size={18} color={COLORS.white} />
-          <Text style={styles.actionText}>End</Text>
-        </Pressable>
+      <View
+        style={[styles.actionRow, isLandscape && styles.actionRowLandscape]}
+      >
+        <View style={styles.actionButtonWrapper}>
+          <Pressable style={[styles.actionButton, styles.actionLoan]}>
+            <Ionicons name="business" size={18} color={COLORS.white} />
+            <Text style={styles.actionText}>Loan</Text>
+          </Pressable>
+        </View>
+        <View style={styles.actionButtonWrapper}>
+          <Pressable
+            style={[styles.actionButton, styles.actionDeals]}
+            onPress={() => setShowCardsViewer("deals")}
+          >
+            <Ionicons name="briefcase" size={18} color={COLORS.white} />
+            <Text style={styles.actionText}>Deals</Text>
+          </Pressable>
+        </View>
+        <View style={styles.actionButtonWrapper}>
+          <Pressable
+            style={[styles.actionButton, styles.actionMail]}
+            onPress={() => setShowCardsViewer("mail")}
+          >
+            <Ionicons name="mail" size={18} color={COLORS.white} />
+            <Text style={styles.actionText}>Mail</Text>
+          </Pressable>
+        </View>
+        <View style={styles.actionButtonWrapper}>
+          <Pressable
+            style={[
+              styles.actionButton,
+              styles.actionEnd,
+              gameState.phase !== "end-turn" && styles.actionDisabled,
+            ]}
+            onPress={() => {
+              if (gameState.phase === "end-turn")
+                dispatch({ type: "END_TURN" });
+            }}
+          >
+            <Ionicons name="arrow-forward" size={18} color={COLORS.white} />
+            <Text style={styles.actionText}>End</Text>
+          </Pressable>
+        </View>
       </View>
     </View>
   );
@@ -510,24 +612,28 @@ export default function Game() {
     />
   ) : null;
 
-  const lotteryModal = gameState.phase === "lottery-result" ? (
-    <LotteryRedeemModal
-      tickets={currentPlayer.lotteryTickets.filter(
-        (t) => t.monthReceived === currentPlayer.currentMonth,
-      )}
-      onRedeem={(ticketIds) => dispatch({ type: "REDEEM_LOTTERY", ticketIds })}
-      onSkip={() => dispatch({ type: "SKIP_LOTTERY" })}
-    />
-  ) : null;
+  const lotteryModal =
+    gameState.phase === "lottery-result" ? (
+      <LotteryRedeemModal
+        tickets={currentPlayer.lotteryTickets.filter(
+          (t) => t.monthReceived === currentPlayer.currentMonth,
+        )}
+        onRedeem={(ticketIds) =>
+          dispatch({ type: "REDEEM_LOTTERY", ticketIds })
+        }
+        onSkip={() => dispatch({ type: "SKIP_LOTTERY" })}
+      />
+    ) : null;
 
-  const assetBuyerViewer = gameState.phase === "asset-buyer" ? (
-    <DealsViewer
-      deals={currentPlayer.deals}
-      onClose={() => dispatch({ type: "SKIP_ASSET_BUYER" })}
-      mode="sell"
-      onSell={(deal) => dispatch({ type: "SELL_DEAL", dealId: deal.id })}
-    />
-  ) : null;
+  const assetBuyerViewer =
+    gameState.phase === "asset-buyer" ? (
+      <DealsViewer
+        deals={currentPlayer.deals}
+        onClose={() => dispatch({ type: "SKIP_ASSET_BUYER" })}
+        mode="sell"
+        onSell={(deal) => dispatch({ type: "SELL_DEAL", dealId: deal.id })}
+      />
+    ) : null;
 
   const dealModal = gameState.currentDeal ? (
     <DealCardModal
@@ -539,12 +645,15 @@ export default function Game() {
 
   if (isLandscape) {
     return (
-      <ImageBackground source={require("@/assets/images/generic-background.png")} style={styles.gradient} resizeMode="cover" imageStyle={{ opacity: 0.5 }}>
+      <ImageBackground
+        source={require("@/assets/images/generic-background.png")}
+        style={styles.gradient}
+        resizeMode="cover"
+        imageStyle={{ opacity: 0.8 }}
+      >
         <SafeAreaView style={styles.landscapeContainer}>
           {/* Left: Board */}
-          <View style={styles.leftPanel}>
-            {board}
-          </View>
+          <View style={styles.leftPanel}>{board}</View>
 
           {/* Right: Controls */}
           <View style={[styles.rightPanel, { width: sidebarWidth }]}>
@@ -570,11 +679,14 @@ export default function Game() {
       source={require("@/assets/images/generic-background.png")}
       style={styles.gradient}
       resizeMode="cover"
-      imageStyle={{opacity:0.5}}
+      imageStyle={{ opacity: 0.8 }}
     >
       <SafeAreaView style={styles.container}>
         {header}
-        <View style={{ flex: 1 }} onLayout={(e) => setBoardContainerHeight(e.nativeEvent.layout.height)}>
+        <View
+          style={{ flex: 1 }}
+          onLayout={(e) => setBoardContainerHeight(e.nativeEvent.layout.height)}
+        >
           <Board
             players={players}
             currentPlayerIndex={currentPlayerIndex}
@@ -630,7 +742,6 @@ const styles = StyleSheet.create({
     marginLeft: 10,
     marginRight: 10,
     marginBottom: 20,
-
   },
   header: {
     flexDirection: "row",
@@ -682,6 +793,11 @@ const styles = StyleSheet.create({
     flexWrap: "wrap",
     gap: 8,
   },
+  actionButtonWrapper: {
+    borderColor: COLORS.white,
+    borderWidth: 2,
+    borderRadius: 12,
+  },
   actionButton: {
     flexDirection: "row",
     alignItems: "center",
@@ -689,25 +805,24 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.primary,
     paddingHorizontal: 14,
     paddingVertical: 8,
-    borderRadius: 8,
-    borderBottomWidth: 3,
-    borderBottomColor: COLORS.primaryBorder,
+    borderRadius: 9,
+    borderBottomWidth: 4, // 3D effect
   },
   actionLoan: {
-    backgroundColor: COLORS.secondary,
-    borderBottomColor: COLORS.secondaryBorder,
+    backgroundColor: "#FDCF07",
+    borderBottomColor: "#D4AF37",
   },
   actionDeals: {
-    backgroundColor: "#7B1FA2",
-    borderBottomColor: "#6A1B9A",
+    backgroundColor: "#00BFA5",
+    borderBottomColor: "#00897B",
   },
   actionMail: {
-    backgroundColor: "#1E88E5",
-    borderBottomColor: "#1565C0",
+    backgroundColor: "#9C27B0",
+    borderBottomColor: "#7B1FA2",
   },
   actionEnd: {
-    backgroundColor: COLORS.iconButton,
-    borderBottomColor: COLORS.iconButtonBorder,
+    backgroundColor: "#FF5252",
+    borderBottomColor: "#D32F2F",
   },
   actionDisabled: {
     opacity: 0.5,

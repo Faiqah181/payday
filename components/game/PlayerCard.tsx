@@ -1,5 +1,5 @@
-import CoinSvg from "@/assets/svg/coin.svg";
 import BankSvg from "@/assets/svg/bank.svg";
+import CoinSvg from "@/assets/svg/coin.svg";
 import type { Player } from "@/types/game";
 import { Ionicons } from "@expo/vector-icons";
 import { StyleSheet, Text, View } from "react-native";
@@ -24,20 +24,37 @@ function InfoRow({
   return (
     <View style={compact ? styles.infoRowCompact : styles.infoRow}>
       {icon && <View style={styles.iconWrap}>{icon}</View>}
-      <Text style={[compact ? styles.labelCompact : styles.label]}>{label}</Text>
-      <Text style={[compact ? styles.valueCompact : styles.value]}>{value}</Text>
+      <Text style={[compact ? styles.labelCompact : styles.label]}>
+        {label}
+      </Text>
+      <Text style={[compact ? styles.valueCompact : styles.value]}>
+        {value}
+      </Text>
     </View>
   );
 }
 
-export default function PlayerCard({ player, compact = false }: PlayerCardProps) {
+export default function PlayerCard({
+  player,
+  compact = false,
+}: PlayerCardProps) {
   const isSavings = player.accountType === "Savings";
   const iconSize = compact ? 12 : 16;
-  const mailCount = player.lotteryTickets.length + player.unpaidBills.length + player.insurance.length;
+  const mailCount =
+    player.lotteryTickets.length +
+    player.unpaidBills.length +
+    player.insurance.length;
 
   const avatar = (
-    <View style={[compact ? styles.avatarCompact : styles.avatar, { backgroundColor: player.color }]}>
-      <Text style={compact ? styles.avatarInitialCompact : styles.avatarInitial}>
+    <View
+      style={[
+        compact ? styles.avatarCompact : styles.avatar,
+        { backgroundColor: player.color },
+      ]}
+    >
+      <Text
+        style={compact ? styles.avatarInitialCompact : styles.avatarInitial}
+      >
         {player.name.charAt(0).toUpperCase()}
       </Text>
     </View>
@@ -86,14 +103,15 @@ export default function PlayerCard({ player, compact = false }: PlayerCardProps)
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: "#FFFFFF",
-    borderRadius: 6,
-    borderWidth: 1,
-    borderColor: "#E1E1E1",
+    backgroundColor: "b7f4d5",
+    borderRadius: 16,
+    borderWidth: 3,
+    borderColor: "#C1D6CA",
     padding: 12,
+    maxWidth: "95%",
   },
   cardCompact: {
-    backgroundColor: "#FFFFFF",
+    backgroundColor: "b7f4d5",
     borderRadius: 12,
     borderWidth: 1,
     borderColor: "rgba(255,255,255,0.6)",
