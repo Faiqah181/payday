@@ -62,10 +62,11 @@ export default function BoardCell({
   const iconSize = Math.min(cellSize, ch) * 0.32;
 
   return (
+    <View style={[styles.shadowWrapper, { width: cellSize, height: ch }]}>
     <View
       style={[
         styles.cell,
-        { width: cellSize, height: ch, backgroundColor: cellBg },
+        { backgroundColor: cellBg },
         isCurrentCell && styles.currentCell,
       ]}
     >
@@ -117,10 +118,19 @@ export default function BoardCell({
         )}
       </View>
     </View>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
+  shadowWrapper: {
+    shadowColor: "#b8a49e",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.5,
+    shadowRadius: 3,
+    elevation: 3,
+    borderRadius: 10,
+  },
   cell: {
     alignItems: "stretch",
     borderWidth: 0.5,
@@ -170,7 +180,6 @@ const styles = StyleSheet.create({
   imageWrapper: {
     width: "100%",
     flex: 1,
-
     paddingVertical: 2,
   },
   cellImage: {

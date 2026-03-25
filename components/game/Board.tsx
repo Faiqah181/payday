@@ -113,93 +113,77 @@ export default function Board({
     : "#999";
 
   return (
-    <View style={styles.container}>
-      <View style={styles.calendarWrapper}>
-        {/* Day name headers */}
-        <View style={styles.headerRow}>
-          {DAY_HEADERS.map((name) => (
-            <Text key={name} style={[styles.headerText, { width: cellSize }]}>
-              {name}
-            </Text>
+    <View style={styles.calendarWrapper}>
+      {/* Day name headers */}
+      <View style={styles.headerRow}>
+        {DAY_HEADERS.map((name) => (
+          <Text key={name} style={[styles.headerText, { width: cellSize }]}>
+            {name}
+          </Text>
+        ))}
+      </View>
+
+      {/* Calendar grid with overlay */}
+      <View style={{ position: "relative" }}>
+        <View style={styles.grid}>
+          {Array.from({ length: BOARD_ROWS }, (_, row) => (
+            <View key={row} style={styles.row}>
+              {Array.from({ length: BOARD_COLS }, (_, col) => {
+                const space = getSpaceAt(row, col);
+                if (!space) {
+                  return <View />;
+                }
+                return (
+                  <BoardCell
+                    key={col}
+                    day={space.day}
+                    type={space.type}
+                    playerColors={positionColors.get(space.day) ?? []}
+                    isCurrentCell={space.day === currentPlayerPosition}
+                    cellSize={cellSize}
+                    cellHeight={ch}
+                  />
+                );
+              })}
+            </View>
           ))}
         </View>
 
-        {/* Calendar grid with overlay */}
-        <View style={{ position: "relative" }}>
-          <View style={styles.grid}>
-            {Array.from({ length: BOARD_ROWS }, (_, row) => (
-              <View key={row} style={styles.row}>
-                {Array.from({ length: BOARD_COLS }, (_, col) => {
-                  const space = getSpaceAt(row, col);
-                  if (!space) {
-                    return (
-                      <View
-                        key={col}
-                        style={[
-                          styles.emptyCell,
-                          { width: cellSize, height: ch },
-                        ]}
-                      />
-                    );
-                  }
-                  return (
-                    <BoardCell
-                      key={col}
-                      day={space.day}
-                      type={space.type}
-                      playerColors={positionColors.get(space.day) ?? []}
-                      isCurrentCell={space.day === currentPlayerPosition}
-                      cellSize={cellSize}
-                      cellHeight={ch}
-                    />
-                  );
-                })}
-              </View>
-            ))}
-          </View>
-
-          {/* Animated overlay pawn */}
-          {animatingMove && (
-            <Animated.View
-              style={[
-                styles.overlayPawn,
-                { width: cellSize, height: ch },
-                overlayStyle,
-              ]}
-              pointerEvents="none"
-            >
-              <View style={styles.pawn}>
-                <View
-                  style={[styles.pawnHead, { backgroundColor: animatingColor }]}
-                />
-                <View
-                  style={[styles.pawnBody, { backgroundColor: animatingColor }]}
-                />
-                <View
-                  style={[styles.pawnBase, { backgroundColor: animatingColor }]}
-                />
-              </View>
-            </Animated.View>
-          )}
-        </View>
+        {/* Animated overlay pawn */}
+        {animatingMove && (
+          <Animated.View
+            style={[
+              styles.overlayPawn,
+              { width: cellSize, height: ch },
+              overlayStyle,
+            ]}
+            pointerEvents="none"
+          >
+            <View style={styles.pawn}>
+              <View
+                style={[styles.pawnHead, { backgroundColor: animatingColor }]}
+              />
+              <View
+                style={[styles.pawnBody, { backgroundColor: animatingColor }]}
+              />
+              <View
+                style={[styles.pawnBase, { backgroundColor: animatingColor }]}
+              />
+            </View>
+          </Animated.View>
+        )}
       </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {},
   calendarWrapper: {
-    // 2. The "Glass" Base
-    // Semi-transparent white
-    backgroundColor: "#B8A49E",
-
-    // 3. Border and Shape
+    backgroundColor: "rgba(249, 251, 231, 0.6)",
+    marginHorizontal: 7,
     borderRadius: 25,
     borderWidth: 1,
-    borderColor: "rgba(255, 255, 255, 0.5)", // Highlight on the edge
-
-    // 4. Shadow (Elevates the board from the 3D world)
+    borderColor: "rgb(255, 255, 255)",
     shadowColor: "#000",
     shadowOffset: {
       width: 0,
@@ -207,9 +191,7 @@ const styles = StyleSheet.create({
     },
     shadowOpacity: 0.1,
     shadowRadius: 15,
-    elevation: 10, // For Android shadow
-
-    // 5. Grid Layout
+    elevation: 10,
     flexDirection: "row",
     flexWrap: "wrap",
     overflow: "hidden",
@@ -228,16 +210,11 @@ const styles = StyleSheet.create({
   },
   grid: {
     overflow: "hidden",
-    gap: 2,
+    gap: 1,
   },
   row: {
     flexDirection: "row",
-    gap: 2,
-  },
-  emptyCell: {
-    backgroundColor: "#F5F5F5",
-    borderWidth: 0.5,
-    borderColor: "#E0E0E0",
+    gap: 1,
   },
   overlayPawn: {
     position: "absolute",
