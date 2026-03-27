@@ -184,15 +184,23 @@ export default function Board({
 
 const styles = StyleSheet.create({
   calendarWrapper: {
-    backgroundColor: "rgba(249, 251, 231, 0.6)",
+    backgroundColor: "rgba(190, 183, 170, 0.55)",
     marginHorizontal: 3.5,
     borderRadius: 25,
     borderWidth: 1,
     borderColor: "rgb(255, 255, 255)",
     overflow: "hidden",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 10,
+    elevation: 8,
   },
   headerRow: {
     flexDirection: "row",
+    backgroundColor: "rgba(190, 183, 170, 0.1)",
+    borderBottomWidth: 1,
+    borderBottomColor: "rgba(190, 183, 170, 0.5)",
   },
   headerText: {
     textAlign: "center",

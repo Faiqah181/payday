@@ -1,3 +1,4 @@
+import BankModal from "@/components/game/BankModal";
 import Board from "@/components/game/Board";
 import DealCardModal from "@/components/game/DealCardModal";
 import DealsViewer from "@/components/game/DealsViewer";
@@ -53,6 +54,8 @@ type GameAction =
   | { type: "REDEEM_LOTTERY"; ticketIds: number[] }
   | { type: "SKIP_LOTTERY" }
   | { type: "FINISH_SALARY_DAY"; loanPayment: number; savingsAdjust: number }
+  | { type: "TAKE_LOAN"; amount: number }
+  | { type: "WITHDRAW_SAVINGS"; amount: number }
   | { type: "END_TURN" };
 
 function gameReducer(state: GameState, action: GameAction): GameState {
@@ -373,6 +376,30 @@ function gameReducer(state: GameState, action: GameAction): GameState {
 
       return { ...state, players: updatedPlayers, diceValue: null, phase: "end-turn" };
     }
+    case "TAKE_LOAN": {
+      const updatedPlayers = state.players.map((player, i) => {
+        if (i !== state.currentPlayerIndex) return player;
+        return {
+          ...player,
+          cash: player.cash + action.amount,
+          loanBalance: player.loanBalance + action.amount,
+        };
+      });
+      return { ...state, players: updatedPlayers };
+    }
+    case "WITHDRAW_SAVINGS": {
+      const fineCount = action.amount / 100;
+      const fine = fineCount * 50;
+      const updatedPlayers = state.players.map((player, i) => {
+        if (i !== state.currentPlayerIndex) return player;
+        return {
+          ...player,
+          cash: player.cash + action.amount - fine,
+          savingsBalance: player.savingsBalance - action.amount,
+        };
+      });
+      return { ...state, players: updatedPlayers };
+    }
     case "END_TURN": {
       const updatedPlayers = state.players;
 
@@ -473,6 +500,8 @@ export default function Game() {
   const [showCardsViewer, setShowCardsViewer] = useState<
     "deals" | "mail" | null
   >(null);
+  const [showBankModal, setShowBankModal] = useState(false);
+  const canBank = gameState.phase === "roll" || gameState.phase === "end-turn";
 
   useEffect(() => {
     if (gameState.phase === "game-over") {
@@ -518,8 +547,6 @@ export default function Game() {
     ]);
   };
 
-  const isSavings = currentPlayer.accountType === "Savings";
-
   const header = (
     <View style={styles.header}>
       <Pressable
@@ -537,28 +564,16 @@ export default function Game() {
       >
         Month {currentPlayer.currentMonth} of {gameState.totalMonths}
       </Text>
-      <View style={styles.playerBadge}>
-        <View
-          style={[styles.badgeAvatar, { backgroundColor: currentPlayer.color }]}
-        >
-          <Text style={styles.badgeInitial}>
-            {currentPlayer.name.charAt(0).toUpperCase()}
-          </Text>
-        </View>
-        <View>
-          <Text style={styles.badgeName}>{currentPlayer.name}</Text>
-          <Text style={styles.badgeInfo}>
-            Cash: ${currentPlayer.cash.toLocaleString()}
-          </Text>
-          <Text style={styles.badgeInfo}>
-            {isSavings ? "Savings" : "Loan"}: $
-            {(isSavings
-              ? currentPlayer.savingsBalance
-              : currentPlayer.loanBalance
-            ).toLocaleString()}
-          </Text>
-        </View>
-      </View>
+      <Pressable
+        onPress={() => router.replace("/how-to-play")}
+        style={isLandscape ? styles.exitButtonSmall : styles.exitButton}
+      >
+        <Ionicons
+          name="help"
+          size={isLandscape ? 18 : 22}
+          color={COLORS.white}
+        />
+      </Pressable>
     </View>
   );
 
@@ -583,9 +598,12 @@ export default function Game() {
         style={[styles.actionRow, isLandscape && styles.actionRowLandscape]}
       >
         <View style={styles.actionButtonWrapper}>
-          <Pressable style={[styles.actionButton, styles.actionLoan]}>
-            <Ionicons name="business" size={18} color={COLORS.white} />
-            <Text style={styles.actionText}>Loan</Text>
+          <Pressable
+            style={[styles.actionButton, styles.actionLoan, !canBank && styles.actionDisabled]}
+            onPress={() => { if (canBank) { playClick(); setShowBankModal(true); } }}
+          >
+            <Ionicons name={currentPlayer.accountType === "Savings" ? "wallet" : "business"} size={18} color={COLORS.white} />
+            <Text style={styles.actionText}>{currentPlayer.accountType === "Savings" ? "Savings" : "Loan"}</Text>
           </Pressable>
         </View>
         <View style={styles.actionButtonWrapper}>
@@ -709,6 +727,21 @@ export default function Game() {
       />
     ) : null;
 
+  const bankModal = showBankModal ? (
+    <BankModal
+      player={currentPlayer}
+      onTakeLoan={(amount) => {
+        dispatch({ type: "TAKE_LOAN", amount });
+        setShowBankModal(false);
+      }}
+      onWithdrawSavings={(amount) => {
+        dispatch({ type: "WITHDRAW_SAVINGS", amount });
+        setShowBankModal(false);
+      }}
+      onClose={() => setShowBankModal(false)}
+    />
+  ) : null;
+
   const dealModal = gameState.currentDeal ? (
     <DealCardModal
       deal={gameState.currentDeal}
@@ -738,6 +771,7 @@ export default function Game() {
             </View>
           </View>
           {eventToast}
+          {bankModal}
           {salaryDayModal}
           {dealModal}
           {cardsViewer}
@@ -776,6 +810,7 @@ export default function Game() {
           {playerSection}
         </View>
         {eventToast}
+        {bankModal}
         {salaryDayModal}
         {dealModal}
         {cardsViewer}
@@ -829,39 +864,6 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     paddingHorizontal: SPACING.md,
     paddingVertical: SPACING.sm,
-  },
-  playerBadge: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#b7f4d5",
-    borderRadius: 12,
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    gap: 8,
-  },
-  badgeAvatar: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    alignItems: "center",
-    justifyContent: "center",
-    borderWidth: 2,
-    borderColor: "rgba(255,255,255,0.8)",
-  },
-  badgeInitial: {
-    color: "#fff",
-    fontWeight: "800" as const,
-    fontSize: 14,
-  },
-  badgeName: {
-    fontWeight: "800" as const,
-    fontSize: 12,
-    color: "#2D3436",
-  },
-  badgeInfo: {
-    fontSize: 10,
-    fontWeight: "600" as const,
-    color: "#2D3436",
   },
   exitButton: {
     width: 36,

@@ -129,7 +129,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.5,
     shadowRadius: 3,
     elevation: 3,
-    borderRadius: 10,
+    borderRadius: 4,
   },
   cell: {
     flex: 1,
@@ -137,7 +137,7 @@ const styles = StyleSheet.create({
     borderWidth: 0.5,
     borderColor: "rgba(189, 189, 189, 0.3)",
     overflow: "hidden",
-    borderRadius: 10,
+    borderRadius: 4,
     backgroundColor: "#F7F3E7",
   },
   currentCell: {
