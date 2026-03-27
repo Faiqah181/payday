@@ -1,5 +1,5 @@
 import { SPACE_CONFIG } from "@/constants/board";
-import { COLORS } from "@/constants/colors";
+
 import type { SpaceType } from "@/types/game";
 import ElectionSvg from "@/assets/svg/election.svg";
 import PartyPopperSvg from "@/assets/svg/party-popper.svg";
@@ -56,7 +56,7 @@ export default function BoardCell({
     ? "#C8E6C9"
     : isStart
       ? "#E1EEDD"
-      : COLORS.white;
+      : "#F7F3E7";
 
   const cellImage = CELL_IMAGES[type] ?? null;
   const iconSize = Math.min(cellSize, ch) * 0.32;

@@ -76,11 +76,7 @@ function gameReducer(state: GameState, action: GameAction): GameState {
 
       const updatedPlayers = state.players.map((player, i) => {
         if (i !== playerIndex) return player;
-        return {
-          ...player,
-          position: to,
-          ...(event ? { cash: player.cash + event.amount } : {}),
-        };
+        return { ...player, position: to };
       });
 
       // Deal space: draw a card from the deck
@@ -183,7 +179,14 @@ function gameReducer(state: GameState, action: GameAction): GameState {
       };
     }
     case "DISMISS_EVENT": {
-      return { ...state, eventMessage: null, phase: "end-turn" };
+      const amount = state.eventMessage?.amount ?? 0;
+      const updatedPlayers = amount !== 0
+        ? state.players.map((player, i) => {
+            if (i !== state.currentPlayerIndex) return player;
+            return { ...player, cash: player.cash + amount };
+          })
+        : state.players;
+      return { ...state, players: updatedPlayers, eventMessage: null, phase: "end-turn" };
     }
     case "BUY_DEAL": {
       if (!state.currentDeal) return state;
@@ -515,6 +518,8 @@ export default function Game() {
     ]);
   };
 
+  const isSavings = currentPlayer.accountType === "Savings";
+
   const header = (
     <View style={styles.header}>
       <Pressable
@@ -532,16 +537,28 @@ export default function Game() {
       >
         Month {currentPlayer.currentMonth} of {gameState.totalMonths}
       </Text>
-      <Pressable
-        onPress={() => router.replace("/how-to-play")}
-        style={isLandscape ? styles.exitButtonSmall : styles.exitButton}
-      >
-        <Ionicons
-          name="help"
-          size={isLandscape ? 18 : 22}
-          color={COLORS.white}
-        />
-      </Pressable>
+      <View style={styles.playerBadge}>
+        <View
+          style={[styles.badgeAvatar, { backgroundColor: currentPlayer.color }]}
+        >
+          <Text style={styles.badgeInitial}>
+            {currentPlayer.name.charAt(0).toUpperCase()}
+          </Text>
+        </View>
+        <View>
+          <Text style={styles.badgeName}>{currentPlayer.name}</Text>
+          <Text style={styles.badgeInfo}>
+            Cash: ${currentPlayer.cash.toLocaleString()}
+          </Text>
+          <Text style={styles.badgeInfo}>
+            {isSavings ? "Savings" : "Loan"}: $
+            {(isSavings
+              ? currentPlayer.savingsBalance
+              : currentPlayer.loanBalance
+            ).toLocaleString()}
+          </Text>
+        </View>
+      </View>
     </View>
   );
 
@@ -813,6 +830,39 @@ const styles = StyleSheet.create({
     paddingHorizontal: SPACING.md,
     paddingVertical: SPACING.sm,
   },
+  playerBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#b7f4d5",
+    borderRadius: 12,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    gap: 8,
+  },
+  badgeAvatar: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 2,
+    borderColor: "rgba(255,255,255,0.8)",
+  },
+  badgeInitial: {
+    color: "#fff",
+    fontWeight: "800" as const,
+    fontSize: 14,
+  },
+  badgeName: {
+    fontWeight: "800" as const,
+    fontSize: 12,
+    color: "#2D3436",
+  },
+  badgeInfo: {
+    fontSize: 10,
+    fontWeight: "600" as const,
+    color: "#2D3436",
+  },
   exitButton: {
     width: 36,
     height: 36,
@@ -866,8 +916,8 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: 5,
     backgroundColor: COLORS.primary,
-    paddingHorizontal: 14,
-    paddingVertical: 8,
+    paddingHorizontal: 18,
+    paddingVertical: 10,
     borderRadius: 9,
     borderBottomWidth: 4, // 3D effect
   },
@@ -891,7 +941,7 @@ const styles = StyleSheet.create({
     opacity: 0.5,
   },
   actionText: {
-    fontSize: 13,
+    fontSize: 14,
     fontWeight: "700",
     color: COLORS.white,
   },
