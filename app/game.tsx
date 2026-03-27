@@ -449,7 +449,7 @@ export default function Game() {
           insets.right) /
           BOARD_COLS,
       )
-    : (width - 6) / BOARD_COLS;
+    : (width - 7 - 2 - 6) / BOARD_COLS;
 
   // Portrait: cells grow taller to fill available vertical space
   const portraitCellHeight =

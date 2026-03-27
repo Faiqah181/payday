@@ -132,6 +132,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
   },
   cell: {
+    flex: 1,
     alignItems: "stretch",
     borderWidth: 0.5,
     borderColor: "rgba(189, 189, 189, 0.3)",

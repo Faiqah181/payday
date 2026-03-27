@@ -131,7 +131,12 @@ export default function Board({
               {Array.from({ length: BOARD_COLS }, (_, col) => {
                 const space = getSpaceAt(row, col);
                 if (!space) {
-                  return <View />;
+                  return (
+                    <View
+                      key={col}
+                      style={[styles.emptyCell, { width: cellSize, height: ch }]}
+                    />
+                  );
                 }
                 return (
                   <BoardCell
@@ -180,18 +185,10 @@ export default function Board({
 const styles = StyleSheet.create({
   calendarWrapper: {
     backgroundColor: "rgba(249, 251, 231, 0.6)",
-    marginHorizontal: 7,
+    marginHorizontal: 3.5,
     borderRadius: 25,
     borderWidth: 1,
     borderColor: "rgb(255, 255, 255)",
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 10,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 15,
-    elevation: 10,
     flexDirection: "row",
     flexWrap: "wrap",
     overflow: "hidden",
@@ -215,6 +212,9 @@ const styles = StyleSheet.create({
   row: {
     flexDirection: "row",
     gap: 1,
+  },
+  emptyCell: {
+    backgroundColor: "transparent",
   },
   overlayPawn: {
     position: "absolute",
