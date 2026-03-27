@@ -1,6 +1,7 @@
 import BankModal from "@/components/game/BankModal";
 import DaylightSavingModal from "@/components/game/DaylightSavingModal";
 import ElectionModal from "@/components/game/ElectionModal";
+import PokerGameModal from "@/components/game/PokerGameModal";
 import SwellfareModal from "@/components/game/SwellfareModal";
 import Board from "@/components/game/Board";
 import DealCardModal from "@/components/game/DealCardModal";
@@ -63,6 +64,8 @@ type GameAction =
   | { type: "DISCARD_SWELLFARE" }
   | { type: "CONFIRM_ELECTION" }
   | { type: "CONFIRM_DAYLIGHT_SAVING" }
+  | { type: "CONFIRM_POKER_GAME"; participantIndices: number[]; winnerIndex: number }
+  | { type: "SKIP_POKER_GAME" }
   | { type: "END_TURN" };
 
 function gameReducer(state: GameState, action: GameAction): GameState {
@@ -186,6 +189,11 @@ function gameReducer(state: GameState, action: GameAction): GameState {
             amount: 0,
           },
         };
+      }
+
+      // Poker game space: optional $100 wager, highest roller wins
+      if (space?.type === "poker-game") {
+        return { ...state, players: updatedPlayers, animatingMove: null, phase: "poker-game" };
       }
 
       // Daylight Saving space: all players move back 1
@@ -448,6 +456,19 @@ function gameReducer(state: GameState, action: GameAction): GameState {
     }
     case "DISCARD_SWELLFARE": {
       return { ...state, currentMail: null, phase: "end-turn" };
+    }
+    case "CONFIRM_POKER_GAME": {
+      const { participantIndices, winnerIndex } = action;
+      const prize = participantIndices.length * 100;
+      const updatedPlayers = state.players.map((player, i) => {
+        if (!participantIndices.includes(i)) return player;
+        const delta = i === winnerIndex ? prize - 100 : -100;
+        return { ...player, cash: player.cash + delta };
+      });
+      return { ...state, players: updatedPlayers, phase: "end-turn" };
+    }
+    case "SKIP_POKER_GAME": {
+      return { ...state, phase: "end-turn" };
     }
     case "CONFIRM_DAYLIGHT_SAVING": {
       const playerCount = state.players.length;
@@ -826,6 +847,16 @@ export default function Game() {
     />
   ) : null;
 
+  const pokerGameModal = gameState.phase === "poker-game" ? (
+    <PokerGameModal
+      players={gameState.players}
+      onConfirm={(participantIndices, winnerIndex) =>
+        dispatch({ type: "CONFIRM_POKER_GAME", participantIndices, winnerIndex })
+      }
+      onSkip={() => dispatch({ type: "SKIP_POKER_GAME" })}
+    />
+  ) : null;
+
   const daylightSavingModal = gameState.phase === "daylight-saving" ? (
     <DaylightSavingModal
       players={gameState.players}
@@ -929,6 +960,7 @@ export default function Game() {
           </View>
           {eventToast}
           {bankModal}
+          {pokerGameModal}
           {daylightSavingModal}
           {electionModal}
           {salaryDayModal}
@@ -971,6 +1003,9 @@ export default function Game() {
         </View>
         {eventToast}
         {bankModal}
+        {pokerGameModal}
+        {daylightSavingModal}
+        {electionModal}
         {salaryDayModal}
         {dealModal}
         {cardsViewer}
