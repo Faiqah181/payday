@@ -189,8 +189,6 @@ const styles = StyleSheet.create({
     borderRadius: 25,
     borderWidth: 1,
     borderColor: "rgb(255, 255, 255)",
-    flexDirection: "row",
-    flexWrap: "wrap",
     overflow: "hidden",
   },
   headerRow: {

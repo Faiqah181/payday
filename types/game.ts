@@ -54,6 +54,7 @@ export interface Player {
   name: string;
   cash: number;
   loanBalance: number;
+  savingsBalance: number;
   accountType: "Savings" | "Loan";
   position: number; // 0 = start, 1-31 = day
   currentMonth: number; // 1-based, each player tracks independently

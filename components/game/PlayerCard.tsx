@@ -8,6 +8,7 @@ interface PlayerCardProps {
   player: Player;
   isCurrentTurn: boolean;
   compact?: boolean;
+  children?: React.ReactNode;
 }
 
 function InfoRow({
@@ -37,6 +38,7 @@ function InfoRow({
 export default function PlayerCard({
   player,
   compact = false,
+  children,
 }: PlayerCardProps) {
   const isSavings = player.accountType === "Savings";
   const iconSize = compact ? 12 : 16;
@@ -72,7 +74,7 @@ export default function PlayerCard({
       <InfoRow
         icon={<BankSvg width={iconSize} height={iconSize} />}
         label={isSavings ? "Savings:" : "Loan:"}
-        value={`$${player.loanBalance.toLocaleString()}`}
+        value={`$${(isSavings ? player.savingsBalance : player.loanBalance).toLocaleString()}`}
         compact={compact}
       />
       <InfoRow
@@ -92,10 +94,10 @@ export default function PlayerCard({
 
   return (
     <View style={compact ? styles.cardCompact : styles.card}>
-      {/* Body */}
       <View style={styles.body}>
         {avatar}
         {infoRows}
+        {children}
       </View>
     </View>
   );
@@ -103,15 +105,14 @@ export default function PlayerCard({
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: "b7f4d5",
+    backgroundColor: "rgba(245, 240, 225, 0.9)",
     borderRadius: 16,
     borderWidth: 3,
     borderColor: "#C1D6CA",
     padding: 12,
-    maxWidth: "95%",
   },
   cardCompact: {
-    backgroundColor: "b7f4d5",
+    backgroundColor: "rgba(245, 240, 225, 0.9)",
     borderRadius: 12,
     borderWidth: 1,
     borderColor: "rgba(255,255,255,0.6)",

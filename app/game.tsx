@@ -5,6 +5,7 @@ import Dice from "@/components/game/Dice";
 import EventToast from "@/components/game/EventToast";
 import LotteryRedeemModal from "@/components/game/LotteryRedeemModal";
 import MailCardModal from "@/components/game/MailCardModal";
+import SalaryDayModal from "@/components/game/SalaryDayModal";
 import PlayerCard from "@/components/game/PlayerCard";
 import {
   BOARD_COLS,
@@ -35,7 +36,6 @@ import {
   useSafeAreaInsets,
 } from "react-native-safe-area-context";
 
-const BOARD_PADDING = 8;
 const DAY_HEADER_HEIGHT = 16;
 const SIDEBAR_MIN_WIDTH = 200;
 const MAX_POSITION = 31;
@@ -52,6 +52,7 @@ type GameAction =
   | { type: "BUY_INSURANCE" }
   | { type: "REDEEM_LOTTERY"; ticketIds: number[] }
   | { type: "SKIP_LOTTERY" }
+  | { type: "FINISH_SALARY_DAY"; loanPayment: number; savingsAdjust: number }
   | { type: "END_TURN" };
 
 function gameReducer(state: GameState, action: GameAction): GameState {
@@ -160,6 +161,16 @@ function gameReducer(state: GameState, action: GameAction): GameState {
             description: "You have no deals to sell!",
             amount: 0,
           },
+        };
+      }
+
+      // Salary day: trigger dedicated modal phase
+      if (space?.type === "salary-day") {
+        return {
+          ...state,
+          players: updatedPlayers,
+          animatingMove: null,
+          phase: "salary-day",
         };
       }
 
@@ -303,30 +314,64 @@ function gameReducer(state: GameState, action: GameAction): GameState {
     case "SKIP_LOTTERY": {
       return { ...state, phase: "end-turn" };
     }
-    case "END_TURN": {
-      const currentPlayer = state.players[state.currentPlayerIndex];
-      const atSalaryDay = currentPlayer.position === MAX_POSITION;
+    case "FINISH_SALARY_DAY": {
+      const player = state.players[state.currentPlayerIndex];
 
-      const updatedPlayers = atSalaryDay
-        ? state.players.map((player, i) => {
-            if (i !== state.currentPlayerIndex) return player;
-            const billTotal = player.unpaidBills.reduce(
-              (sum, b) => sum + b.amount,
-              0,
-            );
-            return {
-              ...player,
-              position: 0,
-              currentMonth: player.currentMonth + 1,
-              cash: player.cash - billTotal,
-              unpaidBills: [],
-              // Discard expired lottery tickets at month end
-              lotteryTickets: player.lotteryTickets.filter(
-                (t) => t.monthReceived !== player.currentMonth,
-              ),
-            };
-          })
-        : state.players;
+      // Step 1: Collect salary
+      let cash = player.cash + 325;
+      let savingsBalance = player.savingsBalance;
+      let loanBalance = player.loanBalance;
+
+      // Step 2: Interest
+      savingsBalance += Math.floor(savingsBalance * 0.10);
+      loanBalance   += Math.floor(loanBalance   * 0.20);
+
+      // Step 3: Auto-pay all bills
+      const billTotal = player.unpaidBills.reduce((sum, b) => sum + b.amount, 0);
+      cash -= billTotal;
+      if (cash < 0 && savingsBalance > 0) {
+        const withdrawal = Math.min(savingsBalance, -cash);
+        savingsBalance -= withdrawal;
+        cash += withdrawal;
+      }
+      if (cash < 0) {
+        const loanNeeded = Math.ceil(-cash / 100) * 100;
+        loanBalance += loanNeeded;
+        cash += loanNeeded;
+      }
+
+      // Step 4: Optional player adjustments
+      const safePayment = Math.max(0, Math.min(action.loanPayment, loanBalance, cash));
+      cash -= safePayment;
+      loanBalance -= safePayment;
+
+      const safeAdjust = action.savingsAdjust > 0
+        ? Math.min(action.savingsAdjust, cash)
+        : Math.max(action.savingsAdjust, -savingsBalance);
+      cash -= safeAdjust;
+      savingsBalance += safeAdjust;
+
+      // Step 5: Month-end reset
+      const updatedPlayers = state.players.map((p, i) => {
+        if (i !== state.currentPlayerIndex) return p;
+        return {
+          ...p,
+          cash,
+          loanBalance,
+          savingsBalance,
+          position: 0,
+          currentMonth: p.currentMonth + 1,
+          unpaidBills: [],
+          lotteryTickets: p.lotteryTickets.filter(
+            (t) => t.monthReceived !== p.currentMonth,
+          ),
+        };
+      });
+
+      return { ...state, players: updatedPlayers, diceValue: null, phase: "end-turn" };
+    }
+    case "END_TURN": {
+      const updatedPlayers = state.players;
 
       // Check game over: all players have completed all months
       const allDone = updatedPlayers.every(
@@ -371,6 +416,7 @@ function createInitialState(params: {
       name: params.names[i] || `Player ${i + 1}`,
       cash: 500,
       loanBalance: 0,
+      savingsBalance: 0,
       accountType: (params.accounts[i] as "Savings" | "Loan") || "Savings",
       position: 0,
       currentMonth: 1,
@@ -444,7 +490,7 @@ export default function Game() {
           BOARD_ROWS,
         (width -
           sidebarWidth -
-          BOARD_PADDING * 2 -
+          12 - 7 - 2 - 6 -
           insets.left -
           insets.right) /
           BOARD_COLS,
@@ -516,13 +562,6 @@ export default function Game() {
         isLandscape && styles.actionsContainerLandscape,
       ]}
     >
-      <Dice
-        onRoll={(value) => dispatch({ type: "ROLL_DICE", value })}
-        disabled={
-          gameState.phase !== "roll" || gameState.animatingMove !== null
-        }
-        size={isLandscape ? 50 : 56}
-      />
       <View
         style={[styles.actionRow, isLandscape && styles.actionRowLandscape]}
       >
@@ -570,12 +609,20 @@ export default function Game() {
     </View>
   );
 
-  const playerCards = (
+  const playerSection = (
     <PlayerCard
       player={players[currentPlayerIndex]}
       isCurrentTurn={true}
       compact={isLandscape}
-    />
+    >
+      <Dice
+        onRoll={(value) => dispatch({ type: "ROLL_DICE", value })}
+        disabled={
+          gameState.phase !== "roll" || gameState.animatingMove !== null
+        }
+        size={isLandscape ? 50 : 56}
+      />
+    </PlayerCard>
   );
 
   const eventToast = gameState.eventMessage ? (
@@ -635,6 +682,16 @@ export default function Game() {
       />
     ) : null;
 
+  const salaryDayModal =
+    gameState.phase === "salary-day" ? (
+      <SalaryDayModal
+        player={currentPlayer}
+        onConfirm={(loanPayment, savingsAdjust) =>
+          dispatch({ type: "FINISH_SALARY_DAY", loanPayment, savingsAdjust })
+        }
+      />
+    ) : null;
+
   const dealModal = gameState.currentDeal ? (
     <DealCardModal
       deal={gameState.currentDeal}
@@ -660,10 +717,11 @@ export default function Game() {
             {header}
             <View style={styles.sidebarContent}>
               {actions}
-              {playerCards}
+              {playerSection}
             </View>
           </View>
           {eventToast}
+          {salaryDayModal}
           {dealModal}
           {cardsViewer}
           {mailModal}
@@ -698,9 +756,10 @@ export default function Game() {
         </View>
         <View style={styles.bottomPanel}>
           {actions}
-          {playerCards}
+          {playerSection}
         </View>
         {eventToast}
+        {salaryDayModal}
         {dealModal}
         {cardsViewer}
         {mailModal}
@@ -726,22 +785,26 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   leftPanel: {
+    flex: 1,
+    alignItems: "center",
     justifyContent: "center",
   },
   rightPanel: {
     flexDirection: "column",
     justifyContent: "center",
+    flexShrink: 0,
   },
   sidebarContent: {
     flex: 1,
     justifyContent: "center",
     gap: 12,
+    overflow: "hidden",
   },
   bottomPanel: {
-    marginTop: "auto",
+    marginTop: 60,
     marginLeft: 10,
     marginRight: 10,
-    marginBottom: 20,
+    marginBottom: 40,
   },
   header: {
     flexDirection: "row",
