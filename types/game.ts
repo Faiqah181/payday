@@ -81,7 +81,7 @@ export interface GameState {
   players: Player[];
   currentPlayerIndex: number;
   totalMonths: number;
-  phase: "roll" | "event" | "deal" | "asset-buyer" | "mail" | "lottery-result" | "salary-day" | "end-turn" | "game-over";
+  phase: "roll" | "event" | "deal" | "asset-buyer" | "mail" | "lottery-result" | "salary-day" | "election" | "end-turn" | "game-over";
   diceValue: number | null;
   animatingMove: AnimatingMove | null;
   eventMessage: EventMessage | null;
@@ -90,6 +90,7 @@ export interface GameState {
   mailDeck: MailCard[];
   currentMail: MailCard | null;
   pot: number;
+  electionActive: boolean;
 }
 
 export const PLAYER_COLORS = ["#E53935", "#1E88E5", "#43A047", "#FB8C00"];

@@ -1,4 +1,5 @@
 import BankModal from "@/components/game/BankModal";
+import ElectionModal from "@/components/game/ElectionModal";
 import SwellfareModal from "@/components/game/SwellfareModal";
 import Board from "@/components/game/Board";
 import DealCardModal from "@/components/game/DealCardModal";
@@ -59,6 +60,7 @@ type GameAction =
   | { type: "WITHDRAW_SAVINGS"; amount: number }
   | { type: "USE_SWELLFARE"; bet: number; roll: number }
   | { type: "DISCARD_SWELLFARE" }
+  | { type: "CONFIRM_ELECTION" }
   | { type: "END_TURN" };
 
 function gameReducer(state: GameState, action: GameAction): GameState {
@@ -84,6 +86,24 @@ function gameReducer(state: GameState, action: GameAction): GameState {
         if (i !== playerIndex) return player;
         return { ...player, position: to };
       });
+
+      // Election win: rolled a 6 while election is active
+      if (state.electionActive && state.diceValue === 6) {
+        const potAmount = state.pot;
+        return {
+          ...state,
+          players: updatedPlayers,
+          animatingMove: null,
+          electionActive: false,
+          pot: 0,
+          phase: "event",
+          eventMessage: {
+            title: "Election Won!",
+            description: "You rolled a 6 and won the Election Pot!",
+            amount: potAmount,
+          },
+        };
+      }
 
       // Deal space: draw a card from the deck
       if (isDeal) {
@@ -164,6 +184,11 @@ function gameReducer(state: GameState, action: GameAction): GameState {
             amount: 0,
           },
         };
+      }
+
+      // Election space: all players contribute to pot
+      if (space?.type === "election") {
+        return { ...state, players: updatedPlayers, animatingMove: null, phase: "election" };
       }
 
       // Salary day: trigger dedicated modal phase
@@ -417,6 +442,27 @@ function gameReducer(state: GameState, action: GameAction): GameState {
     case "DISCARD_SWELLFARE": {
       return { ...state, currentMail: null, phase: "end-turn" };
     }
+    case "CONFIRM_ELECTION": {
+      const contribution = 50;
+      const updatedPlayers = state.players.map((player) => {
+        let cash = player.cash - contribution;
+        let savings = player.savingsBalance;
+        let loan = player.loanBalance;
+        if (cash < 0 && savings > 0) {
+          const withdrawal = Math.min(savings, -cash);
+          savings -= withdrawal;
+          cash += withdrawal;
+        }
+        if (cash < 0) {
+          const loanNeeded = Math.ceil(-cash / 100) * 100;
+          loan += loanNeeded;
+          cash += loanNeeded;
+        }
+        return { ...player, cash, savingsBalance: savings, loanBalance: loan };
+      });
+      const newPot = state.pot + state.players.length * contribution;
+      return { ...state, players: updatedPlayers, pot: newPot, electionActive: true, phase: "end-turn" };
+    }
     case "END_TURN": {
       const updatedPlayers = state.players;
 
@@ -484,6 +530,7 @@ function createInitialState(params: {
     mailDeck: shuffleMailDeck([...ALL_MAIL]),
     currentMail: null,
     pot: 0,
+    electionActive: false,
   };
 }
 
@@ -712,6 +759,14 @@ export default function Game() {
     />
   ) : null;
 
+  const electionModal = gameState.phase === "election" ? (
+    <ElectionModal
+      players={gameState.players}
+      pot={gameState.pot}
+      onConfirm={() => dispatch({ type: "CONFIRM_ELECTION" })}
+    />
+  ) : null;
+
   const swellfareModal =
     gameState.phase === "mail" && gameState.currentMail?.type === "swellfare" ? (
       <SwellfareModal
@@ -800,6 +855,7 @@ export default function Game() {
           </View>
           {eventToast}
           {bankModal}
+          {electionModal}
           {salaryDayModal}
           {dealModal}
           {cardsViewer}
