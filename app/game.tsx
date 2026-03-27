@@ -1,4 +1,5 @@
 import BankModal from "@/components/game/BankModal";
+import DaylightSavingModal from "@/components/game/DaylightSavingModal";
 import ElectionModal from "@/components/game/ElectionModal";
 import SwellfareModal from "@/components/game/SwellfareModal";
 import Board from "@/components/game/Board";
@@ -61,6 +62,7 @@ type GameAction =
   | { type: "USE_SWELLFARE"; bet: number; roll: number }
   | { type: "DISCARD_SWELLFARE" }
   | { type: "CONFIRM_ELECTION" }
+  | { type: "CONFIRM_DAYLIGHT_SAVING" }
   | { type: "END_TURN" };
 
 function gameReducer(state: GameState, action: GameAction): GameState {
@@ -184,6 +186,11 @@ function gameReducer(state: GameState, action: GameAction): GameState {
             amount: 0,
           },
         };
+      }
+
+      // Daylight Saving space: all players move back 1
+      if (space?.type === "daylight-saving") {
+        return { ...state, players: updatedPlayers, animatingMove: null, phase: "daylight-saving" };
       }
 
       // Election space: all players contribute to pot
@@ -441,6 +448,66 @@ function gameReducer(state: GameState, action: GameAction): GameState {
     }
     case "DISCARD_SWELLFARE": {
       return { ...state, currentMail: null, phase: "end-turn" };
+    }
+    case "CONFIRM_DAYLIGHT_SAVING": {
+      const playerCount = state.players.length;
+
+      // Move all players back 1; Start players collect $325 and stay
+      const movedPlayers = state.players.map((player, i) => {
+        if (player.position === 0) {
+          return { ...player, cash: player.cash + 325 };
+        }
+        const newPos = player.position - 1;
+        if (i !== state.currentPlayerIndex) {
+          // Auto-apply instant event for non-current players; skip complex spaces
+          const sp = getSpaceByDay(newPos);
+          const ev = sp ? SPACE_EVENTS[sp.type] : undefined;
+          return { ...player, position: newPos, cash: player.cash + (ev?.amount ?? 0) };
+        }
+        return { ...player, position: newPos };
+      });
+
+      // Resolve current player's new space
+      const currentPlayer = movedPlayers[state.currentPlayerIndex];
+      const currentSpace = getSpaceByDay(currentPlayer.position);
+
+      if (currentSpace?.type === "election") {
+        // Inline election: all players contribute $50, electionActive = true
+        const contribution = 50;
+        const withElection = movedPlayers.map((player) => {
+          let cash = player.cash - contribution;
+          let savings = player.savingsBalance;
+          let loan = player.loanBalance;
+          if (cash < 0 && savings > 0) {
+            const withdrawal = Math.min(savings, -cash);
+            savings -= withdrawal;
+            cash += withdrawal;
+          }
+          if (cash < 0) {
+            const loanNeeded = Math.ceil(-cash / 100) * 100;
+            loan += loanNeeded;
+            cash += loanNeeded;
+          }
+          return { ...player, cash, savingsBalance: savings, loanBalance: loan };
+        });
+        const newPot = state.pot + playerCount * contribution;
+        return { ...state, players: withElection, pot: newPot, electionActive: true, phase: "end-turn" };
+      }
+
+      // Generic fallback: apply instant event for current player if any
+      const ev = currentSpace ? SPACE_EVENTS[currentSpace.type] : undefined;
+      const finalPlayers = ev
+        ? movedPlayers.map((player, i) => {
+            if (i !== state.currentPlayerIndex) return player;
+            return { ...player, cash: player.cash + ev.amount };
+          })
+        : movedPlayers;
+      return {
+        ...state,
+        players: finalPlayers,
+        phase: ev ? "event" : "end-turn",
+        eventMessage: ev ?? null,
+      };
     }
     case "CONFIRM_ELECTION": {
       const contribution = 50;
@@ -759,6 +826,13 @@ export default function Game() {
     />
   ) : null;
 
+  const daylightSavingModal = gameState.phase === "daylight-saving" ? (
+    <DaylightSavingModal
+      players={gameState.players}
+      onConfirm={() => dispatch({ type: "CONFIRM_DAYLIGHT_SAVING" })}
+    />
+  ) : null;
+
   const electionModal = gameState.phase === "election" ? (
     <ElectionModal
       players={gameState.players}
@@ -855,6 +929,7 @@ export default function Game() {
           </View>
           {eventToast}
           {bankModal}
+          {daylightSavingModal}
           {electionModal}
           {salaryDayModal}
           {dealModal}
