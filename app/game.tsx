@@ -1,4 +1,5 @@
 import BankModal from "@/components/game/BankModal";
+import SwellfareModal from "@/components/game/SwellfareModal";
 import Board from "@/components/game/Board";
 import DealCardModal from "@/components/game/DealCardModal";
 import DealsViewer from "@/components/game/DealsViewer";
@@ -56,6 +57,8 @@ type GameAction =
   | { type: "FINISH_SALARY_DAY"; loanPayment: number; savingsAdjust: number }
   | { type: "TAKE_LOAN"; amount: number }
   | { type: "WITHDRAW_SAVINGS"; amount: number }
+  | { type: "USE_SWELLFARE"; bet: number; roll: number }
+  | { type: "DISCARD_SWELLFARE" }
   | { type: "END_TURN" };
 
 function gameReducer(state: GameState, action: GameAction): GameState {
@@ -400,6 +403,20 @@ function gameReducer(state: GameState, action: GameAction): GameState {
       });
       return { ...state, players: updatedPlayers };
     }
+    case "USE_SWELLFARE": {
+      const { bet, roll } = action;
+      const won = roll >= 5;
+      const cashDelta = won ? bet * 10 : -bet;
+      const newPot = won ? state.pot : state.pot + bet;
+      const updatedPlayers = state.players.map((player, i) => {
+        if (i !== state.currentPlayerIndex) return player;
+        return { ...player, cash: player.cash + cashDelta };
+      });
+      return { ...state, players: updatedPlayers, currentMail: null, pot: newPot, phase: "end-turn" };
+    }
+    case "DISCARD_SWELLFARE": {
+      return { ...state, currentMail: null, phase: "end-turn" };
+    }
     case "END_TURN": {
       const updatedPlayers = state.players;
 
@@ -466,6 +483,7 @@ function createInitialState(params: {
     currentDeal: null,
     mailDeck: shuffleMailDeck([...ALL_MAIL]),
     currentMail: null,
+    pot: 0,
   };
 }
 
@@ -678,7 +696,7 @@ export default function Game() {
     />
   ) : null;
 
-  const mailModal = gameState.currentMail ? (
+  const mailModal = gameState.currentMail && gameState.currentMail.type !== "swellfare" ? (
     <MailCardModal
       mail={gameState.currentMail}
       onDismiss={() => dispatch({ type: "DISMISS_MAIL" })}
@@ -693,6 +711,16 @@ export default function Game() {
       }
     />
   ) : null;
+
+  const swellfareModal =
+    gameState.phase === "mail" && gameState.currentMail?.type === "swellfare" ? (
+      <SwellfareModal
+        player={currentPlayer}
+        pot={gameState.pot}
+        onUse={(bet: number, roll: number) => dispatch({ type: "USE_SWELLFARE", bet, roll })}
+        onDiscard={() => dispatch({ type: "DISCARD_SWELLFARE" })}
+      />
+    ) : null;
 
   const lotteryModal =
     gameState.phase === "lottery-result" ? (
@@ -776,6 +804,7 @@ export default function Game() {
           {dealModal}
           {cardsViewer}
           {mailModal}
+          {swellfareModal}
           {lotteryModal}
           {assetBuyerViewer}
         </SafeAreaView>
@@ -815,6 +844,7 @@ export default function Game() {
         {dealModal}
         {cardsViewer}
         {mailModal}
+        {swellfareModal}
         {lotteryModal}
         {assetBuyerViewer}
       </SafeAreaView>

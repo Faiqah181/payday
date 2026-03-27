@@ -72,6 +72,10 @@ export const ALL_MAIL: MailCard[] = [
   { id: 56, type: "insurance", title: "Aches & Pains Ins. Co.", description: "Cancels all Doctor and Dentist Bills.\nCoverage good for entire game.", amount: 150, cancelsCategories: ["doctor", "dentist"] },
   { id: 57, type: "insurance", title: "Aches & Pains Ins. Co.", description: "Cancels all Doctor and Dentist Bills.\nCoverage good for entire game.", amount: 150, cancelsCategories: ["doctor", "dentist"] },
   { id: 58, type: "insurance", title: "Aches & Pains Ins. Co.", description: "Cancels all Doctor and Dentist Bills.\nCoverage good for entire game.", amount: 150, cancelsCategories: ["doctor", "dentist"] },
+
+  // Swellfare (2 cards)
+  { id: 59, type: "swellfare", title: "Swellfare", description: "If you are in DEBT, bet any amount up to $100. Roll a 5 or 6 and collect 10 times the amount bet. Roll a 1, 2, 3 or 4 and the money goes into the Pot.", amount: 0 },
+  { id: 60, type: "swellfare", title: "Swellfare", description: "If you are in DEBT, bet any amount up to $100. Roll a 5 or 6 and collect 10 times the amount bet. Roll a 1, 2, 3 or 4 and the money goes into the Pot.", amount: 0 },
 ];
 
 export function shuffleMailDeck(cards: MailCard[]): MailCard[] {

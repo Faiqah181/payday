@@ -89,6 +89,7 @@ export interface GameState {
   currentDeal: DealCard | null;
   mailDeck: MailCard[];
   currentMail: MailCard | null;
+  pot: number;
 }
 
 export const PLAYER_COLORS = ["#E53935", "#1E88E5", "#43A047", "#FB8C00"];
