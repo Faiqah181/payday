@@ -1,18 +1,21 @@
+import CalendarSvg from "@/assets/svg/calendar.svg";
+import DoorSvg from "@/assets/svg/door.svg";
 import BankModal from "@/components/game/BankModal";
-import DaylightSavingModal from "@/components/game/DaylightSavingModal";
-import ElectionModal from "@/components/game/ElectionModal";
-import GameOverModal from "@/components/game/GameOverModal";
-import PokerGameModal from "@/components/game/PokerGameModal";
-import SwellfareModal from "@/components/game/SwellfareModal";
 import Board from "@/components/game/Board";
+import DaylightSavingModal from "@/components/game/DaylightSavingModal";
 import DealCardModal from "@/components/game/DealCardModal";
 import DealsViewer from "@/components/game/DealsViewer";
 import Dice from "@/components/game/Dice";
+import ElectionModal from "@/components/game/ElectionModal";
 import EventToast from "@/components/game/EventToast";
+import GameOverModal from "@/components/game/GameOverModal";
 import LotteryRedeemModal from "@/components/game/LotteryRedeemModal";
 import MailCardModal from "@/components/game/MailCardModal";
-import SalaryDayModal from "@/components/game/SalaryDayModal";
 import PlayerCard from "@/components/game/PlayerCard";
+import PokerGameModal from "@/components/game/PokerGameModal";
+import SalaryDayModal from "@/components/game/SalaryDayModal";
+import SwellfareModal from "@/components/game/SwellfareModal";
+import StrokeText from "@/components/StrokeText";
 import {
   BOARD_COLS,
   BOARD_ROWS,
@@ -65,7 +68,11 @@ type GameAction =
   | { type: "DISCARD_SWELLFARE" }
   | { type: "CONFIRM_ELECTION" }
   | { type: "CONFIRM_DAYLIGHT_SAVING" }
-  | { type: "CONFIRM_POKER_GAME"; participantIndices: number[]; winnerIndex: number }
+  | {
+      type: "CONFIRM_POKER_GAME";
+      participantIndices: number[];
+      winnerIndex: number;
+    }
   | { type: "SKIP_POKER_GAME" }
   | { type: "END_TURN" };
 
@@ -194,17 +201,32 @@ function gameReducer(state: GameState, action: GameAction): GameState {
 
       // Poker game space: optional $100 wager, highest roller wins
       if (space?.type === "poker-game") {
-        return { ...state, players: updatedPlayers, animatingMove: null, phase: "poker-game" };
+        return {
+          ...state,
+          players: updatedPlayers,
+          animatingMove: null,
+          phase: "poker-game",
+        };
       }
 
       // Daylight Saving space: all players move back 1
       if (space?.type === "daylight-saving") {
-        return { ...state, players: updatedPlayers, animatingMove: null, phase: "daylight-saving" };
+        return {
+          ...state,
+          players: updatedPlayers,
+          animatingMove: null,
+          phase: "daylight-saving",
+        };
       }
 
       // Election space: all players contribute to pot
       if (space?.type === "election") {
-        return { ...state, players: updatedPlayers, animatingMove: null, phase: "election" };
+        return {
+          ...state,
+          players: updatedPlayers,
+          animatingMove: null,
+          phase: "election",
+        };
       }
 
       // Salary day: trigger dedicated modal phase
@@ -227,13 +249,19 @@ function gameReducer(state: GameState, action: GameAction): GameState {
     }
     case "DISMISS_EVENT": {
       const amount = state.eventMessage?.amount ?? 0;
-      const updatedPlayers = amount !== 0
-        ? state.players.map((player, i) => {
-            if (i !== state.currentPlayerIndex) return player;
-            return { ...player, cash: player.cash + amount };
-          })
-        : state.players;
-      return { ...state, players: updatedPlayers, eventMessage: null, phase: "end-turn" };
+      const updatedPlayers =
+        amount !== 0
+          ? state.players.map((player, i) => {
+              if (i !== state.currentPlayerIndex) return player;
+              return { ...player, cash: player.cash + amount };
+            })
+          : state.players;
+      return {
+        ...state,
+        players: updatedPlayers,
+        eventMessage: null,
+        phase: "end-turn",
+      };
     }
     case "BUY_DEAL": {
       if (!state.currentDeal) return state;
@@ -373,11 +401,14 @@ function gameReducer(state: GameState, action: GameAction): GameState {
       let loanBalance = player.loanBalance;
 
       // Step 2: Interest
-      savingsBalance += Math.floor(savingsBalance * 0.10);
-      loanBalance   += Math.floor(loanBalance   * 0.20);
+      savingsBalance += Math.floor(savingsBalance * 0.1);
+      loanBalance += Math.floor(loanBalance * 0.2);
 
       // Step 3: Auto-pay all bills
-      const billTotal = player.unpaidBills.reduce((sum, b) => sum + b.amount, 0);
+      const billTotal = player.unpaidBills.reduce(
+        (sum, b) => sum + b.amount,
+        0,
+      );
       cash -= billTotal;
       if (cash < 0 && savingsBalance > 0) {
         const withdrawal = Math.min(savingsBalance, -cash);
@@ -391,13 +422,17 @@ function gameReducer(state: GameState, action: GameAction): GameState {
       }
 
       // Step 4: Optional player adjustments
-      const safePayment = Math.max(0, Math.min(action.loanPayment, loanBalance, cash));
+      const safePayment = Math.max(
+        0,
+        Math.min(action.loanPayment, loanBalance, cash),
+      );
       cash -= safePayment;
       loanBalance -= safePayment;
 
-      const safeAdjust = action.savingsAdjust > 0
-        ? Math.min(action.savingsAdjust, cash)
-        : Math.max(action.savingsAdjust, -savingsBalance);
+      const safeAdjust =
+        action.savingsAdjust > 0
+          ? Math.min(action.savingsAdjust, cash)
+          : Math.max(action.savingsAdjust, -savingsBalance);
       cash -= safeAdjust;
       savingsBalance += safeAdjust;
 
@@ -420,7 +455,9 @@ function gameReducer(state: GameState, action: GameAction): GameState {
         };
       });
 
-      const isRetiring = updatedPlayers[state.currentPlayerIndex].currentMonth > state.totalMonths;
+      const isRetiring =
+        updatedPlayers[state.currentPlayerIndex].currentMonth >
+        state.totalMonths;
       return {
         ...state,
         players: updatedPlayers,
@@ -429,7 +466,8 @@ function gameReducer(state: GameState, action: GameAction): GameState {
         eventMessage: isRetiring
           ? {
               title: `${state.players[state.currentPlayerIndex].name} Has Retired!`,
-              description: "All months completed. Waiting for other players to finish.",
+              description:
+                "All months completed. Waiting for other players to finish.",
               amount: 0,
             }
           : null,
@@ -468,7 +506,13 @@ function gameReducer(state: GameState, action: GameAction): GameState {
         if (i !== state.currentPlayerIndex) return player;
         return { ...player, cash: player.cash + cashDelta };
       });
-      return { ...state, players: updatedPlayers, currentMail: null, pot: newPot, phase: "end-turn" };
+      return {
+        ...state,
+        players: updatedPlayers,
+        currentMail: null,
+        pot: newPot,
+        phase: "end-turn",
+      };
     }
     case "DISCARD_SWELLFARE": {
       return { ...state, currentMail: null, phase: "end-turn" };
@@ -499,7 +543,11 @@ function gameReducer(state: GameState, action: GameAction): GameState {
           // Auto-apply instant event for non-current players; skip complex spaces
           const sp = getSpaceByDay(newPos);
           const ev = sp ? SPACE_EVENTS[sp.type] : undefined;
-          return { ...player, position: newPos, cash: player.cash + (ev?.amount ?? 0) };
+          return {
+            ...player,
+            position: newPos,
+            cash: player.cash + (ev?.amount ?? 0),
+          };
         }
         return { ...player, position: newPos };
       });
@@ -525,10 +573,21 @@ function gameReducer(state: GameState, action: GameAction): GameState {
             loan += loanNeeded;
             cash += loanNeeded;
           }
-          return { ...player, cash, savingsBalance: savings, loanBalance: loan };
+          return {
+            ...player,
+            cash,
+            savingsBalance: savings,
+            loanBalance: loan,
+          };
         });
         const newPot = state.pot + playerCount * contribution;
-        return { ...state, players: withElection, pot: newPot, electionActive: true, phase: "end-turn" };
+        return {
+          ...state,
+          players: withElection,
+          pot: newPot,
+          electionActive: true,
+          phase: "end-turn",
+        };
       }
 
       // Generic fallback: apply instant event for current player if any
@@ -565,7 +624,13 @@ function gameReducer(state: GameState, action: GameAction): GameState {
         return { ...player, cash, savingsBalance: savings, loanBalance: loan };
       });
       const newPot = state.pot + state.players.length * contribution;
-      return { ...state, players: updatedPlayers, pot: newPot, electionActive: true, phase: "end-turn" };
+      return {
+        ...state,
+        players: updatedPlayers,
+        pot: newPot,
+        electionActive: true,
+        phase: "end-turn",
+      };
     }
     case "END_TURN": {
       const updatedPlayers = state.players;
@@ -672,7 +737,6 @@ export default function Game() {
   const [showBankModal, setShowBankModal] = useState(false);
   const canBank = gameState.phase === "roll" || gameState.phase === "end-turn";
 
-
   // Compute cellSize based on orientation
   const sidebarWidth = isLandscape
     ? Math.max(width * 0.3, SIDEBAR_MIN_WIDTH)
@@ -682,11 +746,7 @@ export default function Game() {
     ? Math.min(
         (height - insets.top - insets.bottom - DAY_HEADER_HEIGHT - 16) /
           BOARD_ROWS,
-        (width -
-          sidebarWidth -
-          12 - 7 - 2 - 6 -
-          insets.left -
-          insets.right) /
+        (width - sidebarWidth - 12 - 7 - 2 - 6 - insets.left - insets.right) /
           BOARD_COLS,
       )
     : (width - 7 - 2 - 6) / BOARD_COLS;
@@ -712,21 +772,6 @@ export default function Game() {
   const header = (
     <View style={styles.header}>
       <Pressable
-        onPress={handleExit}
-        style={isLandscape ? styles.exitButtonSmall : styles.exitButton}
-      >
-        <Ionicons
-          name="arrow-back"
-          size={isLandscape ? 18 : 22}
-          color={COLORS.white}
-        />
-      </Pressable>
-      <Text
-        style={[styles.monthText, isLandscape && styles.monthTextLandscape]}
-      >
-        Month {currentPlayer.currentMonth} of {gameState.totalMonths}
-      </Text>
-      <Pressable
         onPress={() => router.replace("/how-to-play")}
         style={isLandscape ? styles.exitButtonSmall : styles.exitButton}
       >
@@ -736,11 +781,42 @@ export default function Game() {
           color={COLORS.white}
         />
       </Pressable>
+      <View style={styles.monthDisplay}>
+        <CalendarSvg width={35} height={35} />
+        <View style={{ width: 110 }}>
+          <StrokeText
+            fontSize={18}
+            fillColor="#FFFFFF"
+            strokeColor="#333333"
+            strokeWidth={3}
+          >
+            {`Month ${currentPlayer.currentMonth} / ${gameState.totalMonths}`}
+          </StrokeText>
+        </View>
+      </View>
+      <Pressable onPress={handleExit} style={styles.quitButton}>
+        <View style={styles.quitCross}>
+          <Ionicons name="close" size={14} color="#FFFFFF" />
+        </View>
+        <View style={styles.quitTextWrap}>
+          <StrokeText
+            fontSize={12}
+            fillColor="#FFFFFF"
+            strokeColor="#6B3A2A"
+            strokeWidth={2}
+          >
+            QUIT
+          </StrokeText>
+        </View>
+        <DoorSvg width={20} height={28} />
+      </Pressable>
     </View>
   );
 
   const retiredIndices = new Set(
-    players.flatMap((p, i) => (p.currentMonth > gameState.totalMonths ? [i] : [])),
+    players.flatMap((p, i) =>
+      p.currentMonth > gameState.totalMonths ? [i] : [],
+    ),
   );
 
   const board = (
@@ -766,11 +842,28 @@ export default function Game() {
       >
         <View style={styles.actionButtonWrapper}>
           <Pressable
-            style={[styles.actionButton, styles.actionLoan, !canBank && styles.actionDisabled]}
-            onPress={() => { if (canBank) { playClick(); setShowBankModal(true); } }}
+            style={[
+              styles.actionButton,
+              styles.actionLoan,
+              !canBank && styles.actionDisabled,
+            ]}
+            onPress={() => {
+              if (canBank) {
+                playClick();
+                setShowBankModal(true);
+              }
+            }}
           >
-            <Ionicons name={currentPlayer.accountType === "Savings" ? "wallet" : "business"} size={18} color={COLORS.white} />
-            <Text style={styles.actionText}>{currentPlayer.accountType === "Savings" ? "Savings" : "Loan"}</Text>
+            <Ionicons
+              name={
+                currentPlayer.accountType === "Savings" ? "wallet" : "business"
+              }
+              size={18}
+              color={COLORS.white}
+            />
+            <Text style={styles.actionText}>
+              {currentPlayer.accountType === "Savings" ? "Savings" : "Loan"}
+            </Text>
           </Pressable>
         </View>
         <View style={styles.actionButtonWrapper}>
@@ -845,60 +938,74 @@ export default function Game() {
     />
   ) : null;
 
-  const mailModal = gameState.currentMail && gameState.currentMail.type !== "swellfare" ? (
-    <MailCardModal
-      mail={gameState.currentMail}
-      onDismiss={() => dispatch({ type: "DISMISS_MAIL" })}
-      onBuyInsurance={() => dispatch({ type: "BUY_INSURANCE" })}
-      isCancelledByInsurance={
-        gameState.currentMail.type === "bill" &&
-        gameState.currentMail.billCategory !== "other" &&
-        !!gameState.currentMail.billCategory &&
-        currentPlayer.insurance.some((ins) =>
-          ins.cancelsCategories?.includes(gameState.currentMail!.billCategory!),
-        )
-      }
-    />
-  ) : null;
+  const mailModal =
+    gameState.currentMail && gameState.currentMail.type !== "swellfare" ? (
+      <MailCardModal
+        mail={gameState.currentMail}
+        onDismiss={() => dispatch({ type: "DISMISS_MAIL" })}
+        onBuyInsurance={() => dispatch({ type: "BUY_INSURANCE" })}
+        isCancelledByInsurance={
+          gameState.currentMail.type === "bill" &&
+          gameState.currentMail.billCategory !== "other" &&
+          !!gameState.currentMail.billCategory &&
+          currentPlayer.insurance.some((ins) =>
+            ins.cancelsCategories?.includes(
+              gameState.currentMail!.billCategory!,
+            ),
+          )
+        }
+      />
+    ) : null;
 
-  const gameOverModal = gameState.phase === "game-over" ? (
-    <GameOverModal
-      players={gameState.players}
-      onClose={() => router.replace("/")}
-    />
-  ) : null;
+  const gameOverModal =
+    gameState.phase === "game-over" ? (
+      <GameOverModal
+        players={gameState.players}
+        onClose={() => router.replace("/")}
+      />
+    ) : null;
 
-  const pokerGameModal = gameState.phase === "poker-game" ? (
-    <PokerGameModal
-      players={gameState.players}
-      onConfirm={(participantIndices, winnerIndex) =>
-        dispatch({ type: "CONFIRM_POKER_GAME", participantIndices, winnerIndex })
-      }
-      onSkip={() => dispatch({ type: "SKIP_POKER_GAME" })}
-    />
-  ) : null;
+  const pokerGameModal =
+    gameState.phase === "poker-game" ? (
+      <PokerGameModal
+        players={gameState.players}
+        onConfirm={(participantIndices, winnerIndex) =>
+          dispatch({
+            type: "CONFIRM_POKER_GAME",
+            participantIndices,
+            winnerIndex,
+          })
+        }
+        onSkip={() => dispatch({ type: "SKIP_POKER_GAME" })}
+      />
+    ) : null;
 
-  const daylightSavingModal = gameState.phase === "daylight-saving" ? (
-    <DaylightSavingModal
-      players={gameState.players}
-      onConfirm={() => dispatch({ type: "CONFIRM_DAYLIGHT_SAVING" })}
-    />
-  ) : null;
+  const daylightSavingModal =
+    gameState.phase === "daylight-saving" ? (
+      <DaylightSavingModal
+        players={gameState.players}
+        onConfirm={() => dispatch({ type: "CONFIRM_DAYLIGHT_SAVING" })}
+      />
+    ) : null;
 
-  const electionModal = gameState.phase === "election" ? (
-    <ElectionModal
-      players={gameState.players}
-      pot={gameState.pot}
-      onConfirm={() => dispatch({ type: "CONFIRM_ELECTION" })}
-    />
-  ) : null;
+  const electionModal =
+    gameState.phase === "election" ? (
+      <ElectionModal
+        players={gameState.players}
+        pot={gameState.pot}
+        onConfirm={() => dispatch({ type: "CONFIRM_ELECTION" })}
+      />
+    ) : null;
 
   const swellfareModal =
-    gameState.phase === "mail" && gameState.currentMail?.type === "swellfare" ? (
+    gameState.phase === "mail" &&
+    gameState.currentMail?.type === "swellfare" ? (
       <SwellfareModal
         player={currentPlayer}
         pot={gameState.pot}
-        onUse={(bet: number, roll: number) => dispatch({ type: "USE_SWELLFARE", bet, roll })}
+        onUse={(bet: number, roll: number) =>
+          dispatch({ type: "USE_SWELLFARE", bet, roll })
+        }
         onDiscard={() => dispatch({ type: "DISCARD_SWELLFARE" })}
       />
     ) : null;
@@ -1085,9 +1192,29 @@ const styles = StyleSheet.create({
     paddingHorizontal: SPACING.md,
     paddingVertical: SPACING.sm,
   },
+  quitButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 2,
+  },
+  quitCross: {
+    width: 20,
+    height: 22,
+    borderRadius: 4,
+    backgroundColor: "#E25B4E",
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 2,
+    borderColor: "#C0392B",
+  },
+  quitTextWrap: {
+    width: 40,
+    backgroundColor: "rgba(173, 200, 215, 0.7)",
+    paddingVertical: 2,
+  },
   exitButton: {
-    width: 36,
-    height: 36,
+    width: 30,
+    height: 30,
     borderRadius: 18,
     backgroundColor: "rgba(0,0,0,0.2)",
     alignItems: "center",
@@ -1101,13 +1228,9 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  monthText: {
-    fontWeight: "800" as const,
-    fontSize: 20,
-    color: COLORS.textDark,
-  },
-  monthTextLandscape: {
-    fontSize: 16,
+  monthDisplay: {
+    flexDirection: "row",
+    alignItems: "center",
   },
   actionsContainer: {
     alignItems: "center",
