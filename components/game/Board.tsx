@@ -23,6 +23,7 @@ interface BoardProps {
   cellSize: number;
   cellHeight?: number;
   animatingMove: AnimatingMove | null;
+  retiredPlayerIndices?: Set<number>;
   onAnimationComplete: () => void;
 }
 
@@ -40,17 +41,18 @@ export default function Board({
   cellSize,
   cellHeight,
   animatingMove,
+  retiredPlayerIndices,
   onAnimationComplete,
 }: BoardProps) {
   const ch = cellHeight ?? cellSize;
-  // Build a map of position -> player colors for token display
-  const positionColors = new Map<number, string[]>();
+  // Build a map of position -> player tokens for display
+  const positionTokens = new Map<number, Array<{ color: string; retired: boolean }>>();
   players.forEach((player, index) => {
     // Hide the animating player's token at their current (source) position
     if (animatingMove && index === animatingMove.playerIndex) return;
-    const colors = positionColors.get(player.position) ?? [];
-    colors.push(player.color);
-    positionColors.set(player.position, colors);
+    const tokens = positionTokens.get(player.position) ?? [];
+    tokens.push({ color: player.color, retired: retiredPlayerIndices?.has(index) ?? false });
+    positionTokens.set(player.position, tokens);
   });
 
   const currentPlayerPosition = players[currentPlayerIndex]?.position ?? 0;
@@ -143,7 +145,7 @@ export default function Board({
                     key={col}
                     day={space.day}
                     type={space.type}
-                    playerColors={positionColors.get(space.day) ?? []}
+                    playerTokens={positionTokens.get(space.day) ?? []}
                     isCurrentCell={space.day === currentPlayerPosition}
                     cellSize={cellSize}
                     cellHeight={ch}

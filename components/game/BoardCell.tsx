@@ -11,7 +11,7 @@ import { Image, StyleSheet, Text, View } from "react-native";
 interface BoardCellProps {
   day: number;
   type: SpaceType;
-  playerColors: string[];
+  playerTokens: Array<{ color: string; retired: boolean }>;
   isCurrentCell: boolean;
   cellSize: number;
   cellHeight?: number;
@@ -37,7 +37,7 @@ const EVENT_CONTENT: Partial<Record<SpaceType, { title: string; amount: string }
 export default function BoardCell({
   day,
   type,
-  playerColors,
+  playerTokens,
   isCurrentCell,
   cellSize,
   cellHeight,
@@ -105,13 +105,13 @@ export default function BoardCell({
           <Ionicons name={config.icon} size={iconSize} color={config.color} />
         )}
 
-        {playerColors.length > 0 && (
+        {playerTokens.length > 0 && (
           <View style={styles.tokenRow}>
-            {playerColors.map((color, i) => (
-              <View key={i} style={styles.pawn}>
-                <View style={[styles.pawnHead, { backgroundColor: color }]} />
-                <View style={[styles.pawnBody, { backgroundColor: color }]} />
-                <View style={[styles.pawnBase, { backgroundColor: color }]} />
+            {playerTokens.map((token, i) => (
+              <View key={i} style={[styles.pawn, token.retired && { opacity: 0.35 }]}>
+                <View style={[styles.pawnHead, { backgroundColor: token.color }]} />
+                <View style={[styles.pawnBody, { backgroundColor: token.color }]} />
+                <View style={[styles.pawnBase, { backgroundColor: token.color }]} />
               </View>
             ))}
           </View>

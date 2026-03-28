@@ -1,6 +1,7 @@
 import BankModal from "@/components/game/BankModal";
 import DaylightSavingModal from "@/components/game/DaylightSavingModal";
 import ElectionModal from "@/components/game/ElectionModal";
+import GameOverModal from "@/components/game/GameOverModal";
 import PokerGameModal from "@/components/game/PokerGameModal";
 import SwellfareModal from "@/components/game/SwellfareModal";
 import Board from "@/components/game/Board";
@@ -26,7 +27,7 @@ import type { GameState } from "@/types/game";
 import { PLAYER_COLORS } from "@/types/game";
 import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { useEffect, useReducer, useState } from "react";
+import { useReducer, useState } from "react";
 import {
   Alert,
   ImageBackground,
@@ -403,21 +404,36 @@ function gameReducer(state: GameState, action: GameAction): GameState {
       // Step 5: Month-end reset
       const updatedPlayers = state.players.map((p, i) => {
         if (i !== state.currentPlayerIndex) return p;
+        const newMonth = p.currentMonth + 1;
         return {
           ...p,
           cash,
           loanBalance,
           savingsBalance,
           position: 0,
-          currentMonth: p.currentMonth + 1,
+          currentMonth: newMonth,
           unpaidBills: [],
+          deals: newMonth > state.totalMonths ? [] : p.deals,
           lotteryTickets: p.lotteryTickets.filter(
             (t) => t.monthReceived !== p.currentMonth,
           ),
         };
       });
 
-      return { ...state, players: updatedPlayers, diceValue: null, phase: "end-turn" };
+      const isRetiring = updatedPlayers[state.currentPlayerIndex].currentMonth > state.totalMonths;
+      return {
+        ...state,
+        players: updatedPlayers,
+        diceValue: null,
+        phase: isRetiring ? "event" : "end-turn",
+        eventMessage: isRetiring
+          ? {
+              title: `${state.players[state.currentPlayerIndex].name} Has Retired!`,
+              description: "All months completed. Waiting for other players to finish.",
+              amount: 0,
+            }
+          : null,
+      };
     }
     case "TAKE_LOAN": {
       const updatedPlayers = state.players.map((player, i) => {
@@ -656,13 +672,6 @@ export default function Game() {
   const [showBankModal, setShowBankModal] = useState(false);
   const canBank = gameState.phase === "roll" || gameState.phase === "end-turn";
 
-  useEffect(() => {
-    if (gameState.phase === "game-over") {
-      Alert.alert("Game Over", "All players have completed all months!", [
-        { text: "OK", onPress: () => router.replace("/") },
-      ]);
-    }
-  }, [gameState.phase]);
 
   // Compute cellSize based on orientation
   const sidebarWidth = isLandscape
@@ -730,12 +739,17 @@ export default function Game() {
     </View>
   );
 
+  const retiredIndices = new Set(
+    players.flatMap((p, i) => (p.currentMonth > gameState.totalMonths ? [i] : [])),
+  );
+
   const board = (
     <Board
       players={players}
       currentPlayerIndex={currentPlayerIndex}
       cellSize={cellSize}
       animatingMove={gameState.animatingMove}
+      retiredPlayerIndices={retiredIndices}
       onAnimationComplete={() => dispatch({ type: "ANIMATION_COMPLETE" })}
     />
   );
@@ -844,6 +858,13 @@ export default function Game() {
           ins.cancelsCategories?.includes(gameState.currentMail!.billCategory!),
         )
       }
+    />
+  ) : null;
+
+  const gameOverModal = gameState.phase === "game-over" ? (
+    <GameOverModal
+      players={gameState.players}
+      onClose={() => router.replace("/")}
     />
   ) : null;
 
@@ -958,6 +979,7 @@ export default function Game() {
               {playerSection}
             </View>
           </View>
+          {gameOverModal}
           {eventToast}
           {bankModal}
           {pokerGameModal}
@@ -994,6 +1016,7 @@ export default function Game() {
             cellSize={cellSize}
             cellHeight={portraitCellHeight}
             animatingMove={gameState.animatingMove}
+            retiredPlayerIndices={retiredIndices}
             onAnimationComplete={() => dispatch({ type: "ANIMATION_COMPLETE" })}
           />
         </View>
@@ -1001,6 +1024,7 @@ export default function Game() {
           {actions}
           {playerSection}
         </View>
+        {gameOverModal}
         {eventToast}
         {bankModal}
         {pokerGameModal}
