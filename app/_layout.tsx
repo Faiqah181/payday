@@ -11,13 +11,17 @@ import Animated, {
   Easing,
 } from "react-native-reanimated";
 import * as NavigationBar from "expo-navigation-bar";
+import { useFonts } from "expo-font";
 import { COLORS } from "@/constants/colors";
+import { BALOO_FONTS, applyBalooFont } from "@/constants/fonts";
 import { SoundProvider } from "@/contexts/SoundContext";
 
 SplashScreen.preventAutoHideAsync();
+applyBalooFont();
 
 export default function RootLayout() {
   const [appReady, setAppReady] = useState(false);
+  const [fontsLoaded] = useFonts(BALOO_FONTS);
   const progress = useSharedValue(0);
 
   useEffect(() => {
@@ -52,7 +56,7 @@ export default function RootLayout() {
     width: `${progress.value * 100}%`,
   }));
 
-  if (!appReady) {
+  if (!appReady || !fontsLoaded) {
     return (
       <ImageBackground
         source={require("@/assets/images/loading-screen.png")}
@@ -92,10 +96,7 @@ export default function RootLayout() {
         <Stack.Screen
           name="settings"
           options={{
-            headerShown: true,
-            title: "Settings",
-            headerStyle: { backgroundColor: "#1a6b5a" },
-            headerTintColor: COLORS.white,
+            headerShown: false,
           }}
         />
       </Stack>

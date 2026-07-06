@@ -1,7 +1,7 @@
-import Bank from "@/assets/svg/bank.svg";
 import CalendarClockSvg from "@/assets/svg/calendar-clock.svg";
 import CalendarSvg from "@/assets/svg/calendar.svg";
-import CoinSvg from "@/assets/svg/coin.svg";
+import { type AccountType } from "@/components/menu/AccountTypeSwitcher";
+import PlayerSetupCard from "@/components/menu/PlayerSetupCard";
 import StrokeText from "@/components/StrokeText";
 import { COLORS, SPACING } from "@/constants/colors";
 import { useSound } from "@/contexts/SoundContext";
@@ -13,18 +13,12 @@ import {
   ImageBackground,
   Pressable,
   StyleSheet,
-  Text,
-  TextInput,
   View,
 } from "react-native";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 
 const PLAYER_OPTIONS = [2, 3, 4];
 const MONTH_OPTIONS = [2, 3, 4, 5, 6];
-const ACCOUNT_TYPES = ["Savings", "Loan"] as const;
-type AccountType = (typeof ACCOUNT_TYPES)[number];
-
-const PLAYER_COLORS = ["#3F86BE", "#E8554B", "#F6BF4B", "#A871CF"];
 
 export default function GameSetup() {
   const router = useRouter();
@@ -79,43 +73,16 @@ export default function GameSetup() {
           <CalendarSvg width={36} height={36} />
           <View style={{ width: 210 }}>
             <StrokeText fontSize={24} letterSpacing={2}>
-              GAME SETTINGS
+              GAME SETUP
             </StrokeText>
           </View>
         </View>
 
         <View style={styles.setup}>
-          {/* 1. NUMBER OF PLAYERS */}
-          <View style={styles.player_panel}>
-            <StrokeText fontSize={16} letterSpacing={2}>
-              1. NUMBER OF PLAYERS
-            </StrokeText>
-            <Ionicons name="people" size={48} color="#fff" />
-            <View style={styles.optionsRow}>
-              {PLAYER_OPTIONS.map((n) => (
-                <Pressable
-                  key={n}
-                  style={[
-                    styles.optionButton,
-                    playerCount === n && styles.optionButtonSelected,
-                  ]}
-                  onPress={() => {
-                    playClick();
-                    setPlayerCount(n);
-                  }}
-                >
-                  <StrokeText fontSize={24} strokeColor="#555" fillColor="#FFF">
-                    {String(n)}
-                  </StrokeText>
-                </Pressable>
-              ))}
-            </View>
-          </View>
-
-          {/* 2. NUMBER OF MONTHS */}
+          {/* NUMBER OF MONTHS */}
           <View style={styles.panel}>
             <StrokeText fontSize={16} letterSpacing={2}>
-              2. NUMBER OF MONTHS
+              GAME LENGTH (MONTHS)
             </StrokeText>
             <CalendarClockSvg width={48} height={48} />
             <View style={styles.optionsRow}>
@@ -138,65 +105,47 @@ export default function GameSetup() {
               ))}
             </View>
           </View>
-          {/* 3. PLAYER INFO */}
+
+          {/* PLAYERS */}
           <View style={[styles.panel, styles.player_info_panel]}>
             <StrokeText fontSize={16} letterSpacing={2}>
-              3. PLAYER INFO
+              PLAYERS
             </StrokeText>
-            {Array.from({ length: playerCount }, (_, i) => (
-              <View key={i} style={styles.playerCard}>
-                <View style={styles.playerRow}>
-                  <Ionicons
-                    name="person-circle"
-                    size={44}
-                    color={PLAYER_COLORS[i]}
-                    style={{
-                      borderColor: "#fff",
-                      borderWidth: 2,
-                      borderRadius: 50,
-                      backgroundColor: "#AFDAE1",
-                    }}
-                  />
-                  <View style={styles.playerInputArea}>
-                    <Text style={styles.playerLabel}>PLAYER {i + 1} NAME</Text>
-                    <TextInput
-                      style={styles.nameInput}
-                      placeholder={`Enter name`}
-                      placeholderTextColor="#9E9E9E"
-                      value={playerNames[i]}
-                      onChangeText={(text) => updateName(i, text)}
-                      maxLength={15}
-                      underlineColorAndroid="transparent"
-                    />
-                  </View>
-                  <View style={styles.accountButtons}>
-                    <Pressable
-                      style={[
-                        styles.accountBtn,
-                        accountTypes[i] === "Savings" &&
-                          styles.accountBtnSelected,
-                      ]}
-                      onPress={() => updateAccountType(i, "Savings")}
-                    >
-                      <CoinSvg width={20} height={20} />
-                      <Text style={styles.accountBtnText}>SAVING</Text>
-                    </Pressable>
-                    <Pressable
-                      style={[
-                        styles.accountBtn,
-                        accountTypes[i] === "Loan" && styles.accountBtnSelected,
-                      ]}
-                      onPress={() => updateAccountType(i, "Loan")}
-                    >
-                      <Bank width={20} height={20} />
-                      <Text style={styles.accountBtnText}>LOAN</Text>
-                    </Pressable>
-                  </View>
-                </View>
-              </View>
-            ))}
+            <Ionicons name="people" size={48} color="#fff" />
+            <View style={styles.optionsRow}>
+              {PLAYER_OPTIONS.map((n) => (
+                <Pressable
+                  key={n}
+                  style={[
+                    styles.optionButton,
+                    playerCount === n && styles.optionButtonSelected,
+                  ]}
+                  onPress={() => {
+                    playClick();
+                    setPlayerCount(n);
+                  }}
+                >
+                  <StrokeText fontSize={24} strokeColor="#555" fillColor="#FFF">
+                    {String(n)}
+                  </StrokeText>
+                </Pressable>
+              ))}
+            </View>
+            <View style={styles.playersList}>
+              {Array.from({ length: playerCount }, (_, i) => (
+                <PlayerSetupCard
+                  key={i}
+                  index={i}
+                  name={playerNames[i]}
+                  accountType={accountTypes[i]}
+                  onChangeName={(text) => updateName(i, text)}
+                  onChangeAccountType={(type) => updateAccountType(i, type)}
+                />
+              ))}
+            </View>
           </View>
-          {/* 4. START GAME */}
+
+          {/* START GAME */}
           <View style={styles.start_btn}>
             <Pressable
               onPress={() => {
@@ -231,6 +180,16 @@ export default function GameSetup() {
           </View>
         </View>
       </KeyboardAwareScrollView>
+
+      <Pressable
+        style={styles.backButton}
+        onPress={() => {
+          playClick();
+          router.back();
+        }}
+      >
+        <Ionicons name="arrow-back" size={24} color="#fff" />
+      </Pressable>
     </ImageBackground>
   );
 }
@@ -239,6 +198,17 @@ const styles = StyleSheet.create({
   background: {
     flex: 1,
     backgroundColor: "#000",
+  },
+  backButton: {
+    position: "absolute",
+    top: 26,
+    left: SPACING.md,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: "rgba(0,0,0,0.25)",
+    alignItems: "center",
+    justifyContent: "center",
   },
   scrollContent: {
     flexGrow: 1,
@@ -276,11 +246,6 @@ const styles = StyleSheet.create({
     borderTopWidth: 0,
     gap: SPACING.sm,
   },
-  player_panel: {
-    borderRadius: 16,
-    padding: SPACING.sm,
-    alignItems: "center",
-  },
   panel: {
     backgroundColor: "#70ACA8",
     borderRadius: 16,
@@ -293,6 +258,10 @@ const styles = StyleSheet.create({
   },
   player_info_panel: {
     gap: 4,
+  },
+  playersList: {
+    width: "100%",
+    marginTop: 8,
   },
   start_btn: {
     alignSelf: "center",
@@ -336,64 +305,6 @@ const styles = StyleSheet.create({
   },
 
   // Player cards
-  playerCard: {
-    marginBottom: 10,
-    width: "100%",
-  },
-  playerRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 10,
-  },
-  playerInputArea: {
-    flex: 1,
-  },
-  playerLabel: {
-    fontWeight: "700",
-    fontSize: 13,
-    color: "#2C4643",
-    letterSpacing: 0.5,
-    marginBottom: 2,
-  },
-  nameInput: {
-    fontSize: 14,
-    fontWeight: "500",
-    color: COLORS.textDark,
-    backgroundColor: COLORS.white,
-    borderRadius: 5,
-    paddingVertical: 2,
-    paddingHorizontal: 4,
-    borderWidth: 1,
-    borderColor: "#ddd",
-  },
-
-  // Account type buttons
-  accountButtons: {
-    flexDirection: "row",
-    gap: 4,
-  },
-  accountBtn: {
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: "#B0BEC5",
-    borderRadius: 4,
-    paddingVertical: 4,
-    paddingHorizontal: 4,
-    gap: 2,
-    borderWidth: 1,
-    borderColor: "transparent",
-  },
-  accountBtnSelected: {
-    backgroundColor: "#B1E9FA",
-    borderColor: "rgba(255, 255, 255, 1)",
-    borderWidth: 3,
-  },
-  accountBtnText: {
-    fontWeight: "600",
-    fontSize: 10,
-    color: "#000",
-    letterSpacing: 0.5,
-  },
 
   // Start button
   startButton: {

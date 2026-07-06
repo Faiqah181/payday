@@ -8,7 +8,7 @@ A digital adaptation of the **1974 PayDay board game**, built with **Expo 54 / R
 - **Navigation**: expo-router (file-based routing)
 - **Animations**: react-native-reanimated v4 (FadeIn, FadeOut, spring physics, sequential step animations)
 - **Audio**: expo-audio (click sound effects)
-- **Font**: System bold (fontWeight: "800") for titles
+- **Font**: Baloo 2 (Google Fonts, static weights 400–800 in `assets/fonts/`). Loaded via `expo-font` `useFonts` in `app/_layout.tsx`; `constants/fonts.ts` patches `Text`/`TextInput` to map `fontWeight` → the matching Baloo static family app-wide. `StrokeText` (SVG titles) uses Baloo2 ExtraBold.
 - **State**: useReducer pattern for game state machine in `app/game.tsx`
 
 ## Project Structure

@@ -24,6 +24,7 @@
 import React, { useState } from "react";
 import { LayoutChangeEvent, View, ViewStyle } from "react-native";
 import Svg, { Text as SvgText } from "react-native-svg";
+import { FONTS } from "@/constants/fonts";
 
 interface StrokeTextProps {
   children: string;
@@ -41,7 +42,7 @@ export default function StrokeText({
   fillColor = "#FFFFFF",
   strokeColor = "#333333",
   strokeWidth = 3,
-  letterSpacing = 2,
+  letterSpacing = 8,
   style,
 }: StrokeTextProps) {
   const [width, setWidth] = useState(0);
@@ -55,6 +56,7 @@ export default function StrokeText({
     x: width / 2,
     y: fontSize,
     textAnchor: "middle" as const,
+    fontFamily: FONTS.extrabold,
     fontWeight: "800" as const,
     fontSize: fontSize,
     letterSpacing: letterSpacing,

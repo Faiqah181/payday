@@ -1,9 +1,10 @@
+import StrokeText from "@/components/StrokeText";
 import { COLORS, SPACING } from "@/constants/colors";
 import { useSound } from "@/contexts/SoundContext";
 import { Ionicons } from "@expo/vector-icons";
 import * as Linking from "expo-linking";
+import { useRouter } from "expo-router";
 import {
-  BackHandler,
   ImageBackground,
   Pressable,
   StyleSheet,
@@ -11,13 +12,15 @@ import {
   Text,
   View,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 interface SettingsRowProps {
   icon: keyof typeof Ionicons.glyphMap;
   label: string;
   onPress?: () => void;
   rightElement?: React.ReactNode;
-  color?: string;
+  bgColor: string;
+  borderColor: string;
 }
 
 function SettingsRow({
@@ -25,13 +28,20 @@ function SettingsRow({
   label,
   onPress,
   rightElement,
-  color = COLORS.textDark,
+  bgColor,
+  borderColor,
 }: SettingsRowProps) {
   const { playClick } = useSound();
 
   return (
     <Pressable
-      style={styles.row}
+      style={[
+        styles.row,
+        {
+          backgroundColor: bgColor,
+          borderBottomColor: borderColor,
+        },
+      ]}
       onPress={
         onPress
           ? () => {
@@ -41,10 +51,15 @@ function SettingsRow({
           : undefined
       }
     >
-      <Ionicons name={icon} size={24} color={color} style={styles.rowIcon} />
-      <Text style={[styles.rowLabel, { color }]}>{label}</Text>
+      <Ionicons
+        name={icon}
+        size={24}
+        color={COLORS.white}
+        style={styles.rowIcon}
+      />
+      <Text style={styles.rowLabel}>{label}</Text>
       {rightElement ?? (
-        <Ionicons name="chevron-forward" size={20} color="#9E9E9E" />
+        <Ionicons name="chevron-forward" size={20} color="rgba(255,255,255,0.6)" />
       )}
     </Pressable>
   );
@@ -52,6 +67,7 @@ function SettingsRow({
 
 export default function Settings() {
   const { soundEnabled, toggleSound, playClick } = useSound();
+  const router = useRouter();
 
   return (
     <ImageBackground
@@ -60,38 +76,65 @@ export default function Settings() {
       resizeMode="cover"
       imageStyle={{ opacity: 0.3 }}
     >
-      <View style={styles.content}>
-        <SettingsRow
-          icon="volume-high"
-          label="Sound"
-          rightElement={
-            <Switch
-              value={soundEnabled}
-              onValueChange={() => {
-                playClick();
-                toggleSound();
-              }}
-              trackColor={{ false: "#ccc", true: COLORS.primary }}
-              thumbColor={COLORS.white}
-            />
-          }
-        />
+      <SafeAreaView style={styles.safeArea}>
+        <View style={styles.header}>
+          <Pressable
+            style={styles.backButton}
+            onPress={() => {
+              playClick();
+              router.back();
+            }}
+          >
+            <Ionicons name="arrow-back" size={24} color="#fff" />
+          </Pressable>
+          <View style={{ flex: 1 }}>
+            <StrokeText
+              fontSize={28}
+              fillColor="#FFFFFF"
+              strokeColor="#1B5E20"
+              strokeWidth={5}
+            >
+              SETTINGS
+            </StrokeText>
+          </View>
+        </View>
 
-        <SettingsRow
-          icon="mail"
-          label="Support"
-          onPress={() => Linking.openURL("mailto:abchelp@support.com")}
-        />
+        <View style={styles.content}>
+          <SettingsRow
+            icon="volume-high"
+            label="Sound"
+            bgColor={COLORS.primary}
+            borderColor={COLORS.primaryBorder}
+            rightElement={
+              <Switch
+                value={soundEnabled}
+                onValueChange={() => {
+                  playClick();
+                  toggleSound();
+                }}
+                trackColor={{ false: "rgba(255,255,255,0.3)", true: "#4CAF50" }}
+                thumbColor={COLORS.white}
+              />
+            }
+          />
 
-        <SettingsRow icon="star" label="Rate Us" onPress={() => {}} />
+          <SettingsRow
+            icon="mail"
+            label="Support"
+            bgColor={COLORS.secondary}
+            borderColor={COLORS.secondaryBorder}
+            onPress={() => Linking.openURL("mailto:abchelp@support.com")}
+          />
 
-        <SettingsRow
-          icon="exit"
-          label="Quit Game"
-          color="#D32F2F"
-          onPress={() => BackHandler.exitApp()}
-        />
-      </View>
+          <SettingsRow
+            icon="star"
+            label="Rate Us"
+            bgColor="#AB47BC"
+            borderColor="#8E24AA"
+            onPress={() => {}}
+          />
+        </View>
+      </SafeAreaView>
     </ImageBackground>
   );
 }
@@ -100,24 +143,44 @@ const styles = StyleSheet.create({
   background: {
     flex: 1,
   },
+  safeArea: {
+    flex: 1,
+  },
+  header: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: SPACING.md,
+    marginTop: 26,
+    paddingBottom: SPACING.sm,
+    gap: 12,
+  },
+  backButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: "rgba(0,0,0,0.25)",
+    alignItems: "center",
+    justifyContent: "center",
+  },
   content: {
     flex: 1,
+    width: "80%",
+    alignSelf: "center",
     justifyContent: "center",
-    padding: SPACING.md,
+    gap: 28,
   },
   row: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: COLORS.white,
-    borderRadius: 16,
-    padding: SPACING.md,
-    height: 56,
-    marginBottom: 14,
+    borderRadius: 24,
+    paddingHorizontal: 24,
+    paddingVertical: 16,
+    borderBottomWidth: 5,
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.2,
     shadowRadius: 4,
-    elevation: 3,
+    elevation: 6,
   },
   rowIcon: {
     marginRight: 12,
@@ -126,5 +189,7 @@ const styles = StyleSheet.create({
     flex: 1,
     fontWeight: "800" as const,
     fontSize: 18,
+    color: COLORS.white,
+    letterSpacing: 1,
   },
 });

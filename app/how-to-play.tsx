@@ -121,7 +121,7 @@ export default function HowToPlay() {
     >
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       <Text style={styles.intro}>
-        Welcome to Salary Day! 🎉 Here's everything you need to know to play like a
+        Welcome to Salary Day! 🎉 Here&apos;s everything you need to know to play like a
         pro.
       </Text>
 
