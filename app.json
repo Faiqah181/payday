@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "paycheck",
+    "name": "Salary Day",
     "slug": "salaryday",
     "version": "1.0.0",
     "orientation": "default",
@@ -8,13 +8,9 @@
     "scheme": "salaryday",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
-    "splash": {
-      "image": "./assets/images/splash-screen.png",
-      "resizeMode": "contain",
-      "backgroundColor": "#18687E"
-    },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.kamico.salaryday"
     },
     "android": {
       "adaptiveIcon": {
@@ -24,7 +20,7 @@
       },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
-      "package": "com.anonymous.salaryday"
+      "package": "com.kamico.salaryday"
     },
     "web": {
       "output": "static",
@@ -35,14 +31,16 @@
       [
         "expo-splash-screen",
         {
-          "image": "./assets/images/splash-screen.png",
+          "image": "./assets/images/logo.png",
+          "imageWidth": 220,
           "resizeMode": "contain",
-          "backgroundColor": "#18687E"
+          "backgroundColor": "#1A627D"
         }
       ],
       "expo-audio",
       "expo-font",
-      "expo-web-browser"
+      "expo-web-browser",
+      "expo-sqlite"
     ],
     "experiments": {
       "typedRoutes": true,

@@ -55,7 +55,6 @@ export interface Player {
   cash: number;
   loanBalance: number;
   savingsBalance: number;
-  accountType: "Savings" | "Loan";
   position: number; // 0 = start, 1-31 = day
   currentMonth: number; // 1-based, each player tracks independently
   deals: DealCard[];
@@ -63,6 +62,47 @@ export interface Player {
   lotteryTickets: HeldLotteryTicket[];
   insurance: MailCard[];
   color: string;
+  /** Out of the game: maxed the loan and still couldn't pay on Pay Day. */
+  bankrupt: boolean;
+}
+
+// An account is never chosen — it's a state you enter through play.
+// A player has either a loan or savings, never both at once.
+export type AccountStatus = "loan" | "savings" | "neutral";
+
+export function getAccountStatus(
+  player: Pick<Player, "loanBalance" | "savingsBalance">,
+): AccountStatus {
+  if (player.savingsBalance > 0) return "savings";
+  if (player.loanBalance > 0) return "loan";
+  return "neutral";
+}
+
+/** One line in the Pot's ledger (elections, swellfare bets, pot wins). */
+export interface PotHistoryEntry {
+  label: string;
+  sub: string;
+  amount: number;
+}
+
+/** What happened when a player hit Pay Day, for the Pay Day screen. */
+export interface PaydayReport {
+  salary: number;
+  /** Signed: savings interest earned (+) or loan interest charged (−). */
+  interest: number;
+  /** Balance the interest was computed on. */
+  interestOn: number;
+  accountStatus: AccountStatus;
+  billsPaid: number;
+  billTitles: string[];
+  /** Savings automatically pulled to cover bills the cash couldn't. */
+  autoWithdrawn: number;
+  /** Loan automatically taken to cover the rest. */
+  autoBorrowed: number;
+  /** Bank buy-back of deals & insurance at cost when the loan maxed out. */
+  liquidated: number;
+  /** Even liquidation couldn't cover the debt — the player retires. */
+  bankrupt: boolean;
 }
 
 export interface AnimatingMove {
@@ -77,11 +117,15 @@ export interface EventMessage {
   amount: number;
 }
 
+/** How this match is played — drives turn-taking vs simultaneous flows. */
+export type GameMode = "ONLINE" | "P&P";
+
 export interface GameState {
+  gameMode: GameMode;
   players: Player[];
   currentPlayerIndex: number;
   totalMonths: number;
-  phase: "roll" | "event" | "deal" | "asset-buyer" | "mail" | "lottery-result" | "salary-day" | "election" | "daylight-saving" | "poker-game" | "end-turn" | "game-over";
+  phase: "roll" | "event" | "deal" | "commission" | "asset-buyer" | "mail" | "lottery-result" | "salary-day" | "election" | "daylight-saving" | "poker-game" | "end-turn" | "game-over";
   diceValue: number | null;
   animatingMove: AnimatingMove | null;
   eventMessage: EventMessage | null;
@@ -90,7 +134,11 @@ export interface GameState {
   mailDeck: MailCard[];
   currentMail: MailCard | null;
   pot: number;
+  potHistory: PotHistoryEntry[];
   electionActive: boolean;
+  payday: PaydayReport | null;
+  /** Commission from a just-bought deal, up for grabs by the highest roller. */
+  pendingCommission: number | null;
 }
 
-export const PLAYER_COLORS = ["#E53935", "#1E88E5", "#43A047", "#FB8C00"];
+export const PLAYER_COLORS = ["#E5432E", "#2E7BD6", "#1FA45C", "#F4B400"];

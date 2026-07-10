@@ -1,5 +1,7 @@
 import type { BoardSpace, EventMessage, SpaceType } from "@/types/game";
 import { Ionicons } from "@expo/vector-icons";
+import { GAME_CONFIG } from "./gameConfig";
+import { SD_CATEGORY } from "./theme";
 
 
 export const SPACE_CONFIG: Record<
@@ -82,10 +84,110 @@ export const BOARD_SPACES: BoardSpace[] = [
   { day: 31, type: "salary-day", row: 4, col: 3 },
 ];
 
-export const DAY_HEADERS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+export const DAY_HEADERS = ["S", "M", "T", "W", "T", "F", "S"];
 
 export const BOARD_ROWS = 5;
 export const BOARD_COLS = 7;
+export const BOARD_CELL_GAP = 6;
+export const BOARD_FRAME_PADDING = 9;
+export const BOARD_FRAME_BORDER = 3;
+
+// Design-system category per space type (drives tile color, icon, art)
+export const SPACE_CATEGORY: Record<SpaceType, keyof typeof SD_CATEGORY> = {
+  start: "start",
+  "post-mail": "mail",
+  deal: "deal",
+  "asset-buyer": "buyer",
+  "lazy-sunday": "rest",
+  "birthday-gift": "collect",
+  "performance-bonus": "collect",
+  "visitor-surprise": "bill",
+  "school-reunion": "bill",
+  "household-essentials": "bill",
+  "home-rent": "bill",
+  "poker-game": "event",
+  election: "election",
+  "daylight-saving": "daylight",
+  "lottery-result": "event",
+  "salary-day": "pay",
+};
+
+// Labels shown on icon cells that carry no amount pill
+export const SPACE_CELL_LABELS: Partial<Record<SpaceType, string>> = {
+  "poker-game": "Poker",
+  "daylight-saving": "Daylight",
+};
+
+// Instant cash change shown as the cell's amount pill
+export function getCellAmount(type: SpaceType): number {
+  if (type === "election") return -50;
+  if (type === "salary-day") return GAME_CONFIG.salary;
+  return SPACE_EVENTS[type]?.amount ?? 0;
+}
+
+export interface SpaceDetail {
+  kind: string;
+  title: string;
+  sub: string;
+  amount: number;
+  accent: string;
+  rule: string;
+}
+
+const CATEGORY_RULES: Record<string, string> = {
+  start:
+    "Every player begins each month here. Roll the die and travel through the days toward Pay Day.",
+  mail: "Draw the number of Mail cards shown. Postcards and ads are free and discarded; bills are kept until Pay Day.",
+  collect: "Good fortune! Collect the amount shown from the Bank right away.",
+  deal: "Draw the top Deal card. You may buy it (a loan is allowed) and hold it until you land on a Buyer space. When bought, every player rolls for the commission.",
+  bill: "An expense lands. Keep the bill and pay it on your next Pay Day.",
+  rest: "Sweet Sunday — a day of rest. Nothing happens. Enjoy the quiet.",
+  buyer:
+    "Collect the Value shown on any one Deal card you hold, then return that card to the Deal stack.",
+  event:
+    "A chance to gamble. Pay in, roll the die, and the highest roller (or a winning roll) takes the money.",
+  election:
+    "All players contribute $50 to the Pot. The next player to roll a 6 on their turn wins the whole Pot.",
+  daylight:
+    "Each player moves back one space and follows the new space they land on.",
+  pay: `Collect your $${GAME_CONFIG.salary} wages, pay your bills and loan interest, then start the new month from Day 1.`,
+};
+
+const SPACE_TITLES: Record<SpaceType, { title: string; sub: string; rule?: string }> = {
+  start: { title: "Start Here", sub: "Begin the month" },
+  "post-mail": { title: "Mail", sub: "You've got mail" },
+  deal: { title: "Deal", sub: "An offer on the table" },
+  "asset-buyer": { title: "Buyer", sub: "Someone wants your deals" },
+  "lazy-sunday": { title: "Sweet Sunday", sub: "A day of rest" },
+  "birthday-gift": { title: "Happy Birthday", sub: "Your uncle abroad sends money" },
+  "performance-bonus": { title: "Surprise Bonus", sub: "Nice surprise!" },
+  "visitor-surprise": { title: "Surprise Visitor", sub: "Guests are over" },
+  "school-reunion": { title: "School Reunion", sub: "Dinner with old friends" },
+  "household-essentials": { title: "Household Bills", sub: "The weekly shop" },
+  "home-rent": { title: "Home Rent", sub: "Monthly rent payment" },
+  "poker-game": { title: "Poker Game", sub: "$100 to play" },
+  election: { title: "Town Election", sub: "Pay into the pot" },
+  "daylight-saving": { title: "Daylight Savings", sub: "Move back one space" },
+  "lottery-result": {
+    title: "Lottery Draw",
+    sub: "Cash your tickets",
+    rule: "Cash any Lottery Tickets you drew this month at the Bank. Unused tickets expire at the end of the month.",
+  },
+  "salary-day": { title: "Pay Day", sub: "Collect your wages" },
+};
+
+export function getSpaceDetail(type: SpaceType): SpaceDetail {
+  const category = SPACE_CATEGORY[type];
+  const { title, sub, rule } = SPACE_TITLES[type];
+  return {
+    kind: title.toUpperCase(),
+    title,
+    sub,
+    amount: getCellAmount(type),
+    accent: SD_CATEGORY[category],
+    rule: rule ?? CATEGORY_RULES[category] ?? "",
+  };
+}
 
 // Get board space by position (day number)
 export function getSpaceByDay(day: number): BoardSpace | undefined {

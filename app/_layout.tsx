@@ -1,80 +1,118 @@
-import "react-native-reanimated";
+import Typography from "@/components/ui/Typography";
+import { APP_FONTS } from "@/constants/fonts";
+import { ProfileProvider } from "@/contexts/ProfileContext";
+import { SoundProvider } from "@/contexts/SoundContext";
+import { Asset } from "expo-asset";
+import { useFonts } from "expo-font";
+import * as NavigationBar from "expo-navigation-bar";
 import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
-import { Asset } from "expo-asset";
 import { useEffect, useState } from "react";
-import { ImageBackground, StatusBar, StyleSheet, View } from "react-native";
+import {
+  AppState,
+  ImageBackground,
+  Pressable,
+  StatusBar,
+  StyleSheet,
+} from "react-native";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withTiming,
   Easing,
+  useAnimatedStyle,
+  useSharedValue,
+  withRepeat,
+  withSequence,
+  withTiming,
 } from "react-native-reanimated";
-import * as NavigationBar from "expo-navigation-bar";
-import { useFonts } from "expo-font";
-import { COLORS } from "@/constants/colors";
-import { BALOO_FONTS, applyBalooFont } from "@/constants/fonts";
-import { SoundProvider } from "@/contexts/SoundContext";
 
 SplashScreen.preventAutoHideAsync();
-applyBalooFont();
 
-export default function RootLayout() {
-  const [appReady, setAppReady] = useState(false);
-  const [fontsLoaded] = useFonts(BALOO_FONTS);
-  const progress = useSharedValue(0);
+function TapToStart() {
+  const bob = useSharedValue(0);
 
   useEffect(() => {
-    StatusBar.setHidden(true);
-    NavigationBar.setVisibilityAsync("hidden");
-    NavigationBar.setBehaviorAsync("overlay-swipe");
+    bob.value = withRepeat(
+      withSequence(
+        withTiming(-5, { duration: 550, easing: Easing.inOut(Easing.ease) }),
+        withTiming(0, { duration: 550, easing: Easing.inOut(Easing.ease) }),
+      ),
+      -1,
+    );
+  }, [bob]);
+
+  const bobStyle = useAnimatedStyle(() => ({
+    transform: [{ translateY: bob.value }],
+  }));
+
+  return (
+    <Animated.View style={bobStyle}>
+      <Typography design="title" style={styles.tapPrompt}>
+        Tap anywhere to start
+      </Typography>
+    </Animated.View>
+  );
+}
+
+export default function RootLayout() {
+  const [assetsReady, setAssetsReady] = useState(false);
+  const [started, setStarted] = useState(false);
+  const [fontsLoaded] = useFonts(APP_FONTS);
+
+  useEffect(() => {
+    const hideSystemBars = () => {
+      StatusBar.setHidden(true);
+      NavigationBar.setVisibilityAsync("hidden");
+      NavigationBar.setBehaviorAsync("overlay-swipe");
+    };
+    hideSystemBars();
+    // Android resets system-bar visibility when the activity loses focus,
+    // so re-apply whenever the app returns to the foreground.
+    const sub = AppState.addEventListener("change", (state) => {
+      if (state === "active") hideSystemBars();
+    });
+    return () => sub.remove();
   }, []);
 
   useEffect(() => {
     async function prepare() {
-      // Hide native splash to show our JS loading screen
+      // Hide native splash to show the JS splash (same art, full-bleed)
       await SplashScreen.hideAsync();
-
-      // Animate progress bar while loading
-      progress.value = withTiming(1, {
-        duration: 2000,
-        easing: Easing.out(Easing.quad),
-      });
-
       try {
-        await Asset.loadAsync(require("@/assets/images/main-menu.png"));
+        await Asset.loadAsync([
+          require("@/assets/images/main-menu.png"),
+          require("@/assets/images/generic-background.png"),
+        ]);
       } finally {
-        // Ensure bar reaches 100% before transitioning
-        progress.value = withTiming(1, { duration: 300 });
-        setTimeout(() => setAppReady(true), 400);
+        setAssetsReady(true);
       }
     }
     prepare();
   }, []);
 
-  const barStyle = useAnimatedStyle(() => ({
-    width: `${progress.value * 100}%`,
-  }));
+  const ready = assetsReady && fontsLoaded;
 
-  if (!appReady || !fontsLoaded) {
+  if (!started) {
     return (
-      <ImageBackground
-        source={require("@/assets/images/loading-screen.png")}
-        style={styles.loadingBackground}
-        resizeMode="cover"
+      <Pressable
+        style={styles.splashRoot}
+        disabled={!ready}
+        onPress={() => setStarted(true)}
       >
-        <StatusBar barStyle="dark-content" />
-        <View style={styles.barContainer}>
-          <View style={styles.barTrack}>
-            <Animated.View style={[styles.barFill, barStyle]} />
-          </View>
-        </View>
-      </ImageBackground>
+        <ImageBackground
+          source={require("@/assets/images/splash-9x19.png")}
+          style={styles.splash}
+          resizeMode="cover"
+        >
+          {ready && <TapToStart />}
+        </ImageBackground>
+      </Pressable>
     );
   }
 
   return (
-    <SoundProvider>
+    <GestureHandlerRootView style={styles.gestureRoot}>
+      <SoundProvider>
+        <ProfileProvider>
       <Stack screenOptions={{ headerShown: false }}>
         <Stack.Screen name="index" />
         <Stack.Screen
@@ -86,10 +124,7 @@ export default function RootLayout() {
         <Stack.Screen
           name="how-to-play"
           options={{
-            headerShown: true,
-            title: "How to Play",
-            headerStyle: { backgroundColor: "#1a6b5a" },
-            headerTintColor: COLORS.white,
+            headerShown: false,
           }}
         />
         <Stack.Screen name="game" />
@@ -99,35 +134,40 @@ export default function RootLayout() {
             headerShown: false,
           }}
         />
+        <Stack.Screen
+          name="profile"
+          options={{
+            headerShown: false,
+          }}
+        />
       </Stack>
       <StatusBar barStyle="light-content" />
-    </SoundProvider>
+        </ProfileProvider>
+      </SoundProvider>
+    </GestureHandlerRootView>
   );
 }
 
 const styles = StyleSheet.create({
-  loadingBackground: {
+  gestureRoot: {
     flex: 1,
   },
-  barContainer: {
-    position: "absolute",
-    bottom: "28%",
-    left: "12%",
-    right: "12%",
+  splashRoot: {
+    flex: 1,
+    backgroundColor: "#1A627D",
+  },
+  splash: {
+    flex: 1,
     alignItems: "center",
+    justifyContent: "flex-end",
+    paddingBottom: 60,
   },
-  barTrack: {
-    width: "100%",
-    height: 20,
-    backgroundColor: "rgba(0,0,0,0.3)",
-    borderRadius: 10,
-    overflow: "hidden",
-    borderWidth: 2,
-    borderColor: "rgba(255,255,255,0.5)",
-  },
-  barFill: {
-    height: "100%",
-    backgroundColor: "#FFB300",
-    borderRadius: 10,
+  tapPrompt: {
+    fontSize: 20,
+    letterSpacing: 0.5,
+    color: "#FFFFFF",
+    textShadowColor: "rgba(0,0,0,0.4)",
+    textShadowOffset: { width: 0, height: 2 },
+    textShadowRadius: 6,
   },
 });

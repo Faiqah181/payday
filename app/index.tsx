@@ -1,18 +1,16 @@
-import Avatar from "@/components/Avatar";
 import ComingSoonBadge from "@/components/menu/ComingSoonBadge";
+import Avatar from "@/components/ui/Avatar";
 import ChunkyButton from "@/components/ui/ChunkyButton";
-import { FONTS } from "@/constants/fonts";
+import Typography from "@/components/ui/Typography";
 import { SD } from "@/constants/theme";
-import { useSound } from "@/contexts/SoundContext";
+import { useProfile } from "@/contexts/ProfileContext";
 import { useRouter } from "expo-router";
 import { ImageBackground, Pressable, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-const PROFILE_NAME = "Player";
-
 export default function Index() {
   const router = useRouter();
-  const { playClick } = useSound();
+  const { name, avatarColor } = useProfile();
 
   return (
     <ImageBackground
@@ -24,12 +22,12 @@ export default function Index() {
         <View style={styles.topRow}>
           <Pressable
             style={styles.profileChip}
-            onPress={() => {
-              playClick();
-            }}
+            onPress={() => router.push("/profile")}
           >
-            <Avatar name={PROFILE_NAME} size={26} />
-            <Text style={styles.profileName}>{PROFILE_NAME}</Text>
+            <Avatar name={name} color={avatarColor} size={32} />
+            <Typography design="body" weight={800} style={styles.profileName}>
+              {name}
+            </Typography>
           </Pressable>
         </View>
 
@@ -40,7 +38,6 @@ export default function Index() {
             color={SD.primary}
             depthColor={SD.primaryShadow}
             depth={6}
-            borderRadius={20}
             contentStyle={styles.menuCard}
             onPress={() => router.push("/game-setup")}
           >
@@ -48,10 +45,16 @@ export default function Index() {
               <Text style={styles.iconEmoji}>👥</Text>
             </View>
             <View style={styles.menuCardText}>
-              <Text style={styles.menuTitleLight}>Pass & Play</Text>
-              <Text style={styles.menuSubtitleLight}>One device, take turns</Text>
+              <Typography design="title" style={styles.menuTitleLight}>
+                Pass & Play
+              </Typography>
+              <Typography design="body" weight={700} style={styles.menuSubtitleLight}>
+                One device, take turns
+              </Typography>
             </View>
-            <Text style={styles.chevronLight}>›</Text>
+            <Typography design="body" weight={800} style={styles.chevronLight}>
+              ›
+            </Typography>
           </ChunkyButton>
 
           <View>
@@ -69,10 +72,16 @@ export default function Index() {
                 <Text style={styles.iconEmoji}>🌐</Text>
               </View>
               <View style={styles.menuCardText}>
-                <Text style={styles.menuTitleGold}>Play Online</Text>
-                <Text style={styles.menuSubtitleGold}>Create or join a room</Text>
+                <Typography design="title" style={styles.menuTitleGold}>
+                  Play Online
+                </Typography>
+                <Typography design="body" weight={700} style={styles.menuSubtitleGold}>
+                  Create or join a room
+                </Typography>
               </View>
-              <Text style={styles.chevronGold}>›</Text>
+              <Typography design="body" weight={800} style={styles.chevronGold}>
+                ›
+              </Typography>
             </ChunkyButton>
           </View>
 
@@ -86,8 +95,12 @@ export default function Index() {
               contentStyle={styles.smallCard}
               onPress={() => router.push("/how-to-play")}
             >
-              <Text style={[styles.smallGlyph, { color: SD.blue }]}>?</Text>
-              <Text style={styles.smallLabel}>How to play</Text>
+              <Typography design="title" style={[styles.smallGlyph, { color: SD.blue }]}>
+                ?
+              </Typography>
+              <Typography design="title" style={styles.smallLabel}>
+                How to play
+              </Typography>
             </ChunkyButton>
             <ChunkyButton
               color={SD.white}
@@ -98,8 +111,12 @@ export default function Index() {
               contentStyle={styles.smallCard}
               onPress={() => router.push("/settings")}
             >
-              <Text style={[styles.smallGlyph, { color: SD.soft }]}>⚙</Text>
-              <Text style={styles.smallLabel}>Settings</Text>
+              <Typography design="title" style={[styles.smallGlyph, { color: SD.soft }]}>
+                ⚙
+              </Typography>
+              <Typography design="title" style={styles.smallLabel}>
+                Settings
+              </Typography>
             </ChunkyButton>
           </View>
         </View>
@@ -126,7 +143,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 7,
-    backgroundColor: SD.white,
+    backgroundColor: SD.semiWhite,
     paddingVertical: 5,
     paddingLeft: 5,
     paddingRight: 11,
@@ -138,8 +155,7 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
   },
   profileName: {
-    fontFamily: FONTS.bodyExtrabold,
-    fontSize: 12,
+    fontSize: 14,
     color: SD.ink,
   },
   spacer: {
@@ -178,37 +194,31 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   menuTitleLight: {
-    fontFamily: FONTS.extrabold,
     fontSize: 19,
     color: SD.white,
     lineHeight: 23,
   },
   menuSubtitleLight: {
-    fontFamily: FONTS.bodyBold,
     fontSize: 12,
     color: "rgba(255,255,255,0.85)",
     marginTop: 2,
   },
   menuTitleGold: {
-    fontFamily: FONTS.extrabold,
     fontSize: 19,
     color: SD.accentInk,
     lineHeight: 23,
   },
   menuSubtitleGold: {
-    fontFamily: FONTS.bodyBold,
     fontSize: 12,
     color: "rgba(94,61,0,0.75)",
     marginTop: 2,
   },
   chevronLight: {
-    fontFamily: FONTS.bodyExtrabold,
-    fontSize: 20,
+    fontSize: 32,
     color: "rgba(255,255,255,0.75)",
   },
   chevronGold: {
-    fontFamily: FONTS.bodyExtrabold,
-    fontSize: 20,
+    fontSize: 32,
     color: "rgba(94,61,0,0.6)",
   },
   smallRow: {
@@ -226,11 +236,9 @@ const styles = StyleSheet.create({
     paddingVertical: 13,
   },
   smallGlyph: {
-    fontFamily: FONTS.extrabold,
     fontSize: 15,
   },
   smallLabel: {
-    fontFamily: FONTS.extrabold,
     fontSize: 14,
     color: SD.ink,
   },

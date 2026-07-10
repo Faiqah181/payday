@@ -1,21 +1,25 @@
+import BoardCell, { CellToken } from "@/components/game/BoardCell";
+import Typography from "@/components/ui/Typography";
 import {
+  BOARD_CELL_GAP,
   BOARD_COLS,
+  BOARD_FRAME_BORDER,
+  BOARD_FRAME_PADDING,
   BOARD_ROWS,
   DAY_HEADERS,
   getSpaceAt,
   getSpaceByDay,
 } from "@/constants/board";
-import { COLORS } from "@/constants/colors";
-import type { AnimatingMove, Player } from "@/types/game";
+import { SD } from "@/constants/theme";
+import type { AnimatingMove, Player, SpaceType } from "@/types/game";
 import { useEffect } from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { StyleSheet, View } from "react-native";
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
   withSequence,
   withTiming,
 } from "react-native-reanimated";
-import BoardCell from "./BoardCell";
 
 interface BoardProps {
   players: Player[];
@@ -25,14 +29,16 @@ interface BoardProps {
   animatingMove: AnimatingMove | null;
   retiredPlayerIndices?: Set<number>;
   onAnimationComplete: () => void;
+  onCellPress?: (type: SpaceType) => void;
 }
 
 const STEP_DURATION = 120; // ms per cell hop
+const GAP = BOARD_CELL_GAP;
 
 function getCellPosition(day: number, cellSize: number, ch: number) {
   const space = getSpaceByDay(day);
   if (!space) return { x: 0, y: 0 };
-  return { x: space.col * cellSize, y: space.row * ch };
+  return { x: space.col * (cellSize + GAP), y: space.row * (ch + GAP) };
 }
 
 export default function Board({
@@ -43,21 +49,25 @@ export default function Board({
   animatingMove,
   retiredPlayerIndices,
   onAnimationComplete,
+  onCellPress,
 }: BoardProps) {
   const ch = cellHeight ?? cellSize;
-  // Build a map of position -> player tokens for display
-  const positionTokens = new Map<number, Array<{ color: string; retired: boolean }>>();
+
+  const positionTokens = new Map<number, CellToken[]>();
   players.forEach((player, index) => {
     // Hide the animating player's token at their current (source) position
     if (animatingMove && index === animatingMove.playerIndex) return;
     const tokens = positionTokens.get(player.position) ?? [];
-    tokens.push({ color: player.color, retired: retiredPlayerIndices?.has(index) ?? false });
+    tokens.push({
+      color: player.color,
+      initial: player.name?.trim()?.[0]?.toUpperCase() || "?",
+      retired: retiredPlayerIndices?.has(index) ?? false,
+    });
     positionTokens.set(player.position, tokens);
   });
 
   const currentPlayerPosition = players[currentPlayerIndex]?.position ?? 0;
 
-  // Animated overlay pawn
   const animX = useSharedValue(0);
   const animY = useSharedValue(0);
 
@@ -75,22 +85,16 @@ export default function Board({
       return;
     }
 
-    // Build step-by-step animation sequence
     const stepsX: number[] = [];
     const stepsY: number[] = [];
-
     for (let day = from + 1; day <= to; day++) {
       const pos = getCellPosition(day, cellSize, ch);
       stepsX.push(pos.x);
       stepsY.push(pos.y);
     }
 
-    const timingsX = stepsX.map((x) =>
-      withTiming(x, { duration: STEP_DURATION }),
-    );
-    const timingsY = stepsY.map((y) =>
-      withTiming(y, { duration: STEP_DURATION }),
-    );
+    const timingsX = stepsX.map((x) => withTiming(x, { duration: STEP_DURATION }));
+    const timingsY = stepsY.map((y) => withTiming(y, { duration: STEP_DURATION }));
 
     animX.value =
       timingsX.length === 1
@@ -101,7 +105,6 @@ export default function Board({
         ? timingsY[0]
         : withSequence(...(timingsY as [number, ...number[]]));
 
-    // Call completion after total animation duration
     const timeout = setTimeout(onAnimationComplete, steps * STEP_DURATION + 50);
     return () => clearTimeout(timeout);
   }, [animatingMove]);
@@ -110,36 +113,36 @@ export default function Board({
     transform: [{ translateX: animX.value }, { translateY: animY.value }],
   }));
 
-  const animatingColor = animatingMove
-    ? (players[animatingMove.playerIndex]?.color ?? "#999")
-    : "#999";
+  const animatingPlayer = animatingMove ? players[animatingMove.playerIndex] : null;
 
   return (
-    <View style={styles.calendarWrapper}>
-      {/* Day name headers */}
-      <View style={styles.headerRow}>
-        {DAY_HEADERS.map((name) => (
-          <Text key={name} style={[styles.headerText, { width: cellSize }]}>
-            {name}
-          </Text>
+    <View style={styles.panel}>
+      {/* Day-of-week letters */}
+      <View style={styles.dowRow}>
+        {DAY_HEADERS.map((letter, i) => (
+          <Typography
+            key={i}
+            design="body"
+            weight={800}
+            style={[styles.dowText, { width: cellSize }]}
+          >
+            {letter}
+          </Typography>
         ))}
       </View>
 
-      {/* Calendar grid with overlay */}
+      {/* Grid + animated pawn overlay */}
       <View style={{ position: "relative" }}>
         <View style={styles.grid}>
           {Array.from({ length: BOARD_ROWS }, (_, row) => (
             <View key={row} style={styles.row}>
               {Array.from({ length: BOARD_COLS }, (_, col) => {
                 const space = getSpaceAt(row, col);
-                if (!space) {
-                  return (
-                    <View
-                      key={col}
-                      style={[styles.emptyCell, { width: cellSize, height: ch }]}
-                    />
-                  );
-                }
+                if (!space) return null;
+                const isPay = space.type === "salary-day";
+                const width = isPay
+                  ? cellSize * 4 + GAP * 3 // PAY DAY fills the rest of the final row
+                  : cellSize;
                 return (
                   <BoardCell
                     key={col}
@@ -147,8 +150,9 @@ export default function Board({
                     type={space.type}
                     playerTokens={positionTokens.get(space.day) ?? []}
                     isCurrentCell={space.day === currentPlayerPosition}
-                    cellSize={cellSize}
+                    cellSize={width}
                     cellHeight={ch}
+                    onPress={onCellPress && (() => onCellPress(space.type))}
                   />
                 );
               })}
@@ -156,8 +160,7 @@ export default function Board({
           ))}
         </View>
 
-        {/* Animated overlay pawn */}
-        {animatingMove && (
+        {animatingMove && animatingPlayer && (
           <Animated.View
             style={[
               styles.overlayPawn,
@@ -166,16 +169,12 @@ export default function Board({
             ]}
             pointerEvents="none"
           >
-            <View style={styles.pawn}>
-              <View
-                style={[styles.pawnHead, { backgroundColor: animatingColor }]}
-              />
-              <View
-                style={[styles.pawnBody, { backgroundColor: animatingColor }]}
-              />
-              <View
-                style={[styles.pawnBase, { backgroundColor: animatingColor }]}
-              />
+            <View
+              style={[styles.movingToken, { backgroundColor: animatingPlayer.color }]}
+            >
+              <Typography design="title" style={styles.movingTokenText}>
+                {animatingPlayer.name?.trim()?.[0]?.toUpperCase() || "?"}
+              </Typography>
             </View>
           </Animated.View>
         )}
@@ -185,78 +184,55 @@ export default function Board({
 }
 
 const styles = StyleSheet.create({
-  calendarWrapper: {
-    backgroundColor: "rgba(190, 183, 170, 0.55)",
-    marginHorizontal: 3.5,
-    borderRadius: 25,
-    borderWidth: 1,
-    borderColor: "rgb(255, 255, 255)",
-    overflow: "hidden",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
-    shadowRadius: 10,
-    elevation: 8,
+  panel: {
+    backgroundColor: SD.surface2,
+    borderWidth: BOARD_FRAME_BORDER,
+    borderColor: SD.line,
+    borderRadius: 18,
+    padding: BOARD_FRAME_PADDING,
+    alignSelf: "center",
   },
-  headerRow: {
+  dowRow: {
     flexDirection: "row",
-    backgroundColor: "rgba(190, 183, 170, 0.1)",
-    borderBottomWidth: 1,
-    borderBottomColor: "rgba(190, 183, 170, 0.5)",
+    gap: GAP,
+    marginBottom: 6,
   },
-  headerText: {
+  dowText: {
     textAlign: "center",
-    fontSize: 12,
-    fontWeight: "700",
-    color: COLORS.titleGreen,
-    borderColor: "rgba(189, 189, 189, 0.3)",
-    paddingVertical: 3,
-    overflow: "hidden",
+    fontSize: 11,
+    color: SD.soft,
   },
   grid: {
-    overflow: "hidden",
-    gap: 1,
+    gap: GAP,
   },
   row: {
     flexDirection: "row",
-    gap: 1,
-  },
-  emptyCell: {
-    backgroundColor: "transparent",
+    gap: GAP,
   },
   overlayPawn: {
     position: "absolute",
     top: 0,
     left: 0,
     alignItems: "center",
-    justifyContent: "flex-end",
-    paddingBottom: 2,
+    justifyContent: "center",
     zIndex: 10,
   },
-  pawn: {
+  movingToken: {
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    borderWidth: 2,
+    borderColor: SD.white,
     alignItems: "center",
+    justifyContent: "center",
+    elevation: 4,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.35,
+    shadowRadius: 4,
   },
-  pawnHead: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    borderWidth: 0.5,
-    borderColor: "rgba(0,0,0,0.25)",
-  },
-  pawnBody: {
-    width: 4,
-    height: 4,
-    borderLeftWidth: 0.5,
-    borderRightWidth: 0.5,
-    borderColor: "rgba(0,0,0,0.15)",
-    marginTop: -0.5,
-  },
-  pawnBase: {
-    width: 8,
-    height: 2.5,
-    borderRadius: 1,
-    borderWidth: 0.5,
-    borderColor: "rgba(0,0,0,0.25)",
-    marginTop: -0.5,
+  movingTokenText: {
+    fontSize: 10,
+    color: SD.white,
   },
 });

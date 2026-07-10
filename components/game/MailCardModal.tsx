@@ -1,8 +1,9 @@
-import { COLORS } from "@/constants/colors";
-import type { MailCard } from "@/types/game";
-import { Ionicons } from "@expo/vector-icons";
-import { Pressable, StyleSheet, Text, View } from "react-native";
-import Animated, { FadeIn, FadeOut } from "react-native-reanimated";
+import ChunkyButton from "@/components/ui/ChunkyButton";
+import PopCard from "@/components/ui/PopCard";
+import Typography from "@/components/ui/Typography";
+import { mixHex, SD, SD_CATEGORY } from "@/constants/theme";
+import type { MailCard, MailCardType } from "@/types/game";
+import { StyleSheet, View } from "react-native";
 
 interface MailCardModalProps {
   mail: MailCard;
@@ -11,337 +12,226 @@ interface MailCardModalProps {
   isCancelledByInsurance?: boolean;
 }
 
-export default function MailCardModal({ mail, onDismiss, onBuyInsurance, isCancelledByInsurance }: MailCardModalProps) {
-  const isLottery = mail.type === "lottery";
-  const isAd = mail.type === "ad";
-  const isBill = mail.type === "bill";
-  const isInsurance = mail.type === "insurance";
+const TONES: Record<Exclude<MailCardType, "swellfare">, string> = {
+  bill: SD.blue,
+  ad: SD_CATEGORY.plain,
+  lottery: SD.accent,
+  insurance: SD.purple,
+};
 
-  const borderColor = isAd ? "#B0BEC5" : isLottery ? "#F9A825" : isInsurance ? "#8E24AA" : "#1E88E5";
-  const headerColor = isAd ? "#78909C" : isLottery ? "#F9A825" : isInsurance ? "#8E24AA" : "#1E88E5";
-  const headerIcon = isAd ? "megaphone" : isLottery ? "ticket" : isInsurance ? "shield" : isBill ? "receipt" : "mail";
-  const headerLabel = isAd ? "ADVERTISEMENT" : isLottery ? "LOTTERY TICKET" : isInsurance ? "INSURANCE" : isBill ? "BILL" : "MAIL";
+function EnvelopeGlyph() {
+  return (
+    <View style={styles.envelope}>
+      <View style={styles.envelopeFlap} />
+    </View>
+  );
+}
+
+export default function MailCardModal({
+  mail,
+  onDismiss,
+  onBuyInsurance,
+  isCancelledByInsurance = false,
+}: MailCardModalProps) {
+  const type = mail.type as Exclude<MailCardType, "swellfare">;
+  const tone = TONES[type] ?? SD.blue;
+
+  const eyebrow =
+    type === "bill"
+      ? "MAIL · BILL"
+      : type === "ad"
+        ? "MAIL · AD"
+        : type === "lottery"
+          ? "MAIL · LOTTERY TICKET"
+          : "MAIL · INSURANCE";
+
+  const note =
+    type === "bill"
+      ? isCancelledByInsurance
+        ? "Your insurance covers this bill — it's cancelled, free of charge."
+        : "Keep it until Pay Day, then pay."
+      : type === "ad"
+        ? "Junk mail — nothing happens. Straight to the bin."
+        : type === "lottery"
+          ? "Cash it in if you land on Lottery Draw this month. Expires when the month ends."
+          : "Held for the rest of the game. New bills of the covered type get cancelled for free.";
 
   return (
-    <Animated.View
-      entering={FadeIn.duration(300)}
-      exiting={FadeOut.duration(200)}
-      style={styles.overlay}
-    >
-      <View style={[styles.card, { borderColor }]}>
-        {/* Close button for ads */}
-        {isAd && (
-          <Pressable onPress={onDismiss} style={styles.closeButton}>
-            <Ionicons name="close" size={20} color="#757575" />
-          </Pressable>
-        )}
+    <PopCard tone={tone} eyebrow={eyebrow} headerRight={<EnvelopeGlyph />}>
+      <Typography design="title" style={styles.title}>
+        {mail.title}
+      </Typography>
+      <Typography design="body" weight={700} style={styles.sub}>
+        {mail.description}
+      </Typography>
 
-        {/* Header */}
-        <View style={styles.header}>
-          <Ionicons name={headerIcon as any} size={20} color={headerColor} />
-          <Text style={[styles.headerText, { color: headerColor }]}>
-            {headerLabel}
-          </Text>
-        </View>
+      {type === "bill" && (
+        <Typography
+          design="money"
+          style={[
+            styles.amount,
+            isCancelledByInsurance ? styles.amountCancelled : { color: SD.debt },
+          ]}
+        >
+          -${Math.abs(mail.amount)}
+        </Typography>
+      )}
+      {type === "lottery" && (
+        <Typography design="money" style={[styles.amount, { color: SD.primary }]}>
+          +${mail.amount}
+        </Typography>
+      )}
+      {type === "insurance" && (
+        <Typography design="money" style={[styles.amount, { color: SD.purple }]}>
+          ${mail.amount} premium
+        </Typography>
+      )}
 
-        <View style={styles.divider} />
+      <View
+        style={[
+          styles.noteBox,
+          isCancelledByInsurance && type === "bill" && styles.noteBoxCancelled,
+        ]}
+      >
+        <Typography
+          design="body"
+          weight={700}
+          style={[
+            styles.noteText,
+            isCancelledByInsurance && type === "bill" && styles.noteTextCancelled,
+          ]}
+        >
+          {note}
+        </Typography>
+      </View>
 
-        {/* Title */}
-        <Text style={styles.title}>{isAd ? `Buy ${mail.title}` : mail.title}</Text>
-
-        {/* Description */}
-        <Text style={styles.description}>{mail.description}</Text>
-
-        {/* Amount (hidden for ads) */}
-        {!isAd && (
-          <View style={[
-            styles.amountBox,
-            isLottery && styles.amountBoxLottery,
-            isBill && styles.amountBoxBill,
-            isInsurance && styles.amountBoxInsurance,
-            !isLottery && !isBill && !isInsurance && styles.amountBoxMail,
-          ]}>
-            <Text style={styles.amountLabel}>
-              {isLottery ? "COLLECT" : isInsurance ? "PREMIUM" : "PAY BILL"}
-            </Text>
-            <Text style={[
-              styles.amountValue,
-              isLottery && styles.amountValueLottery,
-              isBill && styles.amountValueBill,
-              isInsurance && styles.amountValueInsurance,
-              !isLottery && !isBill && !isInsurance && styles.amountValueMail,
-            ]}>
-              ${mail.amount}
-            </Text>
-          </View>
-        )}
-
-        {/* Bill: cancelled by insurance note */}
-        {isBill && isCancelledByInsurance && (
-          <View style={styles.cancelledNote}>
-            <Ionicons name="shield-checkmark" size={16} color="#2E7D32" />
-            <Text style={styles.cancelledNoteText}>Cancelled by Insurance!</Text>
-          </View>
-        )}
-
-        {/* Bill: will be paid on salary day note */}
-        {isBill && !isCancelledByInsurance && (
-          <View style={styles.billNote}>
-            <Ionicons name="time" size={14} color="#78909C" />
-            <Text style={styles.billNoteText}>This bill will be paid on Salary Day.</Text>
-          </View>
-        )}
-
-        {/* Ad dismiss note */}
-        {isAd && (
-          <View style={styles.adNote}>
-            <Ionicons name="information-circle" size={14} color="#90A4AE" />
-            <Text style={styles.adNoteText}>No action needed — this card is discarded.</Text>
-          </View>
-        )}
-
-        {/* Insurance: Buy / Discard buttons */}
-        {isInsurance ? (
-          <View style={styles.insuranceButtons}>
-            <Pressable style={styles.discardButton} onPress={onDismiss}>
-              <Text style={styles.discardButtonText}>Discard</Text>
-            </Pressable>
-            <Pressable style={styles.buyButton} onPress={onBuyInsurance}>
-              <Ionicons name="shield" size={16} color={COLORS.white} />
-              <Text style={styles.buyButtonText}>Buy ${mail.amount}</Text>
-            </Pressable>
-          </View>
-        ) : !isAd ? (
-          /* OK button for lottery, bill, other */
-          <Pressable
-            style={[
-              styles.okButton,
-              isLottery && styles.okButtonLottery,
-              isBill && styles.okButtonBill,
-              !isLottery && !isBill && styles.okButtonMail,
-            ]}
+      {type === "insurance" ? (
+        <View style={styles.buttonRow}>
+          <ChunkyButton
+            color={SD.surface2}
+            depthColor="rgba(0,0,0,0.1)"
+            depth={4}
+            borderRadius={14}
+            style={styles.rowButton}
+            contentStyle={styles.buttonFace}
             onPress={onDismiss}
           >
-            <Text style={styles.okButtonText}>OK</Text>
-          </Pressable>
-        ) : null}
-      </View>
-    </Animated.View>
+            <Typography design="title" style={styles.neutralLabel}>
+              Discard
+            </Typography>
+          </ChunkyButton>
+          <ChunkyButton
+            color={SD.primary}
+            depthColor={SD.primaryShadow}
+            depth={4}
+            borderRadius={14}
+            style={styles.rowButton}
+            contentStyle={styles.buttonFace}
+            onPress={onBuyInsurance ?? onDismiss}
+          >
+            <Typography design="title" style={styles.primaryLabel}>
+              Buy ${mail.amount}
+            </Typography>
+          </ChunkyButton>
+        </View>
+      ) : (
+        <ChunkyButton
+          color={SD.primary}
+          depthColor={SD.primaryShadow}
+          depth={4}
+          borderRadius={14}
+          style={styles.singleButton}
+          contentStyle={styles.buttonFace}
+          onPress={onDismiss}
+        >
+          <Typography design="title" style={styles.primaryLabel}>
+            {type === "bill"
+              ? isCancelledByInsurance
+                ? "Nice!"
+                : "Add to my bills"
+              : type === "ad"
+                ? "Toss it"
+                : "Keep the ticket"}
+          </Typography>
+        </ChunkyButton>
+      )}
+    </PopCard>
   );
 }
 
 const styles = StyleSheet.create({
-  overlay: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: "rgba(0,0,0,0.4)",
-    justifyContent: "center",
-    alignItems: "center",
-    zIndex: 100,
-  },
-  card: {
-    backgroundColor: COLORS.white,
-    borderRadius: 20,
-    padding: 24,
-    alignItems: "center",
-    minWidth: 260,
-    maxWidth: 320,
-    borderWidth: 3,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
-    elevation: 8,
-  },
-  closeButton: {
-    position: "absolute",
-    top: 12,
-    right: 12,
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: "#ECEFF1",
-    alignItems: "center",
-    justifyContent: "center",
-    zIndex: 1,
-  },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-  },
-  headerText: {
-    fontWeight: "800" as const,
-    fontSize: 16,
-    letterSpacing: 1,
-  },
-  divider: {
-    width: "100%",
-    height: 1,
-    backgroundColor: "#E0E0E0",
-    marginVertical: 12,
-  },
   title: {
-    fontWeight: "800" as const,
     fontSize: 24,
-    color: COLORS.textDark,
-    textAlign: "center",
-    marginBottom: 6,
+    color: SD.ink,
   },
-  description: {
-    fontSize: 14,
-    fontStyle: "italic",
-    color: "#616161",
-    textAlign: "center",
-    marginBottom: 16,
-    lineHeight: 20,
+  sub: {
+    fontSize: 12,
+    color: SD.soft,
+    marginTop: 3,
   },
-  amountBox: {
-    borderRadius: 12,
-    paddingVertical: 10,
-    paddingHorizontal: 24,
-    alignItems: "center",
-    marginBottom: 16,
-  },
-  amountBoxLottery: {
-    backgroundColor: "#FFF8E1",
-  },
-  amountBoxMail: {
-    backgroundColor: "#E3F2FD",
-  },
-  amountBoxBill: {
-    backgroundColor: "#FFEBEE",
-  },
-  amountBoxInsurance: {
-    backgroundColor: "#F3E5F5",
-  },
-  amountLabel: {
-    fontSize: 11,
-    fontWeight: "700",
-    color: "#9E9E9E",
-    letterSpacing: 1,
-    marginBottom: 4,
-  },
-  amountValue: {
-    fontWeight: "800" as const,
+  amount: {
     fontSize: 28,
+    marginTop: 12,
   },
-  amountValueLottery: {
-    color: "#F57F17",
+  amountCancelled: {
+    color: SD.soft,
+    textDecorationLine: "line-through",
   },
-  amountValueMail: {
-    color: "#1565C0",
+  noteBox: {
+    backgroundColor: SD.surface2,
+    borderRadius: 12,
+    paddingVertical: 11,
+    paddingHorizontal: 13,
+    marginTop: 12,
   },
-  amountValueBill: {
-    color: "#C62828",
+  noteBoxCancelled: {
+    backgroundColor: mixHex(SD.primary, SD.surface, 0.85),
   },
-  amountValueInsurance: {
-    color: "#6A1B9A",
-  },
-  // Notes
-  cancelledNote: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-    backgroundColor: "#E8F5E9",
-    borderRadius: 10,
-    paddingHorizontal: 14,
-    paddingVertical: 10,
-    marginBottom: 16,
-  },
-  cancelledNoteText: {
-    fontSize: 14,
-    fontWeight: "700",
-    color: "#2E7D32",
-  },
-  billNote: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
-    backgroundColor: "#ECEFF1",
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    marginBottom: 16,
-  },
-  billNoteText: {
+  noteText: {
     fontSize: 12,
-    color: "#78909C",
-    fontWeight: "600",
+    lineHeight: 18,
+    color: SD.ink,
   },
-  adNote: {
+  noteTextCancelled: {
+    color: SD.primaryShadow,
+  },
+  buttonRow: {
     flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
-    backgroundColor: "#ECEFF1",
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
+    gap: 9,
+    marginTop: 16,
   },
-  adNoteText: {
-    fontSize: 12,
-    color: "#78909C",
-    fontWeight: "600",
-  },
-  // Buttons
-  okButton: {
-    width: "100%",
-    paddingVertical: 14,
-    paddingHorizontal: 24,
-    borderRadius: 20,
-    alignItems: "center",
-    borderBottomWidth: 3,
-  },
-  okButtonMail: {
-    backgroundColor: "#1E88E5",
-    borderBottomColor: "#1565C0",
-  },
-  okButtonLottery: {
-    backgroundColor: "#F9A825",
-    borderBottomColor: "#F57F17",
-  },
-  okButtonBill: {
-    backgroundColor: "#1E88E5",
-    borderBottomColor: "#1565C0",
-  },
-  okButtonText: {
-    fontWeight: "800" as const,
-    fontSize: 16,
-    color: COLORS.white,
-  },
-  insuranceButtons: {
-    flexDirection: "row",
-    gap: 12,
-    width: "100%",
-  },
-  discardButton: {
+  rowButton: {
     flex: 1,
-    backgroundColor: "#ECEFF1",
+  },
+  singleButton: {
+    marginTop: 16,
+  },
+  buttonFace: {
     paddingVertical: 14,
-    borderRadius: 20,
     alignItems: "center",
-    borderBottomWidth: 3,
-    borderBottomColor: "#B0BEC5",
   },
-  discardButtonText: {
-    fontWeight: "800" as const,
-    fontSize: 14,
-    color: "#546E7A",
+  primaryLabel: {
+    fontSize: 15,
+    color: SD.white,
   },
-  buyButton: {
-    flex: 1,
-    flexDirection: "row",
-    backgroundColor: "#43A047",
-    paddingVertical: 14,
-    borderRadius: 20,
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 6,
-    borderBottomWidth: 3,
-    borderBottomColor: "#2E7D32",
+  neutralLabel: {
+    fontSize: 15,
+    color: SD.ink,
   },
-  buyButtonText: {
-    fontWeight: "800" as const,
-    fontSize: 14,
-    color: COLORS.white,
+  envelope: {
+    width: 26,
+    height: 19,
+    borderRadius: 3,
+    backgroundColor: SD.white,
+    overflow: "hidden",
+  },
+  envelopeFlap: {
+    position: "absolute",
+    top: -6,
+    alignSelf: "center",
+    width: 22,
+    height: 22,
+    backgroundColor: "rgba(0,0,0,0.2)",
+    transform: [{ rotate: "45deg" }],
   },
 });

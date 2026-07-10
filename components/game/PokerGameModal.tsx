@@ -1,43 +1,72 @@
-import type { Player } from "@/types/game";
-import { Ionicons } from "@expo/vector-icons";
+import { DieValue } from "@/components/game/dice/DiceCube";
+import { EventButton, EventCashRow } from "@/components/game/events/EventFooter";
+import EventPlayerRow from "@/components/game/events/EventPlayerRow";
+import EventShell from "@/components/game/events/EventShell";
+import PlayerToken from "@/components/ui/PlayerToken";
+import Typography from "@/components/ui/Typography";
+import { SD, SD_EVENT_GRADIENTS } from "@/constants/theme";
+import type { GameMode, Player } from "@/types/game";
 import { useState } from "react";
-import { Modal, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { ScrollView, StyleSheet, View } from "react-native";
+
+const ENTRY_FEE = 100;
+const GOLD = "#F4D03F";
 
 interface PokerGameModalProps {
   players: Player[];
+  currentPlayerIndex: number;
+  gameMode: GameMode;
   onConfirm: (participantIndices: number[], winnerIndex: number) => void;
   onSkip: () => void;
 }
 
-const TEAL = "#00897B";
-const TEAL_DARK = "#00695C";
-const TEAL_LIGHT = "#E0F2F1";
+type PokerPhase = "join" | "confirm" | "roll" | "result";
 
-type PokerPhase = "join" | "roll" | "result";
+const initialOf = (player: Player) =>
+  player.name?.trim()?.[0]?.toUpperCase() || "?";
 
-const DIE_FACES = ["", "⚀", "⚁", "⚂", "⚃", "⚄", "⚅"];
-
-export default function PokerGameModal({ players, onConfirm, onSkip }: PokerGameModalProps) {
+export default function PokerGameModal({
+  players,
+  currentPlayerIndex,
+  gameMode,
+  onConfirm,
+  onSkip,
+}: PokerGameModalProps) {
+  const isOnline = gameMode === "ONLINE";
   const [phase, setPhase] = useState<PokerPhase>("join");
-  const [joined, setJoined] = useState<boolean[]>(players.map(() => false));
+  // null = hasn't decided yet
+  const [decisions, setDecisions] = useState<(boolean | null)[]>(
+    players.map(() => null),
+  );
 
-  // Roll phase state
   const [participantIndices, setParticipantIndices] = useState<number[]>([]);
   const [rolls, setRolls] = useState<(number | null)[]>([]);
-  const [activeRollSlot, setActiveRollSlot] = useState(0); // index into participantIndices
-
-  // Tie-break: which participant slots are still competing
+  const [activeRollSlot, setActiveRollSlot] = useState(0);
   const [tieSlots, setTieSlots] = useState<number[] | null>(null);
+  const [winnerSlot, setWinnerSlot] = useState<number | null>(null);
 
-  // Result phase state
-  const [winnerParticipantSlot, setWinnerParticipantSlot] = useState<number | null>(null);
+  const me = players[currentPlayerIndex];
+  // P&P asks every player in seat order; online only asks you
+  const askIndex = isOnline ? currentPlayerIndex : decisions.indexOf(null);
+  const joinedIndices = players
+    .map((_, i) => i)
+    .filter((i) => decisions[i] === true);
+  const prize =
+    (phase === "join" || phase === "confirm"
+      ? joinedIndices.length
+      : participantIndices.length) * ENTRY_FEE;
 
-  const joinedCount = joined.filter(Boolean).length;
+  function decide(joins: boolean) {
+    const next = [...decisions];
+    next[askIndex] = joins;
+    setDecisions(next);
+    if (!isOnline && !next.includes(null)) setPhase("confirm");
+    // ONLINE: remote players' decisions would arrive over the network here
+  }
 
   function startGame() {
-    const indices = players.map((_, i) => i).filter((i) => joined[i]);
-    setParticipantIndices(indices);
-    setRolls(indices.map(() => null));
+    setParticipantIndices(joinedIndices);
+    setRolls(joinedIndices.map(() => null));
     setActiveRollSlot(0);
     setTieSlots(null);
     setPhase("roll");
@@ -49,523 +78,259 @@ export default function PokerGameModal({ players, onConfirm, onSkip }: PokerGame
     newRolls[activeRollSlot] = value;
     setRolls(newRolls);
 
-    const nextSlot = activeRollSlot + 1;
-
-    // Determine if this is the last roll (of current round)
     const slotsThisRound = tieSlots ?? participantIndices.map((_, i) => i);
-    const lastInRound = slotsThisRound.indexOf(activeRollSlot) === slotsThisRound.length - 1;
+    const lastInRound =
+      slotsThisRound.indexOf(activeRollSlot) === slotsThisRound.length - 1;
 
     if (!lastInRound) {
-      // Find next slot that needs to roll
       const currentRoundIdx = slotsThisRound.indexOf(activeRollSlot);
       setActiveRollSlot(slotsThisRound[currentRoundIdx + 1]);
       return;
     }
 
-    // All in this round have rolled — find winner or ties
     const maxRoll = Math.max(...slotsThisRound.map((s) => newRolls[s] ?? 0));
     const tied = slotsThisRound.filter((s) => newRolls[s] === maxRoll);
 
     if (tied.length === 1) {
-      setWinnerParticipantSlot(tied[0]);
+      setWinnerSlot(tied[0]);
       setPhase("result");
     } else {
-      // Tie-break: reset tied slots and re-roll
       const resetRolls = [...newRolls];
-      tied.forEach((s) => { resetRolls[s] = null; });
+      tied.forEach((s) => {
+        resetRolls[s] = null;
+      });
       setRolls(resetRolls);
       setTieSlots(tied);
       setActiveRollSlot(tied[0]);
     }
   }
 
-  function handleCollect() {
-    if (winnerParticipantSlot === null) return;
-    onConfirm(participantIndices, participantIndices[winnerParticipantSlot]);
+  const winner = winnerSlot !== null ? players[participantIndices[winnerSlot]] : null;
+  const activePlayer =
+    phase === "roll" ? players[participantIndices[activeRollSlot]] : null;
+  const enoughPlayers = joinedIndices.length >= 2;
+  const iDecided = decisions[currentPlayerIndex] !== null;
+
+  function headerCopy(): { title: string; subtitle: string } {
+    switch (phase) {
+      case "join": {
+        const title = isOnline
+          ? iDecided
+            ? "Waiting for the table…"
+            : "Are you in?"
+          : `${players[askIndex]?.name}, are you in?`;
+        return {
+          title,
+          subtitle: `$${ENTRY_FEE} to play · highest roll takes the pot`,
+        };
+      }
+      case "confirm":
+        if (!enoughPlayers) {
+          return {
+            title: "Not enough players",
+            subtitle: "Poker needs at least two players",
+          };
+        }
+        return {
+          title: "Table is set",
+          subtitle: `${joinedIndices.length} players · $${prize} on the table`,
+        };
+      case "roll":
+        return {
+          title: `${activePlayer?.name} rolls…`,
+          subtitle: tieSlots
+            ? "It's a tie — tied players roll again!"
+            : "Highest roll takes the whole pot",
+        };
+      case "result":
+        return {
+          title: "We have a winner!",
+          subtitle: `${winner?.name}'s roll was the highest`,
+        };
+    }
   }
 
-  const prize = participantIndices.length * 100;
+  const { title, subtitle } = headerCopy();
 
-  // ─── JOIN PHASE ───────────────────────────────────────────────────────────
-  if (phase === "join") {
-    return (
-      <Modal visible transparent animationType="fade">
-        <View style={styles.overlay}>
-          <View style={styles.card}>
-            <View style={styles.header}>
-              <View style={styles.headerBadge}>
-                <Ionicons name="game-controller" size={20} color="#fff" />
-                <Text style={styles.headerTitle}>Poker Game!</Text>
-              </View>
-            </View>
-
-            <Text style={styles.subtitle}>Place $100 to play. Highest roll wins the pot.</Text>
-
-            <ScrollView style={styles.playerList} showsVerticalScrollIndicator={false}>
-              {players.map((player, i) => (
-                <Pressable
-                  key={player.name}
-                  style={[styles.playerRow, joined[i] && styles.playerRowJoined]}
-                  onPress={() => {
-                    const next = [...joined];
-                    next[i] = !next[i];
-                    setJoined(next);
-                  }}
-                >
-                  <View style={[styles.colorDot, { backgroundColor: player.color }]} />
-                  <View style={{ flex: 1 }}>
-                    <Text style={styles.playerName}>{player.name}</Text>
-                    <Text style={styles.playerCash}>${player.cash.toLocaleString()}</Text>
-                  </View>
-                  <View style={[styles.joinBadge, joined[i] && styles.joinBadgeActive]}>
-                    <Ionicons
-                      name={joined[i] ? "checkmark-circle" : "add-circle-outline"}
-                      size={16}
-                      color={joined[i] ? "#fff" : TEAL}
-                    />
-                    <Text style={[styles.joinBadgeText, joined[i] && styles.joinBadgeTextActive]}>
-                      {joined[i] ? "In — $100" : "Join $100"}
-                    </Text>
-                  </View>
-                </Pressable>
-              ))}
-            </ScrollView>
-
-            {joinedCount === 1 && (
-              <View style={styles.noteBox}>
-                <Ionicons name="information-circle" size={13} color="#888" />
-                <Text style={styles.noteText}>Need at least 2 players to play.</Text>
-              </View>
-            )}
-
-            <View style={styles.buttonRow}>
-              <Pressable style={styles.skipBtn} onPress={onSkip}>
-                <Text style={styles.skipBtnText}>Skip</Text>
-              </Pressable>
-              <Pressable
-                style={[styles.playBtn, joinedCount < 2 && styles.playBtnDisabled]}
-                onPress={() => { if (joinedCount >= 2) startGame(); }}
-              >
-                <Ionicons name="play" size={16} color="#fff" />
-                <Text style={styles.playBtnText}>Play (${joinedCount * 100} pot)</Text>
-              </Pressable>
-            </View>
-          </View>
-        </View>
-      </Modal>
-    );
-  }
-
-  // ─── ROLL PHASE ───────────────────────────────────────────────────────────
-  if (phase === "roll") {
-    const activeSlotsThisRound = tieSlots ?? participantIndices.map((_, i) => i);
-    const isTieBreak = tieSlots !== null;
-
-    return (
-      <Modal visible transparent animationType="fade">
-        <View style={styles.overlay}>
-          <View style={styles.card}>
-            <View style={styles.header}>
-              <View style={styles.headerBadge}>
-                <Ionicons name="game-controller" size={20} color="#fff" />
-                <Text style={styles.headerTitle}>{isTieBreak ? "Tie! Re-roll" : "Roll the Die"}</Text>
-              </View>
-            </View>
-
-            {isTieBreak && (
-              <View style={styles.tieCallout}>
-                <Ionicons name="refresh" size={14} color="#E65100" />
-                <Text style={styles.tieCalloutText}>
-                  It's a tie! Tied players roll again.
-                </Text>
-              </View>
-            )}
-
-            <View style={styles.rollList}>
-              {participantIndices.map((playerIdx, slot) => {
-                const player = players[playerIdx];
-                const rollValue = rolls[slot];
-                const isActive = slot === activeRollSlot && activeSlotsThisRound.includes(slot);
-                const isInTieRound = activeSlotsThisRound.includes(slot);
-                const isDimmed = isTieBreak && !isInTieRound;
-
-                return (
-                  <View
-                    key={player.name}
-                    style={[
-                      styles.rollRow,
-                      isActive && styles.rollRowActive,
-                      isDimmed && styles.rollRowDimmed,
-                    ]}
-                  >
-                    <View style={[styles.colorDot, { backgroundColor: player.color }]} />
-                    <Text style={styles.rollPlayerName}>{player.name}</Text>
-                    <View style={styles.dieSlot}>
-                      {rollValue !== null ? (
-                        <Text style={styles.dieFace}>{DIE_FACES[rollValue]}</Text>
-                      ) : isActive ? (
-                        <Pressable style={styles.rollBtn} onPress={handleRoll}>
-                          <Ionicons name="dice" size={14} color="#fff" />
-                          <Text style={styles.rollBtnText}>Roll</Text>
-                        </Pressable>
-                      ) : (
-                        <View style={styles.dieEmpty} />
-                      )}
-                    </View>
-                  </View>
-                );
-              })}
-            </View>
-
-            <View style={styles.potPreview}>
-              <Ionicons name="trophy" size={14} color={TEAL} />
-              <Text style={styles.potPreviewText}>Pot: <Text style={styles.potPreviewAmt}>${prize}</Text></Text>
-            </View>
-          </View>
-        </View>
-      </Modal>
-    );
-  }
-
-  // ─── RESULT PHASE ─────────────────────────────────────────────────────────
-  const winnerPlayerIdx = winnerParticipantSlot !== null ? participantIndices[winnerParticipantSlot] : -1;
+  const joinStatus = (i: number) => {
+    if (decisions[i] === true) return { text: `In — $${ENTRY_FEE}`, color: GOLD };
+    if (decisions[i] === false)
+      return { text: "Sitting out", color: "rgba(255,255,255,0.4)" };
+    if (i === askIndex) return { text: "Deciding…", color: "#FFFFFF" };
+    return { text: "Waiting…", color: undefined };
+  };
 
   return (
-    <Modal visible transparent animationType="fade">
-      <View style={styles.overlay}>
-        <View style={styles.card}>
-          <View style={styles.header}>
-            <View style={styles.headerBadge}>
-              <Ionicons name="trophy" size={20} color="#fff" />
-              <Text style={styles.headerTitle}>We Have a Winner!</Text>
-            </View>
+    <EventShell
+      gradient={SD_EVENT_GRADIENTS.poker}
+      eyebrow="♠  POKER NIGHT"
+      title={title}
+      subtitle={subtitle}
+      pot={{ label: "POT", value: `$${prize}` }}
+      footer={
+        <>
+          <EventCashRow initial={initialOf(me)} color={me.color} cash={me.cash} />
+          {phase === "join" &&
+            (isOnline && iDecided ? (
+              <View style={styles.waitingBox}>
+                <Typography design="title" weight={800} style={styles.waitingText}>
+                  Waiting for other players…
+                </Typography>
+              </View>
+            ) : (
+              <View style={styles.buttonRow}>
+                <EventButton
+                  label="I'm out"
+                  color="rgba(255,255,255,0.14)"
+                  style={styles.rowButton}
+                  onPress={() => decide(false)}
+                />
+                <EventButton
+                  label={`$${ENTRY_FEE} to play`}
+                  color={GOLD}
+                  textColor="#5E4700"
+                  style={styles.rowButton}
+                  onPress={() => decide(true)}
+                />
+              </View>
+            ))}
+          {phase === "confirm" &&
+            (enoughPlayers ? (
+              <EventButton
+                label="Deal — roll the dice →"
+                color={GOLD}
+                textColor="#5E4700"
+                onPress={startGame}
+              />
+            ) : (
+              <EventButton label="Back to the board →" onPress={onSkip} />
+            ))}
+          {phase === "roll" && (
+            <EventButton
+              label={
+                isOnline
+                  ? "🎲 Roll your hand"
+                  : `🎲 Roll ${activePlayer?.name}'s hand`
+              }
+              onPress={handleRoll}
+            />
+          )}
+          {phase === "result" && winner && (
+            <EventButton
+              label={`${winner.name} collects $${prize}`}
+              color={GOLD}
+              textColor="#5E4700"
+              onPress={() =>
+                onConfirm(participantIndices, participantIndices[winnerSlot!])
+              }
+            />
+          )}
+        </>
+      }
+    >
+      {phase === "result" && winner ? (
+        <View style={styles.winnerBlock}>
+          <View style={styles.winnerRing}>
+            <PlayerToken initial={initialOf(winner)} color={winner.color} size={72} />
           </View>
-
-          <View style={styles.rollList}>
-            {participantIndices.map((playerIdx, slot) => {
-              const player = players[playerIdx];
-              const rollValue = rolls[slot];
-              const isWinner = playerIdx === winnerPlayerIdx;
-              const delta = isWinner ? prize - 100 : -100;
-
-              return (
-                <View
-                  key={player.name}
-                  style={[styles.rollRow, isWinner && styles.rollRowWinner]}
-                >
-                  <View style={[styles.colorDot, { backgroundColor: player.color }]} />
-                  <Text style={[styles.rollPlayerName, isWinner && styles.rollPlayerNameWinner]}>
-                    {player.name}
-                  </Text>
-                  {isWinner && <Ionicons name="trophy" size={14} color={TEAL} style={{ marginRight: 4 }} />}
-                  <Text style={[styles.dieFace, { marginRight: 8 }]}>{rollValue !== null ? DIE_FACES[rollValue] : ""}</Text>
-                  <Text style={[styles.resultDelta, { color: delta > 0 ? "#2E7D32" : "#C62828" }]}>
-                    {delta > 0 ? `+$${delta}` : `-$${Math.abs(delta)}`}
-                  </Text>
-                </View>
-              );
-            })}
-          </View>
-
-          <View style={styles.winnerBox}>
-            <Ionicons name="trophy" size={18} color={TEAL} />
-            <View style={{ flex: 1 }}>
-              <Text style={styles.winnerLabel}>{players[winnerPlayerIdx]?.name} wins!</Text>
-            </View>
-            <Text style={styles.winnerPrize}>+${prize - 100}</Text>
-          </View>
-
-          <Pressable style={styles.confirmBtn} onPress={handleCollect}>
-            <Ionicons name="checkmark-circle" size={18} color="#fff" />
-            <Text style={styles.confirmBtnText}>Collect</Text>
-          </Pressable>
+          <Typography design="money" style={styles.winnerAmount}>
+            🎉 +${prize}
+          </Typography>
+          <Typography design="body" weight={700} style={styles.winnerNote}>
+            Rolled a {rolls[winnerSlot!]} — takes it all
+          </Typography>
         </View>
-      </View>
-    </Modal>
+      ) : (
+        <ScrollView showsVerticalScrollIndicator={false}>
+          {phase === "join" || phase === "confirm"
+            ? players.map((player, i) => {
+                const status = joinStatus(i);
+                return (
+                  <EventPlayerRow
+                    key={i}
+                    name={player.name}
+                    initial={initialOf(player)}
+                    color={player.color}
+                    statusText={status.text}
+                    statusColor={status.color}
+                    highlighted={phase === "join" && i === askIndex}
+                    right={<View style={styles.noSlot} />}
+                  />
+                );
+              })
+            : participantIndices.map((playerIndex, slot) => {
+                const player = players[playerIndex];
+                const roll = rolls[slot];
+                const isActive = slot === activeRollSlot;
+                return (
+                  <EventPlayerRow
+                    key={playerIndex}
+                    name={player.name}
+                    initial={initialOf(player)}
+                    color={player.color}
+                    statusText={
+                      roll != null
+                        ? `Rolled a ${roll}`
+                        : isActive
+                          ? "Rolling now…"
+                          : isOnline
+                            ? "Is rolling…"
+                            : "Waiting…"
+                    }
+                    statusColor={roll != null ? GOLD : undefined}
+                    die={roll as DieValue | null}
+                    highlighted={isActive}
+                  />
+                );
+              })}
+        </ScrollView>
+      )}
+    </EventShell>
   );
 }
 
 const styles = StyleSheet.create({
-  overlay: {
-    flex: 1,
-    backgroundColor: "rgba(0,0,0,0.6)",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  card: {
-    backgroundColor: "#fff",
-    borderRadius: 20,
-    padding: 20,
-    width: "88%",
-    maxWidth: 380,
-    gap: 12,
-  },
-  header: {
-    alignItems: "center",
-  },
-  headerBadge: {
-    backgroundColor: TEAL,
-    borderRadius: 10,
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-  },
-  headerTitle: {
-    fontSize: 18,
-    fontWeight: "800",
-    color: "#fff",
-  },
-  subtitle: {
-    fontSize: 13,
-    color: "#636E72",
-    textAlign: "center",
-  },
-  playerList: {
-    maxHeight: 220,
-  },
-  playerRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-    paddingVertical: 8,
-    paddingHorizontal: 4,
-    borderBottomWidth: 1,
-    borderBottomColor: "#F0F0F0",
-    borderRadius: 8,
-  },
-  playerRowJoined: {
-    backgroundColor: TEAL_LIGHT,
-  },
-  colorDot: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-    flexShrink: 0,
-  },
-  playerName: {
-    fontSize: 13,
-    fontWeight: "700",
-    color: "#2D3436",
-  },
-  playerCash: {
-    fontSize: 11,
-    color: "#888",
-    fontWeight: "600",
-  },
-  joinBadge: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 4,
-    borderWidth: 1.5,
-    borderColor: TEAL,
-    borderRadius: 8,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-  },
-  joinBadgeActive: {
-    backgroundColor: TEAL,
-    borderColor: TEAL,
-  },
-  joinBadgeText: {
-    fontSize: 12,
-    fontWeight: "700",
-    color: TEAL,
-  },
-  joinBadgeTextActive: {
-    color: "#fff",
-  },
-  noteBox: {
-    flexDirection: "row",
-    alignItems: "flex-start",
-    gap: 6,
-    backgroundColor: "#F8F9FA",
-    borderRadius: 8,
-    padding: 9,
-  },
-  noteText: {
-    fontSize: 11,
-    color: "#888",
-    flex: 1,
-  },
   buttonRow: {
     flexDirection: "row",
     gap: 10,
   },
-  skipBtn: {
-    flex: 1,
-    borderRadius: 12,
-    paddingVertical: 13,
-    alignItems: "center",
-    justifyContent: "center",
-    borderWidth: 2,
-    borderColor: "#ccc",
-  },
-  skipBtnText: {
-    fontSize: 14,
-    fontWeight: "700",
-    color: "#888",
-  },
-  playBtn: {
-    flex: 2,
-    backgroundColor: TEAL,
-    borderRadius: 12,
-    paddingVertical: 13,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 6,
-    borderBottomWidth: 4,
-    borderBottomColor: TEAL_DARK,
-  },
-  playBtnDisabled: {
-    opacity: 0.4,
-  },
-  playBtnText: {
-    fontSize: 14,
-    fontWeight: "800",
-    color: "#fff",
-  },
-  tieCallout: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
-    backgroundColor: "#FFF3E0",
-    borderRadius: 10,
-    borderLeftWidth: 3,
-    borderLeftColor: "#E65100",
-    padding: 10,
-  },
-  tieCalloutText: {
-    fontSize: 12,
-    fontWeight: "600",
-    color: "#E65100",
+  rowButton: {
     flex: 1,
   },
-  rollList: {
-    gap: 6,
+  noSlot: {
+    width: 0,
+    height: 40,
   },
-  rollRow: {
-    flexDirection: "row",
+  waitingBox: {
     alignItems: "center",
-    gap: 8,
-    paddingVertical: 8,
-    paddingHorizontal: 8,
-    borderRadius: 10,
-    backgroundColor: "#F8F9FA",
+    justifyContent: "center",
+    paddingVertical: 17,
+    borderRadius: 16,
+    backgroundColor: "rgba(255,255,255,0.1)",
   },
-  rollRowActive: {
-    backgroundColor: TEAL_LIGHT,
-    borderWidth: 1.5,
-    borderColor: TEAL,
+  waitingText: {
+    fontSize: 14,
+    color: "rgba(255,255,255,0.8)",
   },
-  rollRowDimmed: {
-    opacity: 0.4,
-  },
-  rollRowWinner: {
-    backgroundColor: TEAL_LIGHT,
-    borderWidth: 1.5,
-    borderColor: TEAL,
-  },
-  rollPlayerName: {
+  winnerBlock: {
     flex: 1,
-    fontSize: 13,
-    fontWeight: "700",
-    color: "#2D3436",
-  },
-  rollPlayerNameWinner: {
-    color: TEAL_DARK,
-  },
-  dieSlot: {
-    width: 44,
     alignItems: "center",
     justifyContent: "center",
   },
-  dieFace: {
-    fontSize: 28,
-    lineHeight: 32,
+  winnerRing: {
+    borderWidth: 4,
+    borderColor: GOLD,
+    borderRadius: 44,
+    padding: 2,
   },
-  dieEmpty: {
-    width: 28,
-    height: 28,
-    borderRadius: 6,
-    borderWidth: 1.5,
-    borderColor: "#ccc",
-    borderStyle: "dashed",
-  },
-  rollBtn: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 4,
-    backgroundColor: TEAL,
-    borderRadius: 8,
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderBottomWidth: 2,
-    borderBottomColor: TEAL_DARK,
-  },
-  rollBtnText: {
-    fontSize: 12,
-    fontWeight: "800",
-    color: "#fff",
-  },
-  potPreview: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
-    backgroundColor: TEAL_LIGHT,
-    borderRadius: 10,
-    padding: 10,
-    justifyContent: "center",
-  },
-  potPreviewText: {
-    fontSize: 13,
-    fontWeight: "600",
-    color: TEAL_DARK,
-  },
-  potPreviewAmt: {
-    fontWeight: "800",
-    fontSize: 14,
-  },
-  winnerBox: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 10,
-    backgroundColor: TEAL_LIGHT,
-    borderRadius: 12,
-    padding: 12,
-  },
-  winnerLabel: {
-    fontSize: 14,
-    fontWeight: "800",
-    color: TEAL_DARK,
-  },
-  winnerPrize: {
+  winnerAmount: {
     fontSize: 22,
-    fontWeight: "800",
-    color: "#2E7D32",
+    color: SD.white,
+    marginTop: 16,
   },
-  resultDelta: {
+  winnerNote: {
     fontSize: 13,
-    fontWeight: "800",
-    minWidth: 50,
-    textAlign: "right",
-  },
-  confirmBtn: {
-    backgroundColor: TEAL,
-    borderRadius: 12,
-    paddingVertical: 13,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 8,
-    borderBottomWidth: 4,
-    borderBottomColor: TEAL_DARK,
-  },
-  confirmBtnText: {
-    fontSize: 15,
-    fontWeight: "800",
-    color: "#fff",
+    color: "rgba(255,255,255,0.7)",
+    marginTop: 4,
   },
 });

@@ -1,4 +1,5 @@
-import { Image, StyleSheet, Text, View } from "react-native";
+import Typography from "@/components/ui/Typography";
+import { Image, StyleSheet, View } from "react-native";
 
 export const PLAYER_COLORS = ["#3F86BE", "#E8554B", "#F6BF4B", "#A871CF"];
 
@@ -7,6 +8,7 @@ interface AvatarProps {
   index?: number;
   imageUrl?: string;
   size?: number;
+  color?: string;
 }
 
 export default function Avatar({
@@ -14,8 +16,9 @@ export default function Avatar({
   index = 0,
   imageUrl,
   size = 40,
+  color: colorProp,
 }: AvatarProps) {
-  const color = PLAYER_COLORS[index % PLAYER_COLORS.length];
+  const color = colorProp ?? PLAYER_COLORS[index % PLAYER_COLORS.length];
   const letter = name?.trim()?.[0]?.toUpperCase() || "?";
 
   const containerStyle = {
@@ -35,7 +38,9 @@ export default function Avatar({
 
   return (
     <View style={[styles.avatar, containerStyle, { backgroundColor: color }]}>
-      <Text style={[styles.letter, { fontSize: size * 0.42 }]}>{letter}</Text>
+      <Typography design="title" style={[styles.letter, { fontSize: size * 0.42 }]}>
+        {letter}
+      </Typography>
     </View>
   );
 }
@@ -49,7 +54,6 @@ const styles = StyleSheet.create({
     backgroundColor: "#AFDAE1",
   },
   letter: {
-    fontWeight: "800",
     color: "#fff",
   },
 });

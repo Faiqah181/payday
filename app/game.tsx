@@ -1,52 +1,63 @@
-import CalendarSvg from "@/assets/svg/calendar.svg";
-import DoorSvg from "@/assets/svg/door.svg";
-import BankModal from "@/components/game/BankModal";
+import BankScreen from "@/components/game/bank/BankScreen";
 import Board from "@/components/game/Board";
+import CommissionModal from "@/components/game/CommissionModal";
 import DaylightSavingModal from "@/components/game/DaylightSavingModal";
 import DealCardModal from "@/components/game/DealCardModal";
-import DealsViewer from "@/components/game/DealsViewer";
-import Dice from "@/components/game/Dice";
+import DiceRoller, { AnchorRect } from "@/components/game/dice/DiceRoller";
+import RollButton from "@/components/game/dice/RollButton";
+import CellDetailDrawer from "@/components/game/drawers/CellDetailDrawer";
+import DealsDrawer from "@/components/game/drawers/DealsDrawer";
+import MailDrawer from "@/components/game/drawers/MailDrawer";
+import PauseOverlay from "@/components/game/PauseOverlay";
 import ElectionModal from "@/components/game/ElectionModal";
 import EventToast from "@/components/game/EventToast";
 import GameOverModal from "@/components/game/GameOverModal";
 import LotteryRedeemModal from "@/components/game/LotteryRedeemModal";
 import MailCardModal from "@/components/game/MailCardModal";
-import PlayerCard from "@/components/game/PlayerCard";
 import PokerGameModal from "@/components/game/PokerGameModal";
-import SalaryDayModal from "@/components/game/SalaryDayModal";
+import PaydayOverlay from "@/components/game/payday/PaydayOverlay";
 import SwellfareModal from "@/components/game/SwellfareModal";
-import StrokeText from "@/components/StrokeText";
+import ChunkyButton from "@/components/ui/ChunkyButton";
+import PlayerToken from "@/components/ui/PlayerToken";
+import ScreenBackground from "@/components/ui/ScreenBackground";
+import Typography from "@/components/ui/Typography";
+import { SD } from "@/constants/theme";
 import {
+  BOARD_CELL_GAP,
   BOARD_COLS,
+  BOARD_FRAME_BORDER,
+  BOARD_FRAME_PADDING,
   BOARD_ROWS,
   SPACE_EVENTS,
   getSpaceByDay,
+  getSpaceDetail,
+  type SpaceDetail,
 } from "@/constants/board";
-import { COLORS, SPACING } from "@/constants/colors";
+import LoadingScreen from "@/components/ui/LoadingScreen";
+import { GAME_CONFIG } from "@/constants/gameConfig";
 import { ALL_DEALS, shuffleDeck } from "@/constants/deals";
 import { ALL_MAIL, shuffleMailDeck } from "@/constants/mail";
-import { useSound } from "@/contexts/SoundContext";
-import type { GameState } from "@/types/game";
-import { PLAYER_COLORS } from "@/types/game";
+import type { GameState, PaydayReport, Player, PotHistoryEntry } from "@/types/game";
+import { getAccountStatus, PLAYER_COLORS } from "@/types/game";
 import { Ionicons } from "@expo/vector-icons";
+import { Asset } from "expo-asset";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { useReducer, useState } from "react";
-import {
-  Alert,
-  ImageBackground,
-  Pressable,
-  StyleSheet,
-  Text,
-  View,
-  useWindowDimensions,
-} from "react-native";
+import { useEffect, useReducer, useState } from "react";
+import { StyleSheet, View, useWindowDimensions } from "react-native";
 import {
   SafeAreaView,
   useSafeAreaInsets,
 } from "react-native-safe-area-context";
 
-const DAY_HEADER_HEIGHT = 16;
+const DAY_HEADER_HEIGHT = 23;
 const SIDEBAR_MIN_WIDTH = 200;
+// Board frame chrome: padding+border on both sides, plus inter-cell gaps
+const BOARD_CHROME_H =
+  2 * (BOARD_FRAME_PADDING + BOARD_FRAME_BORDER) + (BOARD_COLS - 1) * BOARD_CELL_GAP;
+const BOARD_CHROME_V =
+  2 * (BOARD_FRAME_PADDING + BOARD_FRAME_BORDER) +
+  DAY_HEADER_HEIGHT +
+  (BOARD_ROWS - 1) * BOARD_CELL_GAP;
 const MAX_POSITION = 31;
 
 type GameAction =
@@ -54,14 +65,16 @@ type GameAction =
   | { type: "ANIMATION_COMPLETE" }
   | { type: "DISMISS_EVENT" }
   | { type: "BUY_DEAL" }
+  | { type: "CONFIRM_COMMISSION"; winnerIndex: number }
   | { type: "DISCARD_DEAL" }
   | { type: "SELL_DEAL"; dealId: number }
   | { type: "SKIP_ASSET_BUYER" }
   | { type: "DISMISS_MAIL" }
   | { type: "BUY_INSURANCE" }
   | { type: "REDEEM_LOTTERY"; ticketIds: number[] }
-  | { type: "SKIP_LOTTERY" }
-  | { type: "FINISH_SALARY_DAY"; loanPayment: number; savingsAdjust: number }
+  | { type: "REPAY_LOAN"; amount: number }
+  | { type: "DEPOSIT_SAVINGS"; amount: number }
+  | { type: "START_NEW_MONTH" }
   | { type: "TAKE_LOAN"; amount: number }
   | { type: "WITHDRAW_SAVINGS"; amount: number }
   | { type: "USE_SWELLFARE"; bet: number; roll: number }
@@ -75,6 +88,95 @@ type GameAction =
     }
   | { type: "SKIP_POKER_GAME" }
   | { type: "END_TURN" };
+
+/**
+ * Pay Day settlement, in rule order: collect wages, apply interest,
+ * pay all bills. If cash runs short, savings are pulled first (free),
+ * then a loan is taken automatically in borrowStep increments. If the
+ * loan maxes out, the Bank buys back deals & insurance at cost — and if
+ * that still isn't enough, the player goes bankrupt.
+ */
+function settlePayday(player: Player): { player: Player; report: PaydayReport } {
+  const status = getAccountStatus(player);
+  let cash = player.cash + GAME_CONFIG.salary;
+  let savingsBalance = player.savingsBalance;
+  let loanBalance = player.loanBalance;
+  let deals = player.deals;
+  let insurance = player.insurance;
+
+  const interestOn = status === "savings" ? savingsBalance : loanBalance;
+  let interest = 0;
+  if (status === "savings") {
+    interest = Math.floor((savingsBalance * GAME_CONFIG.savingsInterestPercentage) / 100);
+    savingsBalance += interest;
+  } else if (status === "loan") {
+    interest = -Math.floor((loanBalance * GAME_CONFIG.interestPercentage) / 100);
+    cash += interest;
+  }
+
+  const billsPaid = player.unpaidBills.reduce((sum, bill) => sum + Math.abs(bill.amount), 0);
+  cash -= billsPaid;
+
+  let autoWithdrawn = 0;
+  if (cash < 0 && savingsBalance > 0) {
+    autoWithdrawn = Math.min(savingsBalance, -cash);
+    savingsBalance -= autoWithdrawn;
+    cash += autoWithdrawn;
+  }
+  let autoBorrowed = 0;
+  if (cash < 0) {
+    const needed = Math.ceil(-cash / GAME_CONFIG.borrowStep) * GAME_CONFIG.borrowStep;
+    autoBorrowed = Math.min(needed, GAME_CONFIG.maxLoan - loanBalance);
+    loanBalance += autoBorrowed;
+    cash += autoBorrowed;
+  }
+
+  // Loan is maxed and the debt remains: liquidate cards to the Bank at cost
+  let liquidated = 0;
+  if (cash < 0 && (deals.length > 0 || insurance.length > 0)) {
+    liquidated =
+      deals.reduce((sum, deal) => sum + deal.buyPrice, 0) +
+      insurance.reduce((sum, card) => sum + card.amount, 0);
+    cash += liquidated;
+    deals = [];
+    insurance = [];
+  }
+
+  const bankrupt = cash < 0;
+
+  return {
+    player: {
+      ...player,
+      cash,
+      savingsBalance,
+      loanBalance,
+      deals,
+      insurance,
+      unpaidBills: [],
+    },
+    report: {
+      salary: GAME_CONFIG.salary,
+      interest,
+      interestOn,
+      accountStatus: status,
+      billsPaid,
+      billTitles: player.unpaidBills.map((bill) => bill.title),
+      autoWithdrawn,
+      autoBorrowed,
+      liquidated,
+      bankrupt,
+    },
+  };
+}
+
+function potEntry(state: GameState, label: string, amount: number): PotHistoryEntry {
+  const player = state.players[state.currentPlayerIndex];
+  return {
+    label,
+    sub: `Month ${player.currentMonth} · Day ${player.position}`,
+    amount,
+  };
+}
 
 function gameReducer(state: GameState, action: GameAction): GameState {
   switch (action.type) {
@@ -103,12 +205,17 @@ function gameReducer(state: GameState, action: GameAction): GameState {
       // Election win: rolled a 6 while election is active
       if (state.electionActive && state.diceValue === 6) {
         const potAmount = state.pot;
+        const winnerName = state.players[state.currentPlayerIndex].name;
         return {
           ...state,
           players: updatedPlayers,
           animatingMove: null,
           electionActive: false,
           pot: 0,
+          potHistory: [
+            ...state.potHistory,
+            potEntry(state, `${winnerName} rolled a 6 — won the Pot`, -potAmount),
+          ],
           phase: "event",
           eventMessage: {
             title: "Election Won!",
@@ -229,13 +336,18 @@ function gameReducer(state: GameState, action: GameAction): GameState {
         };
       }
 
-      // Salary day: trigger dedicated modal phase
+      // Salary day: settle wages, interest and bills immediately, then
+      // show the Pay Day screen for optional repay/deposit.
       if (space?.type === "salary-day") {
+        const settled = settlePayday(updatedPlayers[state.currentPlayerIndex]);
         return {
           ...state,
-          players: updatedPlayers,
+          players: updatedPlayers.map((p, i) =>
+            i === state.currentPlayerIndex ? settled.player : p,
+          ),
           animatingMove: null,
           phase: "salary-day",
+          payday: settled.report,
         };
       }
 
@@ -274,10 +386,26 @@ function gameReducer(state: GameState, action: GameAction): GameState {
           deals: [...player.deals, deal],
         };
       });
+      // Rule: when a deal is bought, every player rolls for its commission
+      const hasCommission = deal.commission > 0;
       return {
         ...state,
         players: updatedPlayers,
         currentDeal: null,
+        pendingCommission: hasCommission ? deal.commission : null,
+        phase: hasCommission ? "commission" : "end-turn",
+      };
+    }
+    case "CONFIRM_COMMISSION": {
+      const amount = state.pendingCommission ?? 0;
+      const updatedPlayers = state.players.map((player, i) => {
+        if (i !== action.winnerIndex) return player;
+        return { ...player, cash: player.cash + amount };
+      });
+      return {
+        ...state,
+        players: updatedPlayers,
+        pendingCommission: null,
         phase: "end-turn",
       };
     }
@@ -389,65 +517,67 @@ function gameReducer(state: GameState, action: GameAction): GameState {
       });
       return { ...state, players: updatedPlayers, phase: "end-turn" };
     }
-    case "SKIP_LOTTERY": {
-      return { ...state, phase: "end-turn" };
+    case "REPAY_LOAN": {
+      // Loans may only be repaid on Pay Day
+      if (state.phase !== "salary-day") return state;
+      const updatedPlayers = state.players.map((player, i) => {
+        if (i !== state.currentPlayerIndex) return player;
+        const amount = Math.max(
+          0,
+          Math.min(action.amount, player.loanBalance, player.cash),
+        );
+        return {
+          ...player,
+          cash: player.cash - amount,
+          loanBalance: player.loanBalance - amount,
+        };
+      });
+      return { ...state, players: updatedPlayers };
     }
-    case "FINISH_SALARY_DAY": {
-      const player = state.players[state.currentPlayerIndex];
-
-      // Step 1: Collect salary
-      let cash = player.cash + 325;
-      let savingsBalance = player.savingsBalance;
-      let loanBalance = player.loanBalance;
-
-      // Step 2: Interest
-      savingsBalance += Math.floor(savingsBalance * 0.1);
-      loanBalance += Math.floor(loanBalance * 0.2);
-
-      // Step 3: Auto-pay all bills
-      const billTotal = player.unpaidBills.reduce(
-        (sum, b) => sum + b.amount,
-        0,
-      );
-      cash -= billTotal;
-      if (cash < 0 && savingsBalance > 0) {
-        const withdrawal = Math.min(savingsBalance, -cash);
-        savingsBalance -= withdrawal;
-        cash += withdrawal;
+    case "DEPOSIT_SAVINGS": {
+      // Deposits are Pay-Day-only, and never while a loan is open
+      if (state.phase !== "salary-day") return state;
+      const updatedPlayers = state.players.map((player, i) => {
+        if (i !== state.currentPlayerIndex) return player;
+        if (player.loanBalance > 0) return player;
+        const amount = Math.max(0, Math.min(action.amount, player.cash));
+        return {
+          ...player,
+          cash: player.cash - amount,
+          savingsBalance: player.savingsBalance + amount,
+        };
+      });
+      return { ...state, players: updatedPlayers };
+    }
+    case "START_NEW_MONTH": {
+      // Bankrupt on this Pay Day: the player leaves the game instead
+      // of starting a new month.
+      if (state.payday?.bankrupt) {
+        const bankruptName = state.players[state.currentPlayerIndex].name;
+        return {
+          ...state,
+          players: state.players.map((p, i) =>
+            i === state.currentPlayerIndex ? { ...p, bankrupt: true } : p,
+          ),
+          diceValue: null,
+          payday: null,
+          phase: "event",
+          eventMessage: {
+            title: `${bankruptName} Is Bankrupt!`,
+            description:
+              "The loan is maxed out and the bills can't be paid. They retire from the game.",
+            amount: 0,
+          },
+        };
       }
-      if (cash < 0) {
-        const loanNeeded = Math.ceil(-cash / 100) * 100;
-        loanBalance += loanNeeded;
-        cash += loanNeeded;
-      }
 
-      // Step 4: Optional player adjustments
-      const safePayment = Math.max(
-        0,
-        Math.min(action.loanPayment, loanBalance, cash),
-      );
-      cash -= safePayment;
-      loanBalance -= safePayment;
-
-      const safeAdjust =
-        action.savingsAdjust > 0
-          ? Math.min(action.savingsAdjust, cash)
-          : Math.max(action.savingsAdjust, -savingsBalance);
-      cash -= safeAdjust;
-      savingsBalance += safeAdjust;
-
-      // Step 5: Month-end reset
       const updatedPlayers = state.players.map((p, i) => {
         if (i !== state.currentPlayerIndex) return p;
         const newMonth = p.currentMonth + 1;
         return {
           ...p,
-          cash,
-          loanBalance,
-          savingsBalance,
           position: 0,
           currentMonth: newMonth,
-          unpaidBills: [],
           deals: newMonth > state.totalMonths ? [] : p.deals,
           lotteryTickets: p.lotteryTickets.filter(
             (t) => t.monthReceived !== p.currentMonth,
@@ -462,6 +592,7 @@ function gameReducer(state: GameState, action: GameAction): GameState {
         ...state,
         players: updatedPlayers,
         diceValue: null,
+        payday: null,
         phase: isRetiring ? "event" : "end-turn",
         eventMessage: isRetiring
           ? {
@@ -476,23 +607,33 @@ function gameReducer(state: GameState, action: GameAction): GameState {
     case "TAKE_LOAN": {
       const updatedPlayers = state.players.map((player, i) => {
         if (i !== state.currentPlayerIndex) return player;
+        // Never a loan and savings at once
+        if (getAccountStatus(player) === "savings") return player;
+        const amount = Math.min(
+          action.amount,
+          GAME_CONFIG.maxLoan - player.loanBalance,
+        );
+        if (amount <= 0) return player;
         return {
           ...player,
-          cash: player.cash + action.amount,
-          loanBalance: player.loanBalance + action.amount,
+          cash: player.cash + amount,
+          loanBalance: player.loanBalance + amount,
         };
       });
       return { ...state, players: updatedPlayers };
     }
     case "WITHDRAW_SAVINGS": {
-      const fineCount = action.amount / 100;
-      const fine = fineCount * 50;
+      // Withdrawals are allowed anytime; a fine applies only when
+      // GAME_CONFIG.earlySavingWithdrawFine is non-zero.
       const updatedPlayers = state.players.map((player, i) => {
         if (i !== state.currentPlayerIndex) return player;
+        const amount = Math.max(0, Math.min(action.amount, player.savingsBalance));
+        const fine =
+          (amount / GAME_CONFIG.borrowStep) * GAME_CONFIG.earlySavingWithdrawFine;
         return {
           ...player,
-          cash: player.cash + action.amount - fine,
-          savingsBalance: player.savingsBalance - action.amount,
+          cash: player.cash + amount - fine,
+          savingsBalance: player.savingsBalance - amount,
         };
       });
       return { ...state, players: updatedPlayers };
@@ -511,6 +652,16 @@ function gameReducer(state: GameState, action: GameAction): GameState {
         players: updatedPlayers,
         currentMail: null,
         pot: newPot,
+        potHistory: won
+          ? state.potHistory
+          : [
+              ...state.potHistory,
+              potEntry(
+                state,
+                `Swellfare — ${state.players[state.currentPlayerIndex].name} lost the bet`,
+                bet,
+              ),
+            ],
         phase: "end-turn",
       };
     }
@@ -533,10 +684,10 @@ function gameReducer(state: GameState, action: GameAction): GameState {
     case "CONFIRM_DAYLIGHT_SAVING": {
       const playerCount = state.players.length;
 
-      // Move all players back 1; Start players collect $325 and stay
+      // Move all players back 1; Start players collect wages again and stay
       const movedPlayers = state.players.map((player, i) => {
         if (player.position === 0) {
-          return { ...player, cash: player.cash + 325 };
+          return { ...player, cash: player.cash + GAME_CONFIG.salary };
         }
         const newPos = player.position - 1;
         if (i !== state.currentPlayerIndex) {
@@ -585,6 +736,10 @@ function gameReducer(state: GameState, action: GameAction): GameState {
           ...state,
           players: withElection,
           pot: newPot,
+          potHistory: [
+            ...state.potHistory,
+            potEntry(state, "Town Election — all paid in", playerCount * contribution),
+          ],
           electionActive: true,
           phase: "end-turn",
         };
@@ -628,18 +783,25 @@ function gameReducer(state: GameState, action: GameAction): GameState {
         ...state,
         players: updatedPlayers,
         pot: newPot,
+        potHistory: [
+          ...state.potHistory,
+          potEntry(
+            state,
+            "Town Election — all paid in",
+            state.players.length * contribution,
+          ),
+        ],
         electionActive: true,
         phase: "end-turn",
       };
     }
     case "END_TURN": {
       const updatedPlayers = state.players;
+      const isOut = (p: Player) =>
+        p.bankrupt || p.currentMonth > state.totalMonths;
 
-      // Check game over: all players have completed all months
-      const allDone = updatedPlayers.every(
-        (p) => p.currentMonth > state.totalMonths,
-      );
-      if (allDone) {
+      // Check game over: everyone has finished their months or gone bankrupt
+      if (updatedPlayers.every(isOut)) {
         return {
           ...state,
           players: updatedPlayers,
@@ -648,9 +810,9 @@ function gameReducer(state: GameState, action: GameAction): GameState {
         };
       }
 
-      // Skip players who have already finished all months
+      // Skip players who are out of the game
       let nextIndex = (state.currentPlayerIndex + 1) % state.players.length;
-      while (updatedPlayers[nextIndex].currentMonth > state.totalMonths) {
+      while (isOut(updatedPlayers[nextIndex])) {
         nextIndex = (nextIndex + 1) % state.players.length;
       }
 
@@ -671,15 +833,14 @@ function createInitialState(params: {
   playerCount: number;
   monthCount: number;
   names: string[];
-  accounts: string[];
 }): GameState {
   return {
+    gameMode: "P&P",
     players: Array.from({ length: params.playerCount }, (_, i) => ({
       name: params.names[i] || `Player ${i + 1}`,
-      cash: 500,
+      cash: GAME_CONFIG.initialCash,
       loanBalance: 0,
       savingsBalance: 0,
-      accountType: (params.accounts[i] as "Savings" | "Loan") || "Savings",
       position: 0,
       currentMonth: 1,
       deals: [],
@@ -687,6 +848,7 @@ function createInitialState(params: {
       lotteryTickets: [],
       insurance: [],
       color: PLAYER_COLORS[i],
+      bankrupt: false,
     })),
     currentPlayerIndex: 0,
     totalMonths: params.monthCount,
@@ -699,21 +861,35 @@ function createInitialState(params: {
     mailDeck: shuffleMailDeck([...ALL_MAIL]),
     currentMail: null,
     pot: 0,
+    potHistory: [],
     electionActive: false,
+    payday: null,
+    pendingCommission: null,
   };
 }
 
 export default function Game() {
   const router = useRouter();
-  const { playClick } = useSound();
   const { width, height } = useWindowDimensions();
   const insets = useSafeAreaInsets();
   const isLandscape = width > height;
   const [boardContainerHeight, setBoardContainerHeight] = useState(0);
+  const [boardLoading, setBoardLoading] = useState(true);
+
+  useEffect(() => {
+    const minDelay = new Promise((resolve) => setTimeout(resolve, 900));
+    const preload = Asset.loadAsync([
+      require("@/assets/images/board-cells/1.lazy sunday.png"),
+      require("@/assets/images/board-cells/2.buyer.png"),
+      require("@/assets/images/board-cells/3.Mail.png"),
+      require("@/assets/images/board-cells/4.Deal.png"),
+      require("@/assets/images/board-cells/lottery.png"),
+    ]).catch(() => {});
+    Promise.all([preload, minDelay]).then(() => setBoardLoading(false));
+  }, []);
 
   const routeParams = useLocalSearchParams<{
     playerNames: string;
-    accountTypes: string;
     playerCount: string;
     monthCount: string;
   }>();
@@ -721,11 +897,10 @@ export default function Game() {
   const playerCount = Number(routeParams.playerCount) || 2;
   const monthCount = Number(routeParams.monthCount) || 3;
   const names = routeParams.playerNames?.split(",") ?? [];
-  const accounts = routeParams.accountTypes?.split(",") ?? [];
 
   const [gameState, dispatch] = useReducer(
     gameReducer,
-    { playerCount, monthCount, names, accounts },
+    { playerCount, monthCount, names },
     createInitialState,
   );
 
@@ -735,6 +910,10 @@ export default function Game() {
     "deals" | "mail" | null
   >(null);
   const [showBankModal, setShowBankModal] = useState(false);
+  const [showPause, setShowPause] = useState(false);
+  const [rollAnchor, setRollAnchor] = useState<AnchorRect | null>(null);
+  const [rolling, setRolling] = useState(false);
+  const [cellDetail, setCellDetail] = useState<SpaceDetail | null>(null);
   const canBank = gameState.phase === "roll" || gameState.phase === "end-turn";
 
   // Compute cellSize based on orientation
@@ -744,78 +923,67 @@ export default function Game() {
 
   const cellSize = isLandscape
     ? Math.min(
-        (height - insets.top - insets.bottom - DAY_HEADER_HEIGHT - 16) /
-          BOARD_ROWS,
-        (width - sidebarWidth - 12 - 7 - 2 - 6 - insets.left - insets.right) /
+        (height - insets.top - insets.bottom - BOARD_CHROME_V - 16) / BOARD_ROWS,
+        (width - sidebarWidth - 12 - BOARD_CHROME_H - insets.left - insets.right) /
           BOARD_COLS,
       )
-    : (width - 7 - 2 - 6) / BOARD_COLS;
+    : (width - 16 - BOARD_CHROME_H) / BOARD_COLS;
 
   // Portrait: cells grow taller to fill available vertical space
   const portraitCellHeight =
     boardContainerHeight > 0
-      ? (boardContainerHeight - DAY_HEADER_HEIGHT) / BOARD_ROWS
+      ? (boardContainerHeight - BOARD_CHROME_V) / BOARD_ROWS
       : cellSize;
 
-  const handleExit = () => {
-    playClick();
-    Alert.alert("Exit Game", "Are you sure you want to quit?", [
-      { text: "Cancel", style: "cancel" },
-      {
-        text: "Quit",
-        style: "destructive",
-        onPress: () => router.replace("/"),
-      },
-    ]);
-  };
+  const pauseOverlay = showPause ? (
+    <PauseOverlay
+      month={currentPlayer.currentMonth}
+      totalMonths={gameState.totalMonths}
+      playerCount={players.length}
+      onResume={() => setShowPause(false)}
+      onLeave={() => router.dismissAll()}
+    />
+  ) : null;
 
-  const header = (
-    <View style={styles.header}>
-      <Pressable
-        onPress={() => router.replace("/how-to-play")}
-        style={isLandscape ? styles.exitButtonSmall : styles.exitButton}
+  const topBar = (
+    <View style={styles.topBar}>
+      <ChunkyButton
+        color={SD.surface2}
+        depthColor="rgba(0,0,0,0.1)"
+        depth={3}
+        borderRadius={13}
+        contentStyle={styles.topBtnFace}
+        onPress={() => setShowPause(true)}
       >
-        <Ionicons
-          name="help"
-          size={isLandscape ? 18 : 22}
-          color={COLORS.white}
-        />
-      </Pressable>
-      <View style={styles.monthDisplay}>
-        <CalendarSvg width={35} height={35} />
-        <View style={{ width: 110 }}>
-          <StrokeText
-            fontSize={18}
-            fillColor="#FFFFFF"
-            strokeColor="#333333"
-            strokeWidth={3}
-          >
-            {`Month ${currentPlayer.currentMonth} / ${gameState.totalMonths}`}
-          </StrokeText>
-        </View>
+        <Ionicons name="settings-sharp" size={20} color={SD.ink} />
+      </ChunkyButton>
+      <View style={styles.topCenter}>
+        <Typography design="title" style={styles.monthLabel}>
+          Month {currentPlayer.currentMonth} of {gameState.totalMonths}
+        </Typography>
+        <Typography design="body" weight={800} style={styles.turnLabel}>
+          {currentPlayer.name.toUpperCase()}'S TURN
+        </Typography>
       </View>
-      <Pressable onPress={handleExit} style={styles.quitButton}>
-        <View style={styles.quitCross}>
-          <Ionicons name="close" size={14} color="#FFFFFF" />
-        </View>
-        <View style={styles.quitTextWrap}>
-          <StrokeText
-            fontSize={12}
-            fillColor="#FFFFFF"
-            strokeColor="#6B3A2A"
-            strokeWidth={2}
-          >
-            QUIT
-          </StrokeText>
-        </View>
-        <DoorSvg width={20} height={28} />
-      </Pressable>
+      <ChunkyButton
+        color={SD.accent}
+        depthColor={SD.accentShadow}
+        depth={3}
+        borderRadius={13}
+        disabled={!canBank}
+        contentStyle={styles.topBtnFace}
+        onPress={() => setShowBankModal(true)}
+      >
+        <Typography design="money" style={styles.bankGlyph}>
+          $
+        </Typography>
+      </ChunkyButton>
     </View>
   );
 
   const retiredIndices = new Set(
     players.flatMap((p, i) =>
-      p.currentMonth > gameState.totalMonths ? [i] : [],
+      p.bankrupt || p.currentMonth > gameState.totalMonths ? [i] : [],
     ),
   );
 
@@ -827,97 +995,141 @@ export default function Game() {
       animatingMove={gameState.animatingMove}
       retiredPlayerIndices={retiredIndices}
       onAnimationComplete={() => dispatch({ type: "ANIMATION_COMPLETE" })}
+      onCellPress={(type) => setCellDetail(getSpaceDetail(type))}
     />
   );
 
-  const actions = (
-    <View
-      style={[
-        styles.actionsContainer,
-        isLandscape && styles.actionsContainerLandscape,
-      ]}
-    >
-      <View
-        style={[styles.actionRow, isLandscape && styles.actionRowLandscape]}
+  const mailCount =
+    currentPlayer.unpaidBills.length +
+    currentPlayer.lotteryTickets.length +
+    currentPlayer.insurance.length;
+  const dealCount = currentPlayer.deals.length;
+
+  const quickAccess = (
+    <View style={styles.quickRow}>
+      <ChunkyButton
+        color={SD.blue}
+        depthColor="rgba(0,0,0,0.14)"
+        depth={3}
+        borderRadius={13}
+        style={styles.quickBtn}
+        contentStyle={styles.quickFace}
+        onPress={() => setShowCardsViewer("mail")}
       >
-        <View style={styles.actionButtonWrapper}>
-          <Pressable
-            style={[
-              styles.actionButton,
-              styles.actionLoan,
-              !canBank && styles.actionDisabled,
-            ]}
-            onPress={() => {
-              if (canBank) {
-                playClick();
-                setShowBankModal(true);
-              }
-            }}
-          >
-            <Ionicons
-              name={
-                currentPlayer.accountType === "Savings" ? "wallet" : "business"
-              }
-              size={18}
-              color={COLORS.white}
-            />
-            <Text style={styles.actionText}>
-              {currentPlayer.accountType === "Savings" ? "Savings" : "Loan"}
-            </Text>
-          </Pressable>
+        <View style={styles.quickIcon}>
+          <Ionicons name="mail" size={15} color={SD.white} />
         </View>
-        <View style={styles.actionButtonWrapper}>
-          <Pressable
-            style={[styles.actionButton, styles.actionDeals]}
-            onPress={() => setShowCardsViewer("deals")}
-          >
-            <Ionicons name="briefcase" size={18} color={COLORS.white} />
-            <Text style={styles.actionText}>Deals</Text>
-          </Pressable>
+        <Typography design="body" weight={800} style={styles.quickLabel}>
+          MAIL
+        </Typography>
+        <View style={styles.quickSpacer} />
+        <View style={styles.quickCount}>
+          <Typography design="title" style={styles.quickCountText}>
+            {String(mailCount)}
+          </Typography>
         </View>
-        <View style={styles.actionButtonWrapper}>
-          <Pressable
-            style={[styles.actionButton, styles.actionMail]}
-            onPress={() => setShowCardsViewer("mail")}
-          >
-            <Ionicons name="mail" size={18} color={COLORS.white} />
-            <Text style={styles.actionText}>Mail</Text>
-          </Pressable>
+      </ChunkyButton>
+      <ChunkyButton
+        color={SD.purple}
+        depthColor="rgba(0,0,0,0.14)"
+        depth={3}
+        borderRadius={13}
+        style={styles.quickBtn}
+        contentStyle={styles.quickFace}
+        onPress={() => setShowCardsViewer("deals")}
+      >
+        <View style={styles.quickIcon}>
+          <Ionicons name="pricetags" size={14} color={SD.white} />
         </View>
-        <View style={styles.actionButtonWrapper}>
-          <Pressable
-            style={[
-              styles.actionButton,
-              styles.actionEnd,
-              gameState.phase !== "end-turn" && styles.actionDisabled,
-            ]}
-            onPress={() => {
-              if (gameState.phase === "end-turn")
-                dispatch({ type: "END_TURN" });
-            }}
-          >
-            <Ionicons name="arrow-forward" size={18} color={COLORS.white} />
-            <Text style={styles.actionText}>End</Text>
-          </Pressable>
+        <Typography design="body" weight={800} style={styles.quickLabel}>
+          DEALS
+        </Typography>
+        <View style={styles.quickSpacer} />
+        <View style={styles.quickCount}>
+          <Typography design="title" style={styles.quickCountText}>
+            {String(dealCount)}
+          </Typography>
         </View>
+      </ChunkyButton>
+    </View>
+  );
+
+  const savings = currentPlayer.savingsBalance;
+  const loan = currentPlayer.loanBalance;
+  const bankLabel = savings > 0 ? "SAVINGS" : loan > 0 ? "LOAN" : "BANK";
+  const bankValue = savings > 0 ? `+$${savings}` : loan > 0 ? `-$${loan}` : "$0";
+  const bankColor = savings > 0 ? SD.primary : loan > 0 ? SD.debt : SD.soft;
+  const cashText =
+    currentPlayer.cash < 0
+      ? `-$${Math.abs(currentPlayer.cash).toLocaleString("en-US")}`
+      : `$${currentPlayer.cash.toLocaleString("en-US")}`;
+
+  const hud = (
+    <View style={styles.hud}>
+      <PlayerToken
+        initial={currentPlayer.name?.trim()?.[0]?.toUpperCase() || "?"}
+        color={currentPlayer.color}
+        size={38}
+      />
+      <View style={styles.hudText}>
+        <Typography design="title" style={styles.hudName} numberOfLines={1}>
+          {currentPlayer.name}
+        </Typography>
+        <Typography design="body" weight={800} style={styles.hudDay}>
+          {currentPlayer.position === 0
+            ? "At Start"
+            : `On Day ${currentPlayer.position}`}{" "}
+          · your turn
+        </Typography>
+      </View>
+      <View style={styles.hudCol}>
+        <Typography design="body" weight={800} style={styles.hudColLabel}>
+          CASH
+        </Typography>
+        <Typography
+          design="money"
+          style={[
+            styles.hudColValue,
+            { color: currentPlayer.cash < 0 ? SD.debt : SD.primary },
+          ]}
+        >
+          {cashText}
+        </Typography>
+      </View>
+      <View style={styles.hudDivider} />
+      <View style={styles.hudCol}>
+        <Typography design="body" weight={800} style={styles.hudColLabel}>
+          {bankLabel}
+        </Typography>
+        <Typography design="money" style={[styles.hudColValue, { color: bankColor }]}>
+          {bankValue}
+        </Typography>
       </View>
     </View>
   );
 
-  const playerSection = (
-    <PlayerCard
-      player={players[currentPlayerIndex]}
-      isCurrentTurn={true}
-      compact={isLandscape}
-    >
-      <Dice
-        onRoll={(value) => dispatch({ type: "ROLL_DICE", value })}
-        disabled={
-          gameState.phase !== "roll" || gameState.animatingMove !== null
-        }
-        size={isLandscape ? 50 : 56}
+  const actionBar = (
+    <View style={styles.actionBar}>
+      <RollButton
+        disabled={gameState.phase !== "roll" || gameState.animatingMove !== null}
+        onPress={() => setRolling(true)}
+        onAnchorChange={setRollAnchor}
       />
-    </PlayerCard>
+      <ChunkyButton
+        color={SD.primary}
+        depthColor={SD.primaryShadow}
+        depth={4}
+        borderRadius={15}
+        disabled={gameState.phase !== "end-turn"}
+        style={styles.endBtn}
+        contentStyle={styles.endFace}
+        onPress={() => dispatch({ type: "END_TURN" })}
+      >
+        <Typography design="title" style={styles.endLabel}>
+          End Turn
+        </Typography>
+      </ChunkyButton>
+    </View>
   );
 
   const eventToast = gameState.eventMessage ? (
@@ -927,16 +1139,20 @@ export default function Game() {
     />
   ) : null;
 
-  const cardsViewer = showCardsViewer ? (
-    <DealsViewer
-      deals={currentPlayer.deals}
-      lotteryTickets={currentPlayer.lotteryTickets}
-      unpaidBills={currentPlayer.unpaidBills}
-      insurance={currentPlayer.insurance}
-      onClose={() => setShowCardsViewer(null)}
-      defaultTab={showCardsViewer}
-    />
-  ) : null;
+  const cardsViewer =
+    showCardsViewer === "mail" ? (
+      <MailDrawer
+        bills={currentPlayer.unpaidBills}
+        lotteryTickets={currentPlayer.lotteryTickets}
+        insurance={currentPlayer.insurance}
+        onClose={() => setShowCardsViewer(null)}
+      />
+    ) : showCardsViewer === "deals" ? (
+      <DealsDrawer
+        deals={currentPlayer.deals}
+        onClose={() => setShowCardsViewer(null)}
+      />
+    ) : null;
 
   const mailModal =
     gameState.currentMail && gameState.currentMail.type !== "swellfare" ? (
@@ -961,7 +1177,9 @@ export default function Game() {
     gameState.phase === "game-over" ? (
       <GameOverModal
         players={gameState.players}
-        onClose={() => router.replace("/")}
+        totalMonths={gameState.totalMonths}
+        onRematch={() => router.replace("/game-setup")}
+        onClose={() => router.dismissAll()}
       />
     ) : null;
 
@@ -969,6 +1187,8 @@ export default function Game() {
     gameState.phase === "poker-game" ? (
       <PokerGameModal
         players={gameState.players}
+        currentPlayerIndex={currentPlayerIndex}
+        gameMode={gameState.gameMode}
         onConfirm={(participantIndices, winnerIndex) =>
           dispatch({
             type: "CONFIRM_POKER_GAME",
@@ -993,6 +1213,7 @@ export default function Game() {
       <ElectionModal
         players={gameState.players}
         pot={gameState.pot}
+        currentPlayerIndex={currentPlayerIndex}
         onConfirm={() => dispatch({ type: "CONFIRM_ELECTION" })}
       />
     ) : null;
@@ -1019,41 +1240,40 @@ export default function Game() {
         onRedeem={(ticketIds) =>
           dispatch({ type: "REDEEM_LOTTERY", ticketIds })
         }
-        onSkip={() => dispatch({ type: "SKIP_LOTTERY" })}
       />
     ) : null;
 
   const assetBuyerViewer =
     gameState.phase === "asset-buyer" ? (
-      <DealsViewer
+      <DealsDrawer
         deals={currentPlayer.deals}
-        onClose={() => dispatch({ type: "SKIP_ASSET_BUYER" })}
         mode="sell"
         onSell={(deal) => dispatch({ type: "SELL_DEAL", dealId: deal.id })}
+        onClose={() => dispatch({ type: "SKIP_ASSET_BUYER" })}
       />
     ) : null;
 
   const salaryDayModal =
-    gameState.phase === "salary-day" ? (
-      <SalaryDayModal
+    gameState.phase === "salary-day" && gameState.payday ? (
+      <PaydayOverlay
         player={currentPlayer}
-        onConfirm={(loanPayment, savingsAdjust) =>
-          dispatch({ type: "FINISH_SALARY_DAY", loanPayment, savingsAdjust })
-        }
+        report={gameState.payday}
+        month={currentPlayer.currentMonth}
+        totalMonths={gameState.totalMonths}
+        onRepay={(amount) => dispatch({ type: "REPAY_LOAN", amount })}
+        onDeposit={(amount) => dispatch({ type: "DEPOSIT_SAVINGS", amount })}
+        onDone={() => dispatch({ type: "START_NEW_MONTH" })}
       />
     ) : null;
 
   const bankModal = showBankModal ? (
-    <BankModal
-      player={currentPlayer}
-      onTakeLoan={(amount) => {
-        dispatch({ type: "TAKE_LOAN", amount });
-        setShowBankModal(false);
-      }}
-      onWithdrawSavings={(amount) => {
-        dispatch({ type: "WITHDRAW_SAVINGS", amount });
-        setShowBankModal(false);
-      }}
+    <BankScreen
+      players={players}
+      currentPlayerIndex={currentPlayerIndex}
+      pot={gameState.pot}
+      potHistory={gameState.potHistory}
+      onTakeLoan={(amount) => dispatch({ type: "TAKE_LOAN", amount })}
+      onWithdrawSavings={(amount) => dispatch({ type: "WITHDRAW_SAVINGS", amount })}
       onClose={() => setShowBankModal(false)}
     />
   ) : null;
@@ -1066,24 +1286,51 @@ export default function Game() {
     />
   ) : null;
 
+  const cellDetailDrawer = cellDetail ? (
+    <CellDetailDrawer detail={cellDetail} onClose={() => setCellDetail(null)} />
+  ) : null;
+
+  const commissionModal =
+    gameState.phase === "commission" && gameState.pendingCommission != null ? (
+      <CommissionModal
+        players={gameState.players}
+        amount={gameState.pendingCommission}
+        onConfirm={(winnerIndex) =>
+          dispatch({ type: "CONFIRM_COMMISSION", winnerIndex })
+        }
+      />
+    ) : null;
+
+  const diceRoller = (
+    <DiceRoller
+      anchor={rollAnchor}
+      rolling={rolling}
+      dimmed={gameState.phase !== "roll" || gameState.animatingMove !== null}
+      onComplete={(value) => {
+        setRolling(false);
+        dispatch({ type: "ROLL_DICE", value });
+      }}
+    />
+  );
+
+  if (boardLoading) {
+    return <LoadingScreen />;
+  }
+
   if (isLandscape) {
     return (
-      <ImageBackground
-        source={require("@/assets/images/generic-background.png")}
-        style={styles.gradient}
-        resizeMode="cover"
-        imageStyle={{ opacity: 0.8 }}
-      >
+      <ScreenBackground>
         <SafeAreaView style={styles.landscapeContainer}>
           {/* Left: Board */}
           <View style={styles.leftPanel}>{board}</View>
 
           {/* Right: Controls */}
           <View style={[styles.rightPanel, { width: sidebarWidth }]}>
-            {header}
+            {topBar}
             <View style={styles.sidebarContent}>
-              {actions}
-              {playerSection}
+              {quickAccess}
+              {hud}
+              {actionBar}
             </View>
           </View>
           {gameOverModal}
@@ -1099,22 +1346,21 @@ export default function Game() {
           {swellfareModal}
           {lotteryModal}
           {assetBuyerViewer}
+          {commissionModal}
+          {cellDetailDrawer}
+          {diceRoller}
+          {pauseOverlay}
         </SafeAreaView>
-      </ImageBackground>
+      </ScreenBackground>
     );
   }
 
   return (
-    <ImageBackground
-      source={require("@/assets/images/generic-background.png")}
-      style={styles.gradient}
-      resizeMode="cover"
-      imageStyle={{ opacity: 0.8 }}
-    >
+    <ScreenBackground>
       <SafeAreaView style={styles.container}>
-        {header}
+        {topBar}
         <View
-          style={{ flex: 1 }}
+          style={styles.boardArea}
           onLayout={(e) => setBoardContainerHeight(e.nativeEvent.layout.height)}
         >
           <Board
@@ -1125,12 +1371,12 @@ export default function Game() {
             animatingMove={gameState.animatingMove}
             retiredPlayerIndices={retiredIndices}
             onAnimationComplete={() => dispatch({ type: "ANIMATION_COMPLETE" })}
+            onCellPress={(type) => setCellDetail(getSpaceDetail(type))}
           />
         </View>
-        <View style={styles.bottomPanel}>
-          {actions}
-          {playerSection}
-        </View>
+        {quickAccess}
+        {hud}
+        {actionBar}
         {gameOverModal}
         {eventToast}
         {bankModal}
@@ -1144,15 +1390,16 @@ export default function Game() {
         {swellfareModal}
         {lotteryModal}
         {assetBuyerViewer}
+        {commissionModal}
+        {cellDetailDrawer}
+        {diceRoller}
+        {pauseOverlay}
       </SafeAreaView>
-    </ImageBackground>
+    </ScreenBackground>
   );
 }
 
 const styles = StyleSheet.create({
-  gradient: {
-    flex: 1,
-  },
   container: {
     flex: 1,
   },
@@ -1176,126 +1423,155 @@ const styles = StyleSheet.create({
   sidebarContent: {
     flex: 1,
     justifyContent: "center",
-    gap: 12,
+    gap: 10,
     overflow: "hidden",
   },
-  bottomPanel: {
-    marginTop: 60,
-    marginLeft: 10,
-    marginRight: 10,
-    marginBottom: 40,
+  boardArea: {
+    flex: 1,
+    justifyContent: "center",
+    paddingVertical: 8,
+    paddingHorizontal: 10,
   },
-  header: {
+  topBar: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    paddingHorizontal: SPACING.md,
-    paddingVertical: SPACING.sm,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
   },
-  quitButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: 2,
-  },
-  quitCross: {
-    width: 20,
-    height: 22,
-    borderRadius: 4,
-    backgroundColor: "#E25B4E",
+  topBtnFace: {
+    width: 44,
+    height: 44,
     alignItems: "center",
     justifyContent: "center",
-    borderWidth: 2,
-    borderColor: "#C0392B",
   },
-  quitTextWrap: {
-    width: 40,
-    backgroundColor: "rgba(173, 200, 215, 0.7)",
-    paddingVertical: 2,
+  bankGlyph: {
+    fontSize: 18,
+    color: "#7A4E00",
   },
-  exitButton: {
-    width: 30,
-    height: 30,
+  topCenter: {
+    alignItems: "center",
+  },
+  monthLabel: {
+    fontSize: 17,
+    color: SD.ink,
+  },
+  turnLabel: {
+    fontSize: 9,
+    letterSpacing: 1,
+    color: SD.soft,
+  },
+  quickRow: {
+    flexDirection: "row",
+    gap: 8,
+    marginHorizontal: 14,
+  },
+  quickBtn: {
+    flex: 1,
+  },
+  quickFace: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    paddingVertical: 9,
+    paddingHorizontal: 12,
+  },
+  quickIcon: {
+    width: 24,
+    height: 24,
+    borderRadius: 7,
+    backgroundColor: "rgba(255,255,255,0.22)",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  quickLabel: {
+    fontSize: 12,
+    letterSpacing: 1,
+    color: SD.white,
+  },
+  quickSpacer: {
+    flex: 1,
+  },
+  quickCount: {
+    minWidth: 24,
+    height: 24,
+    paddingHorizontal: 7,
+    borderRadius: 999,
+    backgroundColor: "rgba(255,255,255,0.28)",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  quickCountText: {
+    fontSize: 13,
+    color: SD.white,
+  },
+  hud: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    marginHorizontal: 14,
+    marginTop: 8,
+    backgroundColor: SD.surface2,
     borderRadius: 18,
-    backgroundColor: "rgba(0,0,0,0.2)",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  exitButtonSmall: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    backgroundColor: "rgba(0,0,0,0.2)",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  monthDisplay: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  actionsContainer: {
-    alignItems: "center",
-    gap: 8,
-    paddingVertical: SPACING.sm,
-    paddingHorizontal: SPACING.md,
-  },
-  actionsContainerLandscape: {
-    gap: 6,
-  },
-  actionRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 10,
-  },
-  actionRowLandscape: {
-    flexWrap: "wrap",
-    gap: 8,
-  },
-  actionButtonWrapper: {
-    borderColor: COLORS.white,
-    borderWidth: 2,
-    borderRadius: 12,
-  },
-  actionButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 5,
-    backgroundColor: COLORS.primary,
-    paddingHorizontal: 18,
     paddingVertical: 10,
-    borderRadius: 9,
-    borderBottomWidth: 4, // 3D effect
+    paddingHorizontal: 14,
+    elevation: 2,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.07,
+    shadowRadius: 0,
   },
-  actionLoan: {
-    backgroundColor: "#FDCF07",
-    borderBottomColor: "#D4AF37",
+  hudText: {
+    flex: 1,
+    minWidth: 0,
   },
-  actionDeals: {
-    backgroundColor: "#00BFA5",
-    borderBottomColor: "#00897B",
+  hudName: {
+    fontSize: 15,
+    color: SD.ink,
   },
-  actionMail: {
-    backgroundColor: "#9C27B0",
-    borderBottomColor: "#7B1FA2",
+  hudDay: {
+    fontSize: 10,
+    letterSpacing: 0.5,
+    color: SD.soft,
   },
-  actionEnd: {
-    backgroundColor: "#FF5252",
-    borderBottomColor: "#D32F2F",
+  hudCol: {
+    alignItems: "flex-end",
   },
-  actionDisabled: {
-    opacity: 0.5,
+  hudColLabel: {
+    fontSize: 9,
+    letterSpacing: 1,
+    color: SD.soft,
   },
-  actionText: {
-    fontSize: 14,
-    fontWeight: "700",
-    color: COLORS.white,
+  hudColValue: {
+    fontSize: 15,
   },
-  playerRow: {
-    paddingHorizontal: SPACING.md,
-    paddingVertical: SPACING.sm,
+  hudDivider: {
+    width: 2,
+    height: 32,
+    borderRadius: 2,
+    backgroundColor: SD.line,
   },
-  playerColLandscape: {
-    paddingHorizontal: SPACING.sm,
-    gap: 8,
+  actionBar: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+    paddingHorizontal: 14,
+    paddingTop: 9,
+    paddingBottom: 14,
+    marginTop: 9,
+    borderTopWidth: 2,
+    borderTopColor: SD.line,
+  },
+  endBtn: {
+    flex: 1,
+  },
+  endFace: {
+    height: 48,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  endLabel: {
+    fontSize: 17,
+    color: SD.white,
   },
 });

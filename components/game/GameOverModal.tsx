@@ -1,271 +1,310 @@
+import ChunkyButton from "@/components/ui/ChunkyButton";
+import PlayerToken from "@/components/ui/PlayerToken";
+import ScreenBackground from "@/components/ui/ScreenBackground";
+import Typography from "@/components/ui/Typography";
+import { SD, SD_LAYER } from "@/constants/theme";
 import type { Player } from "@/types/game";
-import { Ionicons } from "@expo/vector-icons";
-import { Modal, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { getAccountStatus } from "@/types/game";
+import { ScrollView, StyleSheet, View } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 interface GameOverModalProps {
   players: Player[];
+  totalMonths: number;
+  onRematch: () => void;
   onClose: () => void;
 }
 
-const GOLD = "#F9A825";
-const GOLD_DARK = "#F57F17";
-const GOLD_LIGHT = "#FFF8E1";
-const SILVER = "#9E9E9E";
-const BRONZE = "#BF8650";
-
-const RANK_COLORS = [GOLD, SILVER, BRONZE, "#888"];
-const RANK_LABELS = ["1st", "2nd", "3rd", "4th"];
-
-function netWorth(p: Player): number {
-  return p.cash + p.savingsBalance - p.loanBalance;
+function netWorth(player: Player): number {
+  return player.cash + player.savingsBalance - player.loanBalance;
 }
 
-export default function GameOverModal({ players, onClose }: GameOverModalProps) {
-  const ranked = [...players].sort((a, b) => netWorth(b) - netWorth(a));
-  const maxNet = netWorth(ranked[0]);
-  const winners = ranked.filter((p) => netWorth(p) === maxNet);
-  const isTie = winners.length > 1;
+function money(n: number) {
+  return `${n < 0 ? "-" : ""}$${Math.abs(n).toLocaleString("en-US")}`;
+}
+
+function noteFor(player: Player): string {
+  if (player.bankrupt) return "Went bankrupt";
+  const status = getAccountStatus(player);
+  if (status === "savings") return `Savings $${player.savingsBalance} · debt-free`;
+  if (status === "loan") return `Still owes $${player.loanBalance}`;
+  return "Debt-free";
+}
+
+const initialOf = (player: Player) =>
+  player.name?.trim()?.[0]?.toUpperCase() || "?";
+
+const CONFETTI = [
+  { top: 16, left: 26, color: SD.debt, round: false, rotate: "20deg" },
+  { top: 34, right: 36, color: SD.blue, round: true, rotate: "0deg" },
+  { top: 54, left: 52, color: SD.primary, round: false, rotate: "40deg" },
+  { top: 22, right: 70, color: SD.purple, round: true, rotate: "0deg" },
+] as const;
+
+export default function GameOverModal({
+  players,
+  totalMonths,
+  onRematch,
+  onClose,
+}: GameOverModalProps) {
+  // Bankrupt players always rank below solvent ones
+  const ranked = [...players].sort((a, b) => {
+    if (a.bankrupt !== b.bankrupt) return a.bankrupt ? 1 : -1;
+    return netWorth(b) - netWorth(a);
+  });
+  const winner = ranked[0];
+  const isTie =
+    ranked.length > 1 &&
+    !ranked[1].bankrupt &&
+    netWorth(ranked[1]) === netWorth(winner);
 
   return (
-    <Modal visible transparent animationType="fade">
-      <View style={styles.overlay}>
-        <View style={styles.card}>
-          {/* Header */}
+    <View style={styles.overlay}>
+      <ScreenBackground>
+        <SafeAreaView style={styles.screen}>
           <View style={styles.header}>
-            <View style={styles.headerBadge}>
-              <Ionicons name="trophy" size={22} color="#fff" />
-              <Text style={styles.headerTitle}>Game Over!</Text>
-            </View>
+            {CONFETTI.map((c, i) => (
+              <View
+                key={i}
+                style={[
+                  styles.confetti,
+                  {
+                    top: c.top,
+                    left: "left" in c ? c.left : undefined,
+                    right: "right" in c ? c.right : undefined,
+                    backgroundColor: c.color,
+                    borderRadius: c.round ? 6 : 2,
+                    transform: [{ rotate: c.rotate }],
+                  },
+                ]}
+              />
+            ))}
+            <Typography design="body" weight={800} style={styles.headerEyebrow}>
+              {totalMonths} {totalMonths === 1 ? "MONTH" : "MONTHS"} · FINAL STANDINGS
+            </Typography>
+            <Typography design="money" style={styles.headerTitle}>
+              GAME OVER
+            </Typography>
           </View>
 
-          {/* Winner callout */}
-          <View style={styles.winnerCallout}>
-            <Text style={styles.winnerTrophy}>🏆</Text>
-            <View style={{ flex: 1 }}>
-              {isTie ? (
-                <>
-                  <Text style={styles.winnerLabel}>It's a Tie!</Text>
-                  <Text style={styles.winnerNames}>
-                    {winners.map((w) => w.name).join(" & ")}
-                  </Text>
-                </>
-              ) : (
-                <>
-                  <Text style={styles.winnerLabel}>{winners[0].name} Wins!</Text>
-                  <Text style={styles.winnerNet}>${maxNet.toLocaleString()} net worth</Text>
-                </>
-              )}
+          <ScrollView contentContainerStyle={styles.content}>
+            <View style={styles.winnerCard}>
+              <View style={styles.placeChip}>
+                <Typography design="title" weight={800} style={styles.placeChipText}>
+                  ★ 1ST PLACE{isTie ? " · TIE" : ""}
+                </Typography>
+              </View>
+              <View style={styles.winnerToken}>
+                <PlayerToken
+                  initial={initialOf(winner)}
+                  color={winner.color}
+                  size={62}
+                />
+              </View>
+              <Typography design="title" style={styles.winnerName}>
+                {winner.name} wins!
+              </Typography>
+              <Typography design="body" weight={700} style={styles.winnerNote}>
+                {noteFor(winner)}
+              </Typography>
+              <Typography design="money" style={styles.winnerTotal}>
+                {money(netWorth(winner))}
+              </Typography>
             </View>
-          </View>
 
-          {/* Player rankings */}
-          <ScrollView style={styles.rankList} showsVerticalScrollIndicator={false}>
-            {ranked.map((player, rankIdx) => {
-              const net = netWorth(player);
-              const isWinner = net === maxNet;
-              // Assign rank accounting for ties
-              let displayRank = rankIdx;
-              for (let i = 0; i < rankIdx; i++) {
-                if (netWorth(ranked[i]) === net) { displayRank = i; break; }
-              }
-
-              return (
-                <View
-                  key={player.name}
-                  style={[styles.rankRow, isWinner && styles.rankRowWinner]}
-                >
-                  {/* Rank badge */}
-                  <View style={[styles.rankBadge, { backgroundColor: RANK_COLORS[displayRank] ?? "#888" }]}>
-                    <Text style={styles.rankBadgeText}>{RANK_LABELS[displayRank] ?? `${displayRank + 1}th`}</Text>
-                  </View>
-
-                  {/* Player dot + name */}
-                  <View style={[styles.colorDot, { backgroundColor: player.color }]} />
-                  <View style={{ flex: 1 }}>
-                    <Text style={[styles.playerName, isWinner && styles.playerNameWinner]}>
+            <View style={styles.standings}>
+              {ranked.slice(1).map((player, i) => (
+                <View key={player.name} style={styles.standingRow}>
+                  <Typography design="title" weight={800} style={styles.rank}>
+                    #{i + 2}
+                  </Typography>
+                  <PlayerToken
+                    initial={initialOf(player)}
+                    color={player.color}
+                    size={34}
+                  />
+                  <View style={styles.standingText}>
+                    <Typography design="title" weight={800} style={styles.standingName}>
                       {player.name}
-                    </Text>
-                    <View style={styles.breakdownRow}>
-                      <Text style={styles.breakdownItem}>${player.cash.toLocaleString()} cash</Text>
-                      {player.savingsBalance > 0 && (
-                        <Text style={[styles.breakdownItem, styles.savingsText]}>
-                          +${player.savingsBalance.toLocaleString()} savings
-                        </Text>
-                      )}
-                      {player.loanBalance > 0 && (
-                        <Text style={[styles.breakdownItem, styles.loanText]}>
-                          −${player.loanBalance.toLocaleString()} loan
-                        </Text>
-                      )}
-                    </View>
+                    </Typography>
+                    <Typography design="body" weight={700} style={styles.standingNote}>
+                      {noteFor(player)}
+                    </Typography>
                   </View>
-
-                  {/* Net worth */}
-                  <Text style={[styles.netWorth, net < 0 && styles.netWorthNegative]}>
-                    {net < 0 ? `−$${Math.abs(net).toLocaleString()}` : `$${net.toLocaleString()}`}
-                  </Text>
+                  <Typography design="money" style={styles.standingTotal}>
+                    {money(netWorth(player))}
+                  </Typography>
                 </View>
-              );
-            })}
+              ))}
+            </View>
           </ScrollView>
 
-          {/* Main Menu button */}
-          <Pressable style={styles.menuBtn} onPress={onClose}>
-            <Ionicons name="home" size={18} color="#fff" />
-            <Text style={styles.menuBtnText}>Main Menu</Text>
-          </Pressable>
-        </View>
-      </View>
-    </Modal>
+          <View style={styles.footer}>
+            <ChunkyButton
+              color={SD.surface2}
+              depthColor="rgba(0,0,0,0.12)"
+              depth={4}
+              borderRadius={18}
+              style={styles.footerButton}
+              contentStyle={styles.footerFace}
+              onPress={onRematch}
+            >
+              <Typography design="title" style={styles.rematchLabel}>
+                Rematch
+              </Typography>
+            </ChunkyButton>
+            <ChunkyButton
+              color={SD.primary}
+              depthColor={SD.primaryShadow}
+              depth={4}
+              borderRadius={18}
+              style={styles.footerButton}
+              contentStyle={styles.footerFace}
+              onPress={onClose}
+            >
+              <Typography design="title" style={styles.homeLabel}>
+                Home
+              </Typography>
+            </ChunkyButton>
+          </View>
+        </SafeAreaView>
+      </ScreenBackground>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   overlay: {
-    flex: 1,
-    backgroundColor: "rgba(0,0,0,0.7)",
-    justifyContent: "center",
-    alignItems: "center",
+    ...StyleSheet.absoluteFillObject,
+    zIndex: SD_LAYER.screenOverlay,
   },
-  card: {
-    backgroundColor: "#fff",
-    borderRadius: 20,
-    padding: 20,
-    width: "88%",
-    maxWidth: 400,
-    gap: 14,
+  screen: {
+    flex: 1,
   },
   header: {
-    alignItems: "center",
-  },
-  headerBadge: {
-    backgroundColor: GOLD_DARK,
-    borderRadius: 10,
+    paddingTop: 18,
     paddingHorizontal: 20,
-    paddingVertical: 10,
-    flexDirection: "row",
+    paddingBottom: 12,
     alignItems: "center",
-    gap: 8,
+    overflow: "hidden",
+  },
+  confetti: {
+    position: "absolute",
+    width: 10,
+    height: 10,
+  },
+  headerEyebrow: {
+    fontSize: 11,
+    letterSpacing: 2,
+    color: SD.soft,
   },
   headerTitle: {
-    fontSize: 20,
-    fontWeight: "800",
-    color: "#fff",
-    letterSpacing: 0.5,
+    fontSize: 24,
+    color: SD.ink,
+    marginTop: 8,
   },
-  winnerCallout: {
+  content: {
+    paddingHorizontal: 18,
+    paddingTop: 4,
+    paddingBottom: 16,
+  },
+  winnerCard: {
+    backgroundColor: SD.accent,
+    borderRadius: 22,
+    padding: 18,
+    alignItems: "center",
+    elevation: 4,
+    shadowColor: "#C08A00",
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 1,
+    shadowRadius: 0,
+  },
+  placeChip: {
+    backgroundColor: "rgba(0,0,0,0.12)",
+    paddingVertical: 3,
+    paddingHorizontal: 11,
+    borderRadius: 999,
+  },
+  placeChipText: {
+    fontSize: 11,
+    color: "#5E3D00",
+  },
+  winnerToken: {
+    marginTop: 10,
+  },
+  winnerName: {
+    fontSize: 24,
+    color: SD.ink,
+    marginTop: 9,
+  },
+  winnerNote: {
+    fontSize: 12,
+    color: "#7A4E00",
+  },
+  winnerTotal: {
+    fontSize: 28,
+    color: SD.primary,
+    marginTop: 6,
+    textShadowColor: "rgba(0,0,0,0.12)",
+    textShadowOffset: { width: 0, height: 2 },
+    textShadowRadius: 0,
+  },
+  standings: {
+    gap: 9,
+    marginTop: 14,
+  },
+  standingRow: {
     flexDirection: "row",
     alignItems: "center",
     gap: 12,
-    backgroundColor: GOLD_LIGHT,
-    borderRadius: 14,
-    borderLeftWidth: 4,
-    borderLeftColor: GOLD,
-    padding: 14,
+    backgroundColor: SD.surface2,
+    borderRadius: 16,
+    paddingVertical: 12,
+    paddingHorizontal: 14,
   },
-  winnerTrophy: {
-    fontSize: 32,
-  },
-  winnerLabel: {
+  rank: {
     fontSize: 18,
-    fontWeight: "800",
-    color: GOLD_DARK,
+    color: SD.soft,
+    width: 26,
   },
-  winnerNames: {
-    fontSize: 13,
-    fontWeight: "600",
-    color: "#636E72",
-    marginTop: 2,
+  standingText: {
+    flex: 1,
+    minWidth: 0,
   },
-  winnerNet: {
-    fontSize: 13,
-    fontWeight: "600",
-    color: "#636E72",
-    marginTop: 2,
+  standingName: {
+    fontSize: 15,
+    color: SD.ink,
   },
-  rankList: {
-    maxHeight: 240,
-  },
-  rankRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-    paddingVertical: 10,
-    paddingHorizontal: 6,
-    borderRadius: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: "#F0F0F0",
-  },
-  rankRowWinner: {
-    backgroundColor: GOLD_LIGHT,
-  },
-  rankBadge: {
-    borderRadius: 6,
-    paddingHorizontal: 6,
-    paddingVertical: 3,
-    minWidth: 32,
-    alignItems: "center",
-  },
-  rankBadgeText: {
+  standingNote: {
     fontSize: 11,
-    fontWeight: "800",
-    color: "#fff",
+    color: SD.soft,
   },
-  colorDot: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-    flexShrink: 0,
-  },
-  playerName: {
-    fontSize: 13,
-    fontWeight: "700",
-    color: "#2D3436",
-  },
-  playerNameWinner: {
-    color: GOLD_DARK,
-  },
-  breakdownRow: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 4,
-    marginTop: 2,
-  },
-  breakdownItem: {
-    fontSize: 10,
-    color: "#888",
-    fontWeight: "600",
-  },
-  savingsText: {
-    color: "#2E7D32",
-  },
-  loanText: {
-    color: "#C62828",
-  },
-  netWorth: {
+  standingTotal: {
     fontSize: 15,
-    fontWeight: "800",
-    color: "#2D3436",
-    minWidth: 64,
-    textAlign: "right",
+    color: SD.ink,
   },
-  netWorthNegative: {
-    color: "#C62828",
-  },
-  menuBtn: {
-    backgroundColor: GOLD_DARK,
-    borderRadius: 12,
-    paddingVertical: 13,
+  footer: {
     flexDirection: "row",
+    gap: 10,
+    paddingHorizontal: 18,
+    paddingTop: 12,
+    paddingBottom: 16,
+    borderTopWidth: 2,
+    borderTopColor: SD.line,
+  },
+  footerButton: {
+    flex: 1,
+  },
+  footerFace: {
+    paddingVertical: 16,
     alignItems: "center",
-    justifyContent: "center",
-    gap: 8,
-    borderBottomWidth: 4,
-    borderBottomColor: "#E65100",
   },
-  menuBtnText: {
-    fontSize: 15,
-    fontWeight: "800",
-    color: "#fff",
+  rematchLabel: {
+    fontSize: 16,
+    color: SD.ink,
+  },
+  homeLabel: {
+    fontSize: 16,
+    color: SD.white,
   },
 });

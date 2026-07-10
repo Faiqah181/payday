@@ -1,8 +1,9 @@
-import { COLORS } from "@/constants/colors";
+import ChunkyButton from "@/components/ui/ChunkyButton";
+import PopCard from "@/components/ui/PopCard";
+import Typography from "@/components/ui/Typography";
+import { SD } from "@/constants/theme";
 import type { DealCard } from "@/types/game";
-import { Ionicons } from "@expo/vector-icons";
-import { Pressable, StyleSheet, Text, View } from "react-native";
-import Animated, { FadeIn, FadeOut } from "react-native-reanimated";
+import { StyleSheet, View } from "react-native";
 
 interface DealCardModalProps {
   deal: DealCard;
@@ -12,187 +13,124 @@ interface DealCardModalProps {
 
 export default function DealCardModal({ deal, onBuy, onDiscard }: DealCardModalProps) {
   return (
-    <Animated.View
-      entering={FadeIn.duration(300)}
-      exiting={FadeOut.duration(200)}
-      style={styles.overlay}
-    >
-      <View style={styles.card}>
-        {/* Header */}
-        <View style={styles.header}>
-          <Ionicons name="briefcase" size={20} color="#43A047" />
-          <Text style={styles.headerText}>DEAL CARD</Text>
+    <PopCard tone={SD.purple} eyebrow="DEAL CARD">
+      <Typography design="title" style={styles.title}>
+        {deal.title}
+      </Typography>
+      <Typography design="body" weight={700} style={styles.sub}>
+        {deal.description}
+      </Typography>
+
+      <View style={styles.statsRow}>
+        <View style={styles.statBox}>
+          <Typography design="body" weight={800} style={styles.statLabel}>
+            COST
+          </Typography>
+          <Typography design="money" style={[styles.statValue, { color: SD.debt }]}>
+            ${deal.buyPrice}
+          </Typography>
         </View>
-
-        <View style={styles.divider} />
-
-        {/* Title */}
-        <Text style={styles.title}>{deal.title}</Text>
-
-        {/* Flavor text */}
-        <Text style={styles.description}>{deal.description}</Text>
-
-        {/* Price boxes */}
-        <View style={styles.priceRow}>
-          <View style={[styles.priceBox, styles.costBox]}>
-            <Text style={styles.priceLabel}>COST</Text>
-            <Text style={[styles.priceValue, styles.costValue]}>${deal.buyPrice}</Text>
-          </View>
-          <View style={[styles.priceBox, styles.valueBox]}>
-            <Text style={styles.priceLabel}>VALUE</Text>
-            <Text style={[styles.priceValue, styles.valueValue]}>${deal.sellPrice}</Text>
-          </View>
-        </View>
-
-        {/* Commission */}
-        <Text style={styles.commission}>Commission: ${deal.commission}</Text>
-
-        {/* Action buttons */}
-        <View style={styles.buttonRow}>
-          <Pressable style={styles.discardButton} onPress={onDiscard}>
-            <Text style={styles.discardButtonText}>Discard</Text>
-          </Pressable>
-          <Pressable style={styles.buyButton} onPress={onBuy}>
-            <Ionicons name="cart" size={18} color={COLORS.white} style={styles.buyIcon} />
-            <Text style={styles.buyButtonText}>Buy Deal</Text>
-          </Pressable>
+        <View style={styles.statBox}>
+          <Typography design="body" weight={800} style={styles.statLabel}>
+            VALUE
+          </Typography>
+          <Typography design="money" style={[styles.statValue, { color: SD.primary }]}>
+            ${deal.sellPrice}
+          </Typography>
         </View>
       </View>
-    </Animated.View>
+
+      <Typography design="body" weight={700} style={styles.note}>
+        Hold it, cash in at a Buyer space. Commission ${deal.commission} — highest
+        roller takes it.
+      </Typography>
+
+      <View style={styles.buttonRow}>
+        <ChunkyButton
+          color={SD.surface2}
+          depthColor="rgba(0,0,0,0.1)"
+          depth={4}
+          borderRadius={14}
+          style={styles.rowButton}
+          contentStyle={styles.buttonFace}
+          onPress={onDiscard}
+        >
+          <Typography design="title" style={styles.passLabel}>
+            Pass
+          </Typography>
+        </ChunkyButton>
+        <ChunkyButton
+          color={SD.primary}
+          depthColor={SD.primaryShadow}
+          depth={4}
+          borderRadius={14}
+          style={styles.rowButton}
+          contentStyle={styles.buttonFace}
+          onPress={onBuy}
+        >
+          <Typography design="title" style={styles.buyLabel}>
+            Buy
+          </Typography>
+        </ChunkyButton>
+      </View>
+    </PopCard>
   );
 }
 
 const styles = StyleSheet.create({
-  overlay: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: "rgba(0,0,0,0.4)",
-    justifyContent: "center",
-    alignItems: "center",
-    zIndex: 100,
-  },
-  card: {
-    backgroundColor: COLORS.white,
-    borderRadius: 20,
-    padding: 24,
-    alignItems: "center",
-    minWidth: 260,
-    maxWidth: 320,
-    borderWidth: 3,
-    borderColor: "#43A047",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
-    elevation: 8,
-  },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-  },
-  headerText: {
-    fontWeight: "800" as const,
-    fontSize: 16,
-    color: "#43A047",
-    letterSpacing: 1,
-  },
-  divider: {
-    width: "100%",
-    height: 1,
-    backgroundColor: "#E0E0E0",
-    marginVertical: 12,
-  },
   title: {
-    fontWeight: "800" as const,
     fontSize: 24,
-    color: COLORS.textDark,
-    textAlign: "center",
-    marginBottom: 6,
+    color: SD.ink,
   },
-  description: {
-    fontSize: 14,
-    fontStyle: "italic",
-    color: "#616161",
-    textAlign: "center",
-    marginBottom: 16,
-    lineHeight: 20,
+  sub: {
+    fontSize: 12,
+    color: SD.soft,
+    marginTop: 3,
   },
-  priceRow: {
+  statsRow: {
     flexDirection: "row",
-    gap: 12,
-    marginBottom: 8,
+    gap: 10,
+    marginTop: 14,
   },
-  priceBox: {
+  statBox: {
     flex: 1,
-    borderRadius: 12,
-    paddingVertical: 10,
-    paddingHorizontal: 16,
+    backgroundColor: SD.surface2,
+    borderRadius: 13,
+    padding: 11,
     alignItems: "center",
   },
-  costBox: {
-    backgroundColor: "#FFEBEE",
+  statLabel: {
+    fontSize: 10,
+    color: SD.soft,
   },
-  valueBox: {
-    backgroundColor: "#E8F5E9",
+  statValue: {
+    fontSize: 17,
   },
-  priceLabel: {
+  note: {
     fontSize: 11,
-    fontWeight: "700",
-    color: "#9E9E9E",
-    letterSpacing: 1,
-    marginBottom: 4,
-  },
-  priceValue: {
-    fontWeight: "800" as const,
-    fontSize: 22,
-  },
-  costValue: {
-    color: "#C62828",
-  },
-  valueValue: {
-    color: "#2E7D32",
-  },
-  commission: {
-    fontSize: 12,
-    color: "#9E9E9E",
-    marginBottom: 16,
+    lineHeight: 16,
+    color: SD.soft,
+    marginTop: 12,
+    textAlign: "center",
   },
   buttonRow: {
     flexDirection: "row",
-    gap: 12,
-    width: "100%",
+    gap: 9,
+    marginTop: 16,
   },
-  discardButton: {
+  rowButton: {
     flex: 1,
-    backgroundColor: "#ECEFF1",
-    paddingVertical: 12,
-    borderRadius: 20,
+  },
+  buttonFace: {
+    paddingVertical: 14,
     alignItems: "center",
-    borderBottomWidth: 3,
-    borderBottomColor: "#B0BEC5",
   },
-  discardButtonText: {
-    fontWeight: "800" as const,
-    fontSize: 14,
-    color: "#546E7A",
+  passLabel: {
+    fontSize: 15,
+    color: SD.ink,
   },
-  buyButton: {
-    flex: 1,
-    flexDirection: "row",
-    backgroundColor: "#43A047",
-    paddingVertical: 12,
-    borderRadius: 20,
-    alignItems: "center",
-    justifyContent: "center",
-    borderBottomWidth: 3,
-    borderBottomColor: "#2E7D32",
-  },
-  buyIcon: {
-    marginRight: 6,
-  },
-  buyButtonText: {
-    fontWeight: "800" as const,
-    fontSize: 14,
-    color: COLORS.white,
+  buyLabel: {
+    fontSize: 15,
+    color: SD.white,
   },
 });

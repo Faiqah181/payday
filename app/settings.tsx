@@ -1,195 +1,274 @@
-import StrokeText from "@/components/StrokeText";
-import { COLORS, SPACING } from "@/constants/colors";
+import ChunkyButton from "@/components/ui/ChunkyButton";
+import ScreenBackground from "@/components/ui/ScreenBackground";
+import ToggleSwitch from "@/components/ui/ToggleSwitch";
+import Typography from "@/components/ui/Typography";
+import { SD } from "@/constants/theme";
 import { useSound } from "@/contexts/SoundContext";
-import { Ionicons } from "@expo/vector-icons";
-import * as Linking from "expo-linking";
 import { useRouter } from "expo-router";
-import {
-  ImageBackground,
-  Pressable,
-  StyleSheet,
-  Switch,
-  Text,
-  View,
-} from "react-native";
+import { ReactNode } from "react";
+import { Linking, Pressable, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+const FEEDBACK_EMAIL = "kamranasad7@gmail.com";
+
+function IconTile({ color, glyph }: { color: string; glyph: string }) {
+  return (
+    <View style={[styles.iconTile, { backgroundColor: color }]}>
+      <Typography design="title" style={styles.iconGlyph}>
+        {glyph}
+      </Typography>
+    </View>
+  );
+}
+
 interface SettingsRowProps {
-  icon: keyof typeof Ionicons.glyphMap;
-  label: string;
+  tileColor: string;
+  glyph: string;
+  title: string;
+  subtitle: string;
+  right?: ReactNode;
+  divider?: boolean;
   onPress?: () => void;
-  rightElement?: React.ReactNode;
-  bgColor: string;
-  borderColor: string;
 }
 
 function SettingsRow({
-  icon,
-  label,
+  tileColor,
+  glyph,
+  title,
+  subtitle,
+  right,
+  divider = false,
   onPress,
-  rightElement,
-  bgColor,
-  borderColor,
 }: SettingsRowProps) {
   const { playClick } = useSound();
+  const content = (
+    <>
+      <IconTile color={tileColor} glyph={glyph} />
+      <View style={styles.rowText}>
+        <Typography design="title" weight={800} style={styles.rowTitle}>
+          {title}
+        </Typography>
+        <Typography design="body" weight={700} style={styles.rowSubtitle}>
+          {subtitle}
+        </Typography>
+      </View>
+      {right}
+    </>
+  );
+  const rowStyle = [styles.row, divider && styles.rowDivider];
 
+  if (onPress) {
+    return (
+      <Pressable
+        style={rowStyle}
+        onPress={() => {
+          playClick();
+          onPress();
+        }}
+      >
+        {content}
+      </Pressable>
+    );
+  }
+  return <View style={rowStyle}>{content}</View>;
+}
+
+function Section({ label, children }: { label: string; children: ReactNode }) {
   return (
-    <Pressable
-      style={[
-        styles.row,
-        {
-          backgroundColor: bgColor,
-          borderBottomColor: borderColor,
-        },
-      ]}
-      onPress={
-        onPress
-          ? () => {
-              playClick();
-              onPress();
-            }
-          : undefined
-      }
-    >
-      <Ionicons
-        name={icon}
-        size={24}
-        color={COLORS.white}
-        style={styles.rowIcon}
-      />
-      <Text style={styles.rowLabel}>{label}</Text>
-      {rightElement ?? (
-        <Ionicons name="chevron-forward" size={20} color="rgba(255,255,255,0.6)" />
-      )}
-    </Pressable>
+    <View>
+      <Typography design="body" weight={800} style={styles.eyebrow}>
+        {label}
+      </Typography>
+      <View style={styles.card}>{children}</View>
+    </View>
   );
 }
 
 export default function Settings() {
-  const { soundEnabled, toggleSound, playClick } = useSound();
   const router = useRouter();
+  const { soundEnabled, toggleSound, hapticsEnabled, toggleHaptics, playClick } =
+    useSound();
 
   return (
-    <ImageBackground
-      source={require("@/assets/images/generic-background.png")}
-      style={styles.background}
-      resizeMode="cover"
-      imageStyle={{ opacity: 0.3 }}
-    >
-      <SafeAreaView style={styles.safeArea}>
-        <View style={styles.header}>
-          <Pressable
-            style={styles.backButton}
-            onPress={() => {
-              playClick();
-              router.back();
-            }}
-          >
-            <Ionicons name="arrow-back" size={24} color="#fff" />
-          </Pressable>
-          <View style={{ flex: 1 }}>
-            <StrokeText
-              fontSize={28}
-              fillColor="#FFFFFF"
-              strokeColor="#1B5E20"
-              strokeWidth={5}
-            >
-              SETTINGS
-            </StrokeText>
-          </View>
-        </View>
+    <ScreenBackground>
+      <SafeAreaView style={styles.screen}>
+      <View style={styles.header}>
+        <ChunkyButton
+          color={SD.surface2}
+          depthColor="rgba(0,0,0,0.1)"
+          depth={3}
+          borderRadius={11}
+          contentStyle={styles.backFace}
+          onPress={() => router.back()}
+        >
+          <Typography design="title" style={styles.backGlyph}>
+            ‹
+          </Typography>
+        </ChunkyButton>
+        <Typography design="money" style={styles.screenTitle}>
+          Settings
+        </Typography>
+      </View>
 
-        <View style={styles.content}>
+      <View style={styles.content}>
+        <Section label="SOUND & FEEL">
           <SettingsRow
-            icon="volume-high"
-            label="Sound"
-            bgColor={COLORS.primary}
-            borderColor={COLORS.primaryBorder}
-            rightElement={
-              <Switch
+            tileColor={SD.blue}
+            glyph="♪"
+            title="Sound"
+            subtitle="Dice, coins & effects"
+            right={
+              <ToggleSwitch
                 value={soundEnabled}
-                onValueChange={() => {
+                onToggle={() => {
                   playClick();
                   toggleSound();
                 }}
-                trackColor={{ false: "rgba(255,255,255,0.3)", true: "#4CAF50" }}
-                thumbColor={COLORS.white}
               />
             }
           />
-
           <SettingsRow
-            icon="mail"
-            label="Support"
-            bgColor={COLORS.secondary}
-            borderColor={COLORS.secondaryBorder}
-            onPress={() => Linking.openURL("mailto:abchelp@support.com")}
+            tileColor={SD.purple}
+            glyph="≈"
+            title="Haptic feedback"
+            subtitle="Vibrate on rolls & pay day"
+            divider
+            right={
+              <ToggleSwitch
+                value={hapticsEnabled}
+                onToggle={() => {
+                  playClick();
+                  toggleHaptics();
+                }}
+              />
+            }
           />
+        </Section>
 
+        <Section label="ABOUT">
           <SettingsRow
-            icon="star"
-            label="Rate Us"
-            bgColor="#AB47BC"
-            borderColor="#8E24AA"
+            tileColor={SD.accent}
+            glyph="★"
+            title="Rate the app"
+            subtitle="Enjoying Salary Day? Leave 5 stars"
+            right={
+              <Typography design="title" style={styles.stars}>
+                ★★★★★
+              </Typography>
+            }
             onPress={() => {}}
           />
-        </View>
+          <SettingsRow
+            tileColor={SD.primary}
+            glyph="✉"
+            title="Give Feedback"
+            subtitle="Get a reply directly from the game developer"
+            divider
+            onPress={() => Linking.openURL(`mailto:${FEEDBACK_EMAIL}`)}
+          />
+        </Section>
+
+        <Typography design="body" weight={700} style={styles.footer}>
+          Salary Day · v1.0.0
+        </Typography>
+      </View>
       </SafeAreaView>
-    </ImageBackground>
+    </ScreenBackground>
   );
 }
 
 const styles = StyleSheet.create({
-  background: {
-    flex: 1,
-  },
-  safeArea: {
+  screen: {
     flex: 1,
   },
   header: {
     flexDirection: "row",
     alignItems: "center",
-    paddingHorizontal: SPACING.md,
-    marginTop: 26,
-    paddingBottom: SPACING.sm,
     gap: 12,
+    paddingHorizontal: 18,
+    paddingTop: 12,
+    paddingBottom: 8,
   },
-  backButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: "rgba(0,0,0,0.25)",
+  backFace: {
+    width: 34,
+    height: 34,
     alignItems: "center",
     justifyContent: "center",
   },
+  backGlyph: {
+    fontSize: 18,
+    lineHeight: 22,
+    color: SD.ink,
+  },
+  screenTitle: {
+    fontSize: 20,
+    color: SD.ink,
+  },
   content: {
     flex: 1,
-    width: "80%",
-    alignSelf: "center",
-    justifyContent: "center",
-    gap: 28,
+    paddingHorizontal: 18,
+    paddingTop: 8,
+    paddingBottom: 18,
+    gap: 18,
+  },
+  eyebrow: {
+    fontSize: 11,
+    letterSpacing: 1.5,
+    color: SD.soft,
+    marginBottom: 9,
+  },
+  card: {
+    backgroundColor: SD.surface,
+    borderRadius: 18,
+    overflow: "hidden",
+    elevation: 2,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.07,
+    shadowRadius: 0,
   },
   row: {
     flexDirection: "row",
     alignItems: "center",
-    borderRadius: 24,
-    paddingHorizontal: 24,
-    paddingVertical: 16,
-    borderBottomWidth: 5,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    elevation: 6,
+    gap: 13,
+    paddingVertical: 14,
+    paddingHorizontal: 16,
   },
-  rowIcon: {
-    marginRight: 12,
+  rowDivider: {
+    borderTopWidth: 1,
+    borderTopColor: SD.line,
   },
-  rowLabel: {
+  iconTile: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  iconGlyph: {
+    fontSize: 21,
+    lineHeight: 26,
+    color: SD.white,
+  },
+  rowText: {
     flex: 1,
-    fontWeight: "800" as const,
-    fontSize: 18,
-    color: COLORS.white,
-    letterSpacing: 1,
+  },
+  rowTitle: {
+    fontSize: 15,
+    color: SD.ink,
+  },
+  rowSubtitle: {
+    fontSize: 11,
+    color: SD.soft,
+  },
+  stars: {
+    fontSize: 17,
+    color: SD.accent,
+  },
+  footer: {
+    textAlign: "center",
+    fontSize: 11,
+    color: SD.soft,
+    marginTop: -4,
   },
 });

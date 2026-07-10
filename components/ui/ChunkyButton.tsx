@@ -1,6 +1,7 @@
+import { mixHex, SD } from "@/constants/theme";
 import { useSound } from "@/contexts/SoundContext";
 import { ReactNode } from "react";
-import { Pressable, StyleSheet, View, ViewStyle } from "react-native";
+import { Pressable, StyleProp, StyleSheet, View, ViewStyle } from "react-native";
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
@@ -16,8 +17,8 @@ interface ChunkyButtonProps {
   borderRadius?: number;
   disabled?: boolean;
   silent?: boolean;
-  style?: ViewStyle;
-  contentStyle?: ViewStyle;
+  style?: StyleProp<ViewStyle>;
+  contentStyle?: StyleProp<ViewStyle>;
 }
 
 export default function ChunkyButton({
@@ -39,6 +40,10 @@ export default function ChunkyButton({
     transform: [{ translateY: pressed.value * depth }],
   }));
 
+  // Disabled buttons keep solid layers, just washed toward the surface tone
+  const faceColor = disabled ? mixHex(color, SD.surface2, 0.6) : color;
+  const lipColor = disabled ? mixHex(depthColor, SD.surface2, 0.6) : depthColor;
+
   return (
     <Pressable
       disabled={disabled}
@@ -53,11 +58,15 @@ export default function ChunkyButton({
       <View
         style={[
           StyleSheet.absoluteFill,
-          { top: depth, backgroundColor: depthColor, borderRadius },
+          { top: depth, backgroundColor: lipColor, borderRadius },
         ]}
       />
       <Animated.View
-        style={[{ backgroundColor: color, borderRadius }, contentStyle, faceStyle]}
+        style={[
+          { backgroundColor: faceColor, borderRadius },
+          contentStyle,
+          faceStyle,
+        ]}
       >
         {children}
       </Animated.View>

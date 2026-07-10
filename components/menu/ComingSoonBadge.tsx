@@ -1,10 +1,13 @@
-import { StyleSheet, Text, View } from "react-native";
+import Typography from "@/components/ui/Typography";
+import { StyleSheet, View } from "react-native";
 import { COLORS, BORDER_RADIUS } from "@/constants/colors";
 
 export default function ComingSoonBadge() {
   return (
     <View style={styles.badge}>
-      <Text style={styles.text}>Coming Soon</Text>
+      <Typography design="body" weight={800} style={styles.text}>
+        Coming Soon
+      </Typography>
     </View>
   );
 }
@@ -24,6 +27,5 @@ const styles = StyleSheet.create({
   text: {
     color: COLORS.white,
     fontSize: 10,
-    fontWeight: "800",
   },
 });

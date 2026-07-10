@@ -1,7 +1,9 @@
-import { COLORS } from "@/constants/colors";
+import ChunkyButton from "@/components/ui/ChunkyButton";
+import PopCard from "@/components/ui/PopCard";
+import Typography from "@/components/ui/Typography";
+import { SD, SD_CATEGORY } from "@/constants/theme";
 import type { EventMessage } from "@/types/game";
-import { Pressable, StyleSheet, Text, View } from "react-native";
-import Animated, { FadeIn, FadeOut } from "react-native-reanimated";
+import { StyleSheet } from "react-native";
 
 interface EventToastProps {
   event: EventMessage;
@@ -9,91 +11,73 @@ interface EventToastProps {
 }
 
 export default function EventToast({ event, onDismiss }: EventToastProps) {
-  const isGain = event.amount >= 0;
+  const tone =
+    event.amount > 0
+      ? SD.primary
+      : event.amount < 0
+        ? SD.debt
+        : SD_CATEGORY.plain;
 
   return (
-    <Animated.View
-      entering={FadeIn.duration(300)}
-      exiting={FadeOut.duration(200)}
-      style={styles.overlay}
-    >
-      <View style={[styles.card, isGain ? styles.cardGain : styles.cardLoss]}>
-        <Text style={styles.title}>{event.title}</Text>
-        <Text style={styles.description}>{event.description}</Text>
-        <Text style={[styles.amount, isGain ? styles.amountGain : styles.amountLoss]}>
-          {isGain ? "+" : "-"}${Math.abs(event.amount)}
-        </Text>
-        <Pressable style={styles.button} onPress={onDismiss}>
-          <Text style={styles.buttonText}>OK</Text>
-        </Pressable>
-      </View>
-    </Animated.View>
+    <PopCard tone={tone} eyebrow="EVENT" onBackdropPress={onDismiss}>
+      <Typography design="title" style={styles.title}>
+        {event.title}
+      </Typography>
+      <Typography design="body" weight={700} style={styles.sub}>
+        {event.description}
+      </Typography>
+      {event.amount !== 0 && (
+        <Typography
+          design="money"
+          style={[
+            styles.amount,
+            { color: event.amount > 0 ? SD.primary : SD.debt },
+          ]}
+        >
+          {event.amount > 0 ? "+" : "-"}${Math.abs(event.amount)}
+        </Typography>
+      )}
+      <ChunkyButton
+        color={SD.primary}
+        depthColor={SD.primaryShadow}
+        depth={4}
+        borderRadius={13}
+        style={styles.action}
+        contentStyle={styles.actionFace}
+        onPress={onDismiss}
+      >
+        <Typography design="title" style={styles.actionLabel}>
+          Got it
+        </Typography>
+      </ChunkyButton>
+    </PopCard>
   );
 }
 
 const styles = StyleSheet.create({
-  overlay: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: "rgba(0,0,0,0.4)",
-    justifyContent: "center",
-    alignItems: "center",
-    zIndex: 100,
-  },
-  card: {
-    backgroundColor: COLORS.white,
-    borderRadius: 20,
-    padding: 24,
-    alignItems: "center",
-    minWidth: 240,
-    maxWidth: 300,
-    borderWidth: 3,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
-    elevation: 8,
-  },
-  cardGain: {
-    borderColor: "#43A047",
-  },
-  cardLoss: {
-    borderColor: "#E53935",
-  },
   title: {
-    fontWeight: "800" as const,
     fontSize: 22,
-    color: COLORS.textDark,
-    textAlign: "center",
-    marginBottom: 8,
+    color: SD.ink,
   },
-  description: {
-    fontSize: 15,
-    color: "#616161",
-    textAlign: "center",
-    marginBottom: 12,
+  sub: {
+    fontSize: 12,
+    lineHeight: 18,
+    color: SD.soft,
+    marginTop: 3,
   },
   amount: {
-    fontWeight: "800" as const,
-    fontSize: 32,
-    marginBottom: 16,
+    fontSize: 28,
+    marginTop: 10,
   },
-  amountGain: {
-    color: "#2E7D32",
+  action: {
+    marginTop: 14,
   },
-  amountLoss: {
-    color: "#C62828",
+  actionFace: {
+    paddingVertical: 14,
+    alignItems: "center",
   },
-  button: {
-    backgroundColor: COLORS.primary,
-    paddingHorizontal: 32,
-    paddingVertical: 10,
-    borderRadius: 20,
-    borderBottomWidth: 3,
-    borderBottomColor: COLORS.primaryBorder,
-  },
-  buttonText: {
-    fontWeight: "800" as const,
-    fontSize: 16,
-    color: COLORS.white,
+  actionLabel: {
+    fontSize: 15,
+    color: SD.white,
   },
 });
