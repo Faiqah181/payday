@@ -1,4 +1,5 @@
 import BottomDrawer, { BottomDrawerHandle } from "@/components/ui/BottomDrawer";
+import ConfirmDialog from "@/components/ui/ConfirmDialog";
 import Typography from "@/components/ui/Typography";
 import { SD, SD_CATEGORY } from "@/constants/theme";
 import type { DealCard } from "@/types/game";
@@ -24,6 +25,7 @@ export default function DealsDrawer({
 }: DealsDrawerProps) {
   const drawer = useRef<BottomDrawerHandle>(null);
   const [selected, setSelected] = useState<DealCard | null>(null);
+  const [confirmLeave, setConfirmLeave] = useState(false);
   const selling = mode === "sell";
 
   const totalValue = deals.reduce((sum, deal) => sum + deal.sellPrice, 0);
@@ -36,9 +38,17 @@ export default function DealsDrawer({
     }
   };
 
+  // On a Buyer space, confirm before leaving without selling anything
+  const guardClose = selling
+    ? () => {
+        setConfirmLeave(true);
+        return true;
+      }
+    : undefined;
+
   return (
     <>
-      <BottomDrawer ref={drawer} onClose={onClose}>
+      <BottomDrawer ref={drawer} onClose={onClose} onRequestClose={guardClose}>
         <DrawerHeader
           color={selling ? SD_CATEGORY.buyer : SD.purple}
           eyebrow={selling ? "BUYER · PICK A DEAL TO SELL" : "MY DEALS"}
@@ -87,6 +97,19 @@ export default function DealsDrawer({
           ]}
           note={`+$${selected.sellPrice - selected.buyPrice} profit when sold`}
           onClose={() => setSelected(null)}
+        />
+      )}
+      {confirmLeave && (
+        <ConfirmDialog
+          title="Leave without selling?"
+          body="You're on a Buyer space — sell a deal now for its full value, or you'll pass up the chance this turn."
+          confirmLabel="Leave without selling"
+          cancelLabel="Keep selling"
+          onConfirm={() => {
+            setConfirmLeave(false);
+            drawer.current?.close();
+          }}
+          onCancel={() => setConfirmLeave(false)}
         />
       )}
     </>

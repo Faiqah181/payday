@@ -1,5 +1,5 @@
 import { DieValue } from "@/components/game/dice/DiceCube";
-import StaticDie from "@/components/game/dice/StaticDie";
+import RollingDie from "@/components/game/dice/RollingDie";
 import { EventButton, EventCashRow } from "@/components/game/events/EventFooter";
 import EventShell from "@/components/game/events/EventShell";
 import Typography from "@/components/ui/Typography";
@@ -33,6 +33,12 @@ export default function SwellfareModal({
   );
   const totalOwed = player.loanBalance + loanInterestDue + billTotal;
   const isInDebt = totalOwed > player.cash;
+  // A lost bet is paid in cash on the spot — never bet more than you hold
+  const maxBet = Math.min(
+    MAX_BET,
+    Math.floor(player.cash / BET_STEP) * BET_STEP,
+  );
+  const canBet = isInDebt && maxBet >= BET_STEP;
 
   const [bet, setBet] = useState(BET_STEP);
   const [rolled, setRolled] = useState<DieValue | null>(null);
@@ -42,30 +48,35 @@ export default function SwellfareModal({
 
   const title = !isInDebt
     ? "You're not in debt!"
-    : rolled === null
-      ? "Bet on a 5 or 6"
-      : won
-        ? "You won!"
-        : "Bad luck…";
+    : !canBet
+      ? "No cash to bet"
+      : rolled === null
+        ? "Bet on a 5 or 6"
+        : won
+          ? "You won!"
+          : "Bad luck…";
   const subtitle = !isInDebt
     ? "Swellfare only works when you owe more than you have"
-    : rolled === null
-      ? `You owe $${totalOwed} with $${player.cash} in hand — gamble your way out`
-      : won
-        ? `A ${rolled}! The bank pays ${WIN_MULTIPLIER}× your bet`
-        : `A ${rolled} — your bet goes into the Pot`;
+    : !canBet
+      ? `A bet needs at least $${BET_STEP} in hand`
+      : rolled === null
+        ? `You owe $${totalOwed} with $${player.cash} in hand — gamble your way out`
+        : won
+          ? `A ${rolled}! The bank pays ${WIN_MULTIPLIER}× your bet`
+          : `A ${rolled} — your bet goes into the Pot`;
 
   return (
     <EventShell
       gradient={SD_EVENT_GRADIENTS.swellfare}
-      eyebrow="🎲  SWELLFARE"
+      emblem="🎲"
+      eyebrow="SWELLFARE"
       title={title}
       subtitle={subtitle}
       pot={{ label: "THE POT", value: `$${pot}` }}
       footer={
         <>
           <EventCashRow initial={initial} color={player.color} cash={player.cash} />
-          {!isInDebt ? (
+          {!canBet ? (
             <EventButton label="Discard card" onPress={onDiscard} />
           ) : rolled === null ? (
             <EventButton
@@ -83,7 +94,7 @@ export default function SwellfareModal({
         </>
       }
     >
-      {isInDebt && rolled === null && (
+      {canBet && rolled === null && (
         <View style={styles.betArea}>
           <View style={styles.stepper}>
             <StepButton
@@ -96,7 +107,7 @@ export default function SwellfareModal({
             </Typography>
             <StepButton
               glyph="+"
-              disabled={bet >= MAX_BET}
+              disabled={bet >= maxBet}
               onPress={() => setBet(bet + BET_STEP)}
             />
           </View>
@@ -122,7 +133,7 @@ export default function SwellfareModal({
       )}
       {rolled !== null && (
         <View style={styles.dieArea}>
-          <StaticDie value={rolled} size={90} />
+          <RollingDie value={rolled} nonce={1} size={90} />
         </View>
       )}
     </EventShell>

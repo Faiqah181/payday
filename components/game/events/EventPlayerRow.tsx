@@ -1,5 +1,5 @@
-import StaticDie from "@/components/game/dice/StaticDie";
 import { DieValue } from "@/components/game/dice/DiceCube";
+import RollingDie from "@/components/game/dice/RollingDie";
 import PlayerToken from "@/components/ui/PlayerToken";
 import Typography from "@/components/ui/Typography";
 import { ReactNode } from "react";
@@ -13,6 +13,8 @@ interface EventPlayerRowProps {
   statusColor?: string;
   /** Right slot: a rolled die, an OUT badge, or an empty dashed box. */
   die?: DieValue | null;
+  /** Bump to make the die tumble again (rerolls can repeat a value). */
+  dieNonce?: number;
   out?: boolean;
   highlighted?: boolean;
   right?: ReactNode;
@@ -26,6 +28,7 @@ export default function EventPlayerRow({
   statusText,
   statusColor = "rgba(255,255,255,0.6)",
   die,
+  dieNonce = 0,
   out = false,
   highlighted = false,
   right,
@@ -54,7 +57,7 @@ export default function EventPlayerRow({
       {right ?? (
         <View style={styles.slot}>
           {die != null ? (
-            <StaticDie value={die} size={40} />
+            <RollingDie value={die} nonce={dieNonce} size={40} />
           ) : (
             <View style={styles.emptyBox}>
               {out && (

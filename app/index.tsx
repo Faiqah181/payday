@@ -1,16 +1,41 @@
 import ComingSoonBadge from "@/components/menu/ComingSoonBadge";
 import Avatar from "@/components/ui/Avatar";
 import ChunkyButton from "@/components/ui/ChunkyButton";
+import ConfirmDialog from "@/components/ui/ConfirmDialog";
 import Typography from "@/components/ui/Typography";
 import { SD } from "@/constants/theme";
 import { useProfile } from "@/contexts/ProfileContext";
-import { useRouter } from "expo-router";
-import { ImageBackground, Pressable, StyleSheet, Text, View } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import { useFocusEffect, useRouter } from "expo-router";
+import { useCallback, useState } from "react";
+import {
+  BackHandler,
+  ImageBackground,
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function Index() {
   const router = useRouter();
   const { name, avatarColor } = useProfile();
+  const [confirmExit, setConfirmExit] = useState(false);
+
+  // Only while the menu is focused: hardware back asks to quit rather than
+  // silently backgrounding the app. (useFocusEffect so it doesn't hijack
+  // back on pushed screens like Settings, which stay mounted underneath.)
+  useFocusEffect(
+    useCallback(() => {
+      const onBack = () => {
+        setConfirmExit((open) => !open);
+        return true;
+      };
+      const sub = BackHandler.addEventListener("hardwareBackPress", onBack);
+      return () => sub.remove();
+    }, []),
+  );
 
   return (
     <ImageBackground
@@ -20,6 +45,16 @@ export default function Index() {
     >
       <SafeAreaView style={styles.container}>
         <View style={styles.topRow}>
+          <ChunkyButton
+            color={SD.semiWhite}
+            depthColor="rgba(0,0,0,0.12)"
+            depth={3}
+            borderRadius={13}
+            contentStyle={styles.exitFace}
+            onPress={() => setConfirmExit(true)}
+          >
+            <Ionicons name="exit-outline" size={22} color={SD.ink} />
+          </ChunkyButton>
           <Pressable
             style={styles.profileChip}
             onPress={() => router.push("/profile")}
@@ -120,6 +155,17 @@ export default function Index() {
             </ChunkyButton>
           </View>
         </View>
+
+        {confirmExit && (
+          <ConfirmDialog
+            title="Exit the game?"
+            body="You'll leave Salary Day and return to your home screen."
+            confirmLabel="Exit"
+            cancelLabel="Stay"
+            onConfirm={() => BackHandler.exitApp()}
+            onCancel={() => setConfirmExit(false)}
+          />
+        )}
       </SafeAreaView>
     </ImageBackground>
   );
@@ -135,9 +181,16 @@ const styles = StyleSheet.create({
   },
   topRow: {
     flexDirection: "row",
-    justifyContent: "flex-end",
+    alignItems: "center",
+    justifyContent: "space-between",
     paddingHorizontal: 12,
     paddingTop: 10,
+  },
+  exitFace: {
+    width: 42,
+    height: 42,
+    alignItems: "center",
+    justifyContent: "center",
   },
   profileChip: {
     flexDirection: "row",

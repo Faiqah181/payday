@@ -1,5 +1,5 @@
 import { PersistentStorage } from "@/lib/PersistentStorage";
-import { useAudioPlayer } from "expo-audio";
+import { useAudioPlayer, type AudioPlayer } from "expo-audio";
 import * as Haptics from "expo-haptics";
 import {
   createContext,
@@ -8,7 +8,10 @@ import {
   type ReactNode,
 } from "react";
 
-const clickSound = require("@/assets/sounds/click.wav");
+import clickSound from "@/assets/sounds/bolkmar__fx-retro-videogame-click-menu.wav";
+import diceRollSound from "@/assets/sounds/patrigrief__dice1.wav";
+import cashRegisterSound from "@/assets/sounds/disman_cash-register-chching.mp3";
+import coinsSound from "@/assets/sounds/noisyredfox__coins2.wav";
 
 interface SoundContextType {
   soundEnabled: boolean;
@@ -16,8 +19,19 @@ interface SoundContextType {
   hapticsEnabled: boolean;
   toggleHaptics: () => void;
   playClick: () => void;
+
+  /** Dice tumble sound for the roll overlay. */
+  playDiceRoll: () => void;
+
+  /** Cha-ching for buying & selling deals. */
+  playCashRegister: () => void;
+
+  /** Coin clatter for instant board expenses. */
+  playCoins: () => void;
+
   /** Physical thump for dice landing on a result. */
   impactHaptic: () => void;
+
   /** Celebratory buzz for pay day & wins. */
   successHaptic: () => void;
 }
@@ -28,6 +42,9 @@ const SoundContext = createContext<SoundContextType>({
   hapticsEnabled: true,
   toggleHaptics: () => {},
   playClick: () => {},
+  playDiceRoll: () => {},
+  playCashRegister: () => {},
+  playCoins: () => {},
   impactHaptic: () => {},
   successHaptic: () => {},
 });
@@ -40,6 +57,9 @@ export function SoundProvider({ children }: { children: ReactNode }) {
     PersistentStorage.get("hapticsEnabled", true),
   );
   const player = useAudioPlayer(clickSound);
+  const dicePlayer = useAudioPlayer(diceRollSound);
+  const cashRegisterPlayer = useAudioPlayer(cashRegisterSound);
+  const coinsPlayer = useAudioPlayer(coinsSound);
 
   const toggleSound = () =>
     setSoundEnabled((prev) => {
@@ -52,12 +72,16 @@ export function SoundProvider({ children }: { children: ReactNode }) {
       return !prev;
     });
 
-  const playClick = () => {
-    if (soundEnabled && player) {
-      player.seekTo(0);
-      player.play();
-    }
+  const playSound = (audio: AudioPlayer | null) => {
+    if (!soundEnabled || !audio) return;
+    audio.seekTo(0);
+    audio.play();
   };
+
+  const playClick = () => playSound(player);
+  const playDiceRoll = () => playSound(dicePlayer);
+  const playCashRegister = () => playSound(cashRegisterPlayer);
+  const playCoins = () => playSound(coinsPlayer);
 
   const impactHaptic = () => {
     if (hapticsEnabled) Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
@@ -75,6 +99,9 @@ export function SoundProvider({ children }: { children: ReactNode }) {
         hapticsEnabled,
         toggleHaptics,
         playClick,
+        playDiceRoll,
+        playCashRegister,
+        playCoins,
         impactHaptic,
         successHaptic,
       }}

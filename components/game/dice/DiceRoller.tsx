@@ -48,7 +48,7 @@ export default function DiceRoller({
   dimmed,
   onComplete,
 }: DiceRollerProps) {
-  const { impactHaptic } = useSound();
+  const { impactHaptic, playDiceRoll } = useSound();
   const layerRef = useRef<View>(null);
   const [layer, setLayer] = useState<AnchorRect | null>(null);
 
@@ -107,6 +107,7 @@ export default function DiceRoller({
     const flyIn = { duration: FLY_IN_MS, easing: FLY_IN_EASING };
     const spin = { duration: SPIN_MS, easing: SPIN_EASING };
 
+    playDiceRoll();
     backdrop.value = withTiming(1, { duration: 250 });
     translateX.value = withTiming(0, flyIn);
     translateY.value = withTiming(0, flyIn);

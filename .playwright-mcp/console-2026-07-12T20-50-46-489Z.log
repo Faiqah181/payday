@@ -1,0 +1,104 @@
+[    7514ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:8090/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.routerRoot=app&transform.reactCompiler=true:18049
+[    7625ms] [LOG] Running application "main" with appParams:
+ {rootTag: #root, hydrate: undefined} 
+Development-level warnings: ON.
+Performance optimizations: OFF. @ http://localhost:8090/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.routerRoot=app&transform.reactCompiler=true:56990
+[    7796ms] [WARNING] "textShadow*" style props are deprecated. Use "textShadow". @ http://localhost:8090/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.routerRoot=app&transform.reactCompiler=true:23447
+[    7798ms] [WARNING] "shadow*" style props are deprecated. Use "boxShadow". @ http://localhost:8090/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.routerRoot=app&transform.reactCompiler=true:23447
+[    7938ms] [WARNING] `setVisibilityAsync` is only available on Android @ http://localhost:8090/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.routerRoot=app&transform.reactCompiler=true:72073
+[    7939ms] [WARNING] `setBehaviorAsync` is only available on Android @ http://localhost:8090/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.routerRoot=app&transform.reactCompiler=true:72181
+[   43384ms] [WARNING] props.pointerEvents is deprecated. Use style.pointerEvents @ http://localhost:8090/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.routerRoot=app&transform.reactCompiler=true:23447
+[  506999ms] ReferenceError: SD is not defined
+    at __d.487 (http://localhost:8090/components/game/CommissionModal.bundle//&platform=web&dev=true&hot=false&lazy=true&transform.routerRoot=app&transform.reactCompiler=true&minify=false&modulesOnly=true&runModule=false&shallow=true:301:14)
+    at loadModuleImplementation (http://localhost:8090/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.routerRoot=app&transform.reactCompiler=true:254:34)
+    at guardedLoadModule (http://localhost:8090/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.routerRoot=app&transform.reactCompiler=true:159:23)
+    at metroRequire (http://localhost:8090/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.routerRoot=app&transform.reactCompiler=true:79:75)
+    at runUpdatedModule (http://localhost:8090/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.routerRoot=app&transform.reactCompiler=true:497:7)
+    at metroHotUpdateModule (http://localhost:8090/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.routerRoot=app&transform.reactCompiler=true:387:26)
+    at define (http://localhost:8090/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.routerRoot=app&transform.reactCompiler=true:33:18)
+    at eval (http://localhost:8090/components/game/CommissionModal.bundle//&platform=web&dev=true&hot=false&lazy=true&transform.routerRoot=app&transform.reactCompiler=true&minify=false&modulesOnly=true&runModule=false&shallow=true:1:1)
+    at inject (http://localhost:8090/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.routerRoot=app&transform.reactCompiler=true:65521:7)
+    at Array.forEach (<anonymous>)
+    at injectUpdate (http://localhost:8090/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.routerRoot=app&transform.reactCompiler=true:65526:21)
+    at HMRClient.<anonymous> (http://localhost:8090/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.routerRoot=app&transform.reactCompiler=true:65575:11)
+    at HMRClient.emit (http://localhost:8090/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.routerRoot=app&transform.reactCompiler=true:65773:29)
+    at HMRClient._ws.onmessage (http://localhost:8090/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.routerRoot=app&transform.reactCompiler=true:65558:18)
+[  508846ms] ReferenceError: SD is not defined
+    at __d.487 (http://localhost:8090/components/game/CommissionModal.bundle//&platform=web&dev=true&hot=false&lazy=true&transform.routerRoot=app&transform.reactCompiler=true&minify=false&modulesOnly=true&runModule=false&shallow=true:302:14)
+    at loadModuleImplementation (http://localhost:8090/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.routerRoot=app&transform.reactCompiler=true:254:34)
+    at guardedLoadModule (http://localhost:8090/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.routerRoot=app&transform.reactCompiler=true:166:14)
+    at metroRequire (http://localhost:8090/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.routerRoot=app&transform.reactCompiler=true:79:75)
+    at runUpdatedModule (http://localhost:8090/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.routerRoot=app&transform.reactCompiler=true:497:7)
+    at metroHotUpdateModule (http://localhost:8090/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.routerRoot=app&transform.reactCompiler=true:387:26)
+    at define (http://localhost:8090/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.routerRoot=app&transform.reactCompiler=true:33:18)
+    at eval (http://localhost:8090/components/game/CommissionModal.bundle//&platform=web&dev=true&hot=false&lazy=true&transform.routerRoot=app&transform.reactCompiler=true&minify=false&modulesOnly=true&runModule=false&shallow=true:1:1)
+    at inject (http://localhost:8090/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.routerRoot=app&transform.reactCompiler=true:65521:7)
+    at Array.forEach (<anonymous>)
+    at injectUpdate (http://localhost:8090/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.routerRoot=app&transform.reactCompiler=true:65526:21)
+    at HMRClient.<anonymous> (http://localhost:8090/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.routerRoot=app&transform.reactCompiler=true:65575:11)
+    at HMRClient.emit (http://localhost:8090/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.routerRoot=app&transform.reactCompiler=true:65773:29)
+    at HMRClient._ws.onmessage (http://localhost:8090/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.routerRoot=app&transform.reactCompiler=true:65558:18)
+[  512200ms] ReferenceError: SD is not defined
+    at __d.487 (http://localhost:8090/components/game/CommissionModal.bundle//&platform=web&dev=true&hot=false&lazy=true&transform.routerRoot=app&transform.reactCompiler=true&minify=false&modulesOnly=true&runModule=false&shallow=true:274:14)
+    at loadModuleImplementation (http://localhost:8090/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.routerRoot=app&transform.reactCompiler=true:254:34)
+    at guardedLoadModule (http://localhost:8090/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.routerRoot=app&transform.reactCompiler=true:166:14)
+    at metroRequire (http://localhost:8090/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.routerRoot=app&transform.reactCompiler=true:79:75)
+    at runUpdatedModule (http://localhost:8090/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.routerRoot=app&transform.reactCompiler=true:497:7)
+    at metroHotUpdateModule (http://localhost:8090/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.routerRoot=app&transform.reactCompiler=true:387:26)
+    at define (http://localhost:8090/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.routerRoot=app&transform.reactCompiler=true:33:18)
+    at eval (http://localhost:8090/components/game/CommissionModal.bundle//&platform=web&dev=true&hot=false&lazy=true&transform.routerRoot=app&transform.reactCompiler=true&minify=false&modulesOnly=true&runModule=false&shallow=true:1:1)
+    at inject (http://localhost:8090/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.routerRoot=app&transform.reactCompiler=true:65521:7)
+    at Array.forEach (<anonymous>)
+    at injectUpdate (http://localhost:8090/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.routerRoot=app&transform.reactCompiler=true:65526:21)
+    at HMRClient.<anonymous> (http://localhost:8090/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.routerRoot=app&transform.reactCompiler=true:65575:11)
+    at HMRClient.emit (http://localhost:8090/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.routerRoot=app&transform.reactCompiler=true:65773:29)
+    at HMRClient._ws.onmessage (http://localhost:8090/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.routerRoot=app&transform.reactCompiler=true:65558:18)
+[  514746ms] [WARNING] `setVisibilityAsync` is only available on Android @ http://localhost:8090/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.routerRoot=app&transform.reactCompiler=true:72073
+[  514747ms] [WARNING] `setBehaviorAsync` is only available on Android @ http://localhost:8090/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.routerRoot=app&transform.reactCompiler=true:72181
+[  535890ms] ReferenceError: SD is not defined
+    at __d.487 (http://localhost:8090/components/game/ElectionModal.bundle//&platform=web&dev=true&hot=false&lazy=true&transform.routerRoot=app&transform.reactCompiler=true&minify=false&modulesOnly=true&runModule=false&shallow=true:391:14)
+    at loadModuleImplementation (http://localhost:8090/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.routerRoot=app&transform.reactCompiler=true:254:34)
+    at guardedLoadModule (http://localhost:8090/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.routerRoot=app&transform.reactCompiler=true:166:14)
+    at metroRequire (http://localhost:8090/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.routerRoot=app&transform.reactCompiler=true:79:75)
+    at runUpdatedModule (http://localhost:8090/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.routerRoot=app&transform.reactCompiler=true:497:7)
+    at metroHotUpdateModule (http://localhost:8090/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.routerRoot=app&transform.reactCompiler=true:387:26)
+    at define (http://localhost:8090/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.routerRoot=app&transform.reactCompiler=true:33:18)
+    at eval (http://localhost:8090/components/game/ElectionModal.bundle//&platform=web&dev=true&hot=false&lazy=true&transform.routerRoot=app&transform.reactCompiler=true&minify=false&modulesOnly=true&runModule=false&shallow=true:1:1)
+    at inject (http://localhost:8090/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.routerRoot=app&transform.reactCompiler=true:65521:7)
+    at Array.forEach (<anonymous>)
+    at injectUpdate (http://localhost:8090/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.routerRoot=app&transform.reactCompiler=true:65526:21)
+    at HMRClient.<anonymous> (http://localhost:8090/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.routerRoot=app&transform.reactCompiler=true:65575:11)
+    at HMRClient.emit (http://localhost:8090/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.routerRoot=app&transform.reactCompiler=true:65773:29)
+    at HMRClient._ws.onmessage (http://localhost:8090/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.routerRoot=app&transform.reactCompiler=true:65558:18)
+[  538717ms] ReferenceError: SD is not defined
+    at __d.487 (http://localhost:8090/components/game/ElectionModal.bundle//&platform=web&dev=true&hot=false&lazy=true&transform.routerRoot=app&transform.reactCompiler=true&minify=false&modulesOnly=true&runModule=false&shallow=true:391:14)
+    at loadModuleImplementation (http://localhost:8090/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.routerRoot=app&transform.reactCompiler=true:254:34)
+    at guardedLoadModule (http://localhost:8090/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.routerRoot=app&transform.reactCompiler=true:166:14)
+    at metroRequire (http://localhost:8090/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.routerRoot=app&transform.reactCompiler=true:79:75)
+    at runUpdatedModule (http://localhost:8090/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.routerRoot=app&transform.reactCompiler=true:497:7)
+    at metroHotUpdateModule (http://localhost:8090/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.routerRoot=app&transform.reactCompiler=true:387:26)
+    at define (http://localhost:8090/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.routerRoot=app&transform.reactCompiler=true:33:18)
+    at eval (http://localhost:8090/components/game/ElectionModal.bundle//&platform=web&dev=true&hot=false&lazy=true&transform.routerRoot=app&transform.reactCompiler=true&minify=false&modulesOnly=true&runModule=false&shallow=true:1:1)
+    at inject (http://localhost:8090/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.routerRoot=app&transform.reactCompiler=true:65521:7)
+    at Array.forEach (<anonymous>)
+    at injectUpdate (http://localhost:8090/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.routerRoot=app&transform.reactCompiler=true:65526:21)
+    at HMRClient.<anonymous> (http://localhost:8090/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.routerRoot=app&transform.reactCompiler=true:65575:11)
+    at HMRClient.emit (http://localhost:8090/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.routerRoot=app&transform.reactCompiler=true:65773:29)
+    at HMRClient._ws.onmessage (http://localhost:8090/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.routerRoot=app&transform.reactCompiler=true:65558:18)
+[  541954ms] ReferenceError: SD is not defined
+    at __d.487 (http://localhost:8090/components/game/ElectionModal.bundle//&platform=web&dev=true&hot=false&lazy=true&transform.routerRoot=app&transform.reactCompiler=true&minify=false&modulesOnly=true&runModule=false&shallow=true:363:14)
+    at loadModuleImplementation (http://localhost:8090/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.routerRoot=app&transform.reactCompiler=true:254:34)
+    at guardedLoadModule (http://localhost:8090/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.routerRoot=app&transform.reactCompiler=true:166:14)
+    at metroRequire (http://localhost:8090/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.routerRoot=app&transform.reactCompiler=true:79:75)
+    at runUpdatedModule (http://localhost:8090/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.routerRoot=app&transform.reactCompiler=true:497:7)
+    at metroHotUpdateModule (http://localhost:8090/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.routerRoot=app&transform.reactCompiler=true:387:26)
+    at define (http://localhost:8090/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.routerRoot=app&transform.reactCompiler=true:33:18)
+    at eval (http://localhost:8090/components/game/ElectionModal.bundle//&platform=web&dev=true&hot=false&lazy=true&transform.routerRoot=app&transform.reactCompiler=true&minify=false&modulesOnly=true&runModule=false&shallow=true:1:1)
+    at inject (http://localhost:8090/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.routerRoot=app&transform.reactCompiler=true:65521:7)
+    at Array.forEach (<anonymous>)
+    at injectUpdate (http://localhost:8090/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.routerRoot=app&transform.reactCompiler=true:65526:21)
+    at HMRClient.<anonymous> (http://localhost:8090/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.routerRoot=app&transform.reactCompiler=true:65575:11)
+    at HMRClient.emit (http://localhost:8090/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.routerRoot=app&transform.reactCompiler=true:65773:29)
+    at HMRClient._ws.onmessage (http://localhost:8090/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.routerRoot=app&transform.reactCompiler=true:65558:18)
+[  545070ms] [WARNING] `setVisibilityAsync` is only available on Android @ http://localhost:8090/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.routerRoot=app&transform.reactCompiler=true:72073
+[  545071ms] [WARNING] `setBehaviorAsync` is only available on Android @ http://localhost:8090/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.routerRoot=app&transform.reactCompiler=true:72181

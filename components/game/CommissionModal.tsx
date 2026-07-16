@@ -2,12 +2,15 @@ import { DieValue } from "@/components/game/dice/DiceCube";
 import { EventButton } from "@/components/game/events/EventFooter";
 import EventPlayerRow from "@/components/game/events/EventPlayerRow";
 import EventShell from "@/components/game/events/EventShell";
-import PlayerToken from "@/components/ui/PlayerToken";
-import Typography from "@/components/ui/Typography";
-import { SD, SD_EVENT_GRADIENTS } from "@/constants/theme";
+import {
+  DIE_SETTLE_MS,
+  useDelayedReveal,
+} from "@/components/game/events/useDelayedReveal";
+import WinnerCelebration from "@/components/game/events/WinnerCelebration";
+import { SD_EVENT_GRADIENTS } from "@/constants/theme";
 import type { Player } from "@/types/game";
 import { useState } from "react";
-import { ScrollView, StyleSheet, View } from "react-native";
+import { ScrollView } from "react-native";
 
 const GOLD = "#F4D03F";
 
@@ -30,21 +33,26 @@ export default function CommissionModal({
   onConfirm,
 }: CommissionModalProps) {
   const [rolls, setRolls] = useState<(number | null)[]>(players.map(() => null));
+  // Bumped on every individual roll so a repeated value still tumbles
+  const [rollSeq, setRollSeq] = useState<number[]>(players.map(() => 0));
   const [activeIndex, setActiveIndex] = useState(0);
   const [tieIndices, setTieIndices] = useState<number[] | null>(null);
   const [winnerIndex, setWinnerIndex] = useState<number | null>(null);
+  const [revealPending, reveal] = useDelayedReveal();
 
   function handleRoll() {
     const value = Math.floor(Math.random() * 6) + 1;
     const newRolls = [...rolls];
     newRolls[activeIndex] = value;
     setRolls(newRolls);
+    setRollSeq((seq) => seq.map((n, i) => (i === activeIndex ? n + 1 : n)));
 
     const round = tieIndices ?? players.map((_, i) => i);
     const lastInRound = round.indexOf(activeIndex) === round.length - 1;
 
     if (!lastInRound) {
-      setActiveIndex(round[round.indexOf(activeIndex) + 1]);
+      const next = round[round.indexOf(activeIndex) + 1];
+      reveal(() => setActiveIndex(next), DIE_SETTLE_MS);
       return;
     }
 
@@ -52,31 +60,36 @@ export default function CommissionModal({
     const tied = round.filter((i) => newRolls[i] === maxRoll);
 
     if (tied.length === 1) {
-      setWinnerIndex(tied[0]);
+      reveal(() => setWinnerIndex(tied[0]));
     } else {
-      const resetRolls = [...newRolls];
-      tied.forEach((i) => {
-        resetRolls[i] = null;
+      // Draw: dice stay on their rolled faces; tied players reroll in turn
+      reveal(() => {
+        setTieIndices(tied);
+        setActiveIndex(tied[0]);
       });
-      setRolls(resetRolls);
-      setTieIndices(tied);
-      setActiveIndex(tied[0]);
     }
   }
 
   const winner = winnerIndex !== null ? players[winnerIndex] : null;
+  const tiedNames = tieIndices?.map((i) => players[i].name).join(" & ");
 
   return (
     <EventShell
       gradient={SD_EVENT_GRADIENTS.commission}
       emblem="🤝"
       eyebrow="DEAL CLOSED"
-      title={winner ? "Commission goes to…" : `${players[activeIndex].name} rolls…`}
+      title={
+        winner
+          ? "Commission goes to…"
+          : tieIndices
+            ? "It's a draw!"
+            : `${players[activeIndex].name} rolls…`
+      }
       subtitle={
         winner
           ? `${winner.name} rolled the highest`
           : tieIndices
-            ? "It's a tie — tied players roll again!"
+            ? `Draw between ${tiedNames} — they roll again`
             : "Everyone rolls · highest takes the commission"
       }
       pot={{ label: "COMMISSION", value: `$${amount}` }}
@@ -91,43 +104,42 @@ export default function CommissionModal({
         ) : (
           <EventButton
             label={`Roll for ${players[activeIndex].name}`}
+            disabled={revealPending}
             onPress={handleRoll}
           />
         )
       }
     >
       {winner ? (
-        <View style={styles.winnerBlock}>
-          <View style={styles.winnerRing}>
-            <PlayerToken initial={initialOf(winner)} color={winner.color} size={72} />
-          </View>
-          <Typography design="money" style={styles.winnerAmount}>
-            🎉 +${amount}
-          </Typography>
-          <Typography design="body" weight={700} style={styles.winnerNote}>
-            Rolled a {rolls[winnerIndex!]} — paid by the Bank
-          </Typography>
-        </View>
+        <WinnerCelebration
+          initial={initialOf(winner)}
+          color={winner.color}
+          amount={`🎉 +$${amount}`}
+          note={`Rolled a ${rolls[winnerIndex!]} — paid by the Bank`}
+        />
       ) : (
         <ScrollView showsVerticalScrollIndicator={false}>
           {players.map((player, i) => {
             const roll = rolls[i];
             const isActive = i === activeIndex;
+            const inDraw = tieIndices?.includes(i) ?? false;
+            const statusText = isActive
+              ? "Rolling now…"
+              : inDraw
+                ? `Rolled a ${roll} · rolls again`
+                : roll != null
+                  ? `Rolled a ${roll}`
+                  : "Waiting…";
             return (
               <EventPlayerRow
                 key={i}
                 name={player.name}
                 initial={initialOf(player)}
                 color={player.color}
-                statusText={
-                  roll != null
-                    ? `Rolled a ${roll}`
-                    : isActive
-                      ? "Rolling now…"
-                      : "Waiting…"
-                }
-                statusColor={roll != null ? GOLD : undefined}
+                statusText={statusText}
+                statusColor={roll != null && !inDraw ? GOLD : undefined}
                 die={roll as DieValue | null}
+                dieNonce={rollSeq[i]}
                 highlighted={isActive}
               />
             );
@@ -138,26 +150,3 @@ export default function CommissionModal({
   );
 }
 
-const styles = StyleSheet.create({
-  winnerBlock: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  winnerRing: {
-    borderWidth: 4,
-    borderColor: GOLD,
-    borderRadius: 44,
-    padding: 2,
-  },
-  winnerAmount: {
-    fontSize: 22,
-    color: SD.white,
-    marginTop: 16,
-  },
-  winnerNote: {
-    fontSize: 13,
-    color: "rgba(255,255,255,0.7)",
-    marginTop: 4,
-  },
-});

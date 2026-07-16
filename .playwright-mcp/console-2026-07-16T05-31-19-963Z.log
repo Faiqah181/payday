@@ -1,0 +1,166 @@
+[    1636ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:8090/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.routerRoot=app&transform.reactCompiler=true:18049
+[    1779ms] [LOG] Running application "main" with appParams:
+ {rootTag: #root, hydrate: undefined} 
+Development-level warnings: ON.
+Performance optimizations: OFF. @ http://localhost:8090/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.routerRoot=app&transform.reactCompiler=true:56990
+[    1979ms] [WARNING] "textShadow*" style props are deprecated. Use "textShadow". @ http://localhost:8090/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.routerRoot=app&transform.reactCompiler=true:23447
+[    1981ms] [WARNING] "shadow*" style props are deprecated. Use "boxShadow". @ http://localhost:8090/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.routerRoot=app&transform.reactCompiler=true:23447
+[    2156ms] [WARNING] `setVisibilityAsync` is only available on Android @ http://localhost:8090/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.routerRoot=app&transform.reactCompiler=true:71999
+[    2156ms] [WARNING] `setBehaviorAsync` is only available on Android @ http://localhost:8090/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.routerRoot=app&transform.reactCompiler=true:72107
+[   34866ms] [LOG] [snd:init] click {"isLoaded":false,"playing":false,"paused":true,"buffering":false,"t":0,"dur":null,"vol":1,"muted":false} @ :4
+[   34867ms] [LOG] [snd:init] dice {"isLoaded":false,"playing":false,"paused":true,"buffering":false,"t":0,"dur":null,"vol":1,"muted":false} @ :4
+[   34868ms] [LOG] [snd:init] cash {"isLoaded":false,"playing":false,"paused":true,"buffering":false,"t":0,"dur":null,"vol":1,"muted":false} @ :4
+[   34868ms] [LOG] [snd:init] coins {"isLoaded":false,"playing":false,"paused":true,"buffering":false,"t":0,"dur":null,"vol":1,"muted":false} @ :4
+[   34929ms] [LOG] [snd:status] click {"isLoaded":true,"playing":false,"buffering":false,"t":0,"dur":0.402979,"state":"","waiting":""} @ :4
+[   34942ms] [LOG] [snd:status] coins {"isLoaded":true,"playing":false,"buffering":false,"t":0,"dur":0.26288,"state":"","waiting":""} @ :4
+[   34951ms] [LOG] [snd:status] cash {"isLoaded":true,"playing":false,"buffering":false,"t":0,"dur":1.450522,"state":"","waiting":""} @ :4
+[   34961ms] [LOG] [snd:status] dice {"isLoaded":true,"playing":false,"buffering":false,"t":0,"dur":2,"state":"","waiting":""} @ :4
+[   35895ms] [WARNING] props.pointerEvents is deprecated. Use style.pointerEvents @ http://localhost:8090/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.routerRoot=app&transform.reactCompiler=true:23447
+[   38839ms] [LOG] [snd:call] click {"isLoaded":true,"playing":false,"paused":true,"buffering":false,"t":0,"dur":0.402979,"vol":1,"muted":false} @ :4
+[   38840ms] [LOG] [snd:sync] click {"isLoaded":true,"playing":true,"paused":false,"buffering":false,"t":0,"dur":0.402979,"vol":1,"muted":false} @ :4
+[   38844ms] [LOG] [snd:call] dice {"isLoaded":true,"playing":false,"paused":true,"buffering":false,"t":0,"dur":2,"vol":1,"muted":false} @ :4
+[   38846ms] [LOG] [snd:sync] dice {"isLoaded":true,"playing":true,"paused":false,"buffering":false,"t":0,"dur":2,"vol":1,"muted":false} @ :4
+[   38854ms] [LOG] [snd:status] click {"isLoaded":true,"playing":true,"buffering":false,"t":0.009997,"dur":0.402979,"state":"","waiting":""} @ :4
+[   38854ms] [LOG] [snd:status] dice {"isLoaded":true,"playing":true,"buffering":false,"t":0,"dur":2,"state":"","waiting":""} @ :4
+[   38855ms] [LOG] [snd:status] click {"isLoaded":true,"playing":true,"buffering":false,"t":0.01229,"dur":0.402979,"state":"","waiting":""} @ :4
+[   38855ms] [LOG] [snd:status] dice {"isLoaded":true,"playing":false,"buffering":false,"t":0,"dur":2,"state":"","waiting":""} @ :4
+[   39252ms] [LOG] [snd:+400ms] click {"isLoaded":true,"playing":true,"paused":false,"buffering":false,"t":0.350521,"dur":0.402979,"vol":1,"muted":false} @ :4
+[   39253ms] [LOG] [snd:+400ms] dice {"isLoaded":true,"playing":true,"paused":false,"buffering":false,"t":0.333754,"dur":2,"vol":1,"muted":false} @ :4
+[   39322ms] [LOG] [snd:status] click {"isLoaded":true,"playing":false,"buffering":false,"t":0.402979,"dur":0.402979,"state":"","waiting":""} @ :4
+[   39656ms] [LOG] [snd:status] dice {"isLoaded":true,"playing":true,"buffering":false,"t":0.744171,"dur":2,"state":"","waiting":""} @ :4
+[   40183ms] [LOG] [snd:status] dice {"isLoaded":true,"playing":true,"buffering":false,"t":1.264821,"dur":2,"state":"","waiting":""} @ :4
+[   40715ms] [LOG] [snd:status] dice {"isLoaded":true,"playing":true,"buffering":false,"t":1.798974,"dur":2,"state":"","waiting":""} @ :4
+[   40922ms] [LOG] [snd:status] dice {"isLoaded":true,"playing":false,"buffering":false,"t":2,"dur":2,"state":"","waiting":""} @ :4
+[   45847ms] [LOG] [snd:call] click {"isLoaded":true,"playing":false,"paused":true,"buffering":false,"t":0.402979,"dur":0.402979,"vol":1,"muted":false} @ :4
+[   45848ms] [LOG] [snd:sync] click {"isLoaded":true,"playing":true,"paused":false,"buffering":false,"t":0,"dur":0.402979,"vol":1,"muted":false} @ :4
+[   45849ms] [LOG] [snd:call] coins {"isLoaded":true,"playing":false,"paused":true,"buffering":false,"t":0,"dur":0.26288,"vol":1,"muted":false} @ :4
+[   45850ms] [LOG] [snd:sync] coins {"isLoaded":true,"playing":true,"paused":false,"buffering":false,"t":0,"dur":0.26288,"vol":1,"muted":false} @ :4
+[   45872ms] [LOG] [snd:status] click {"isLoaded":true,"playing":true,"buffering":false,"t":0,"dur":0.402979,"state":"","waiting":""} @ :4
+[   45872ms] [LOG] [snd:status] coins {"isLoaded":true,"playing":true,"buffering":false,"t":0.013274,"dur":0.26288,"state":"","waiting":""} @ :4
+[   45872ms] [LOG] [snd:status] coins {"isLoaded":true,"playing":true,"buffering":false,"t":0.013496,"dur":0.26288,"state":"","waiting":""} @ :4
+[   45872ms] [LOG] [snd:status] click {"isLoaded":true,"playing":true,"buffering":false,"t":0.009476,"dur":0.402979,"state":"","waiting":""} @ :4
+[   46152ms] [LOG] [snd:status] coins {"isLoaded":true,"playing":false,"buffering":false,"t":0.26288,"dur":0.26288,"state":"","waiting":""} @ :4
+[   46257ms] [LOG] [snd:+400ms] click {"isLoaded":true,"playing":true,"paused":false,"buffering":false,"t":0.335751,"dur":0.402979,"vol":1,"muted":false} @ :4
+[   46257ms] [LOG] [snd:+400ms] coins {"isLoaded":true,"playing":false,"paused":true,"buffering":false,"t":0.26288,"dur":0.26288,"vol":1,"muted":false} @ :4
+[   46343ms] [LOG] [snd:status] click {"isLoaded":true,"playing":false,"buffering":false,"t":0.402979,"dur":0.402979,"state":"","waiting":""} @ :4
+[  841128ms] [LOG] [snd:init] click {"isLoaded":false,"playing":false,"paused":true,"buffering":false,"t":0,"dur":null,"vol":1,"muted":false} @ :4
+[  841129ms] [LOG] [snd:init] dice {"isLoaded":false,"playing":false,"paused":true,"buffering":false,"t":0,"dur":null,"vol":1,"muted":false} @ :4
+[  841130ms] [LOG] [snd:init] cash {"isLoaded":false,"playing":false,"paused":true,"buffering":false,"t":0,"dur":null,"vol":1,"muted":false} @ :4
+[  841131ms] [LOG] [snd:init] coins {"isLoaded":false,"playing":false,"paused":true,"buffering":false,"t":0,"dur":null,"vol":1,"muted":false} @ :4
+[  841132ms] [WARNING] `setVisibilityAsync` is only available on Android @ http://localhost:8090/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.routerRoot=app&transform.reactCompiler=true:71999
+[  841133ms] [WARNING] `setBehaviorAsync` is only available on Android @ http://localhost:8090/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.routerRoot=app&transform.reactCompiler=true:72107
+[  841201ms] [LOG] [snd:status] click {"isLoaded":true,"playing":false,"buffering":false,"t":0,"dur":0.402979,"state":"","waiting":""} @ :4
+[  841215ms] [LOG] [snd:status] cash {"isLoaded":true,"playing":false,"buffering":false,"t":0,"dur":1.450522,"state":"","waiting":""} @ :4
+[  841227ms] [LOG] [snd:status] dice {"isLoaded":true,"playing":false,"buffering":false,"t":0,"dur":2,"state":"","waiting":""} @ :4
+[  841239ms] [LOG] [snd:status] coins {"isLoaded":true,"playing":false,"buffering":false,"t":0,"dur":0.26288,"state":"","waiting":""} @ :4
+[ 1174286ms] [LOG] [snd:init] click {"isLoaded":false,"playing":true,"paused":false,"buffering":false,"t":0,"dur":null,"vol":1,"muted":true} @ :4
+[ 1174287ms] [LOG] [snd:init] dice {"isLoaded":false,"playing":true,"paused":false,"buffering":false,"t":0,"dur":null,"vol":1,"muted":true} @ :4
+[ 1174288ms] [LOG] [snd:init] cash {"isLoaded":false,"playing":true,"paused":false,"buffering":false,"t":0,"dur":null,"vol":1,"muted":true} @ :4
+[ 1174288ms] [LOG] [snd:init] coins {"isLoaded":false,"playing":true,"paused":false,"buffering":false,"t":0,"dur":null,"vol":1,"muted":true} @ :4
+[ 1174289ms] [WARNING] `setVisibilityAsync` is only available on Android @ http://localhost:8090/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.routerRoot=app&transform.reactCompiler=true:71999
+[ 1174290ms] [WARNING] `setBehaviorAsync` is only available on Android @ http://localhost:8090/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.routerRoot=app&transform.reactCompiler=true:72107
+[ 1174306ms] [LOG] [snd:status] click {"isLoaded":true,"playing":true,"buffering":false,"t":0,"dur":null,"state":"","waiting":""} @ :4
+[ 1174306ms] [LOG] [snd:status] dice {"isLoaded":true,"playing":true,"buffering":false,"t":0,"dur":null,"state":"","waiting":""} @ :4
+[ 1174307ms] [LOG] [snd:status] cash {"isLoaded":true,"playing":true,"buffering":false,"t":0,"dur":null,"state":"","waiting":""} @ :4
+[ 1174307ms] [LOG] [snd:status] coins {"isLoaded":true,"playing":true,"buffering":false,"t":0,"dur":null,"state":"","waiting":""} @ :4
+[ 1174327ms] [LOG] [snd:status] click {"isLoaded":true,"playing":true,"buffering":false,"t":0,"dur":null,"state":"","waiting":""} @ :4
+[ 1174331ms] The play() request was interrupted by a call to pause(). https://goo.gl/LdLk22
+[ 1174335ms] [LOG] [snd:status] cash {"isLoaded":true,"playing":true,"buffering":false,"t":0,"dur":null,"state":"","waiting":""} @ :4
+[ 1174335ms] The play() request was interrupted by a call to pause(). https://goo.gl/LdLk22
+[ 1174338ms] [LOG] [snd:status] coins {"isLoaded":true,"playing":true,"buffering":false,"t":0,"dur":null,"state":"","waiting":""} @ :4
+[ 1174338ms] The play() request was interrupted by a call to pause(). https://goo.gl/LdLk22
+[ 1174339ms] [LOG] [snd:status] dice {"isLoaded":true,"playing":true,"buffering":false,"t":0,"dur":null,"state":"","waiting":""} @ :4
+[ 1174339ms] The play() request was interrupted by a call to pause(). https://goo.gl/LdLk22
+[ 1174353ms] [LOG] [snd:status] click {"isLoaded":true,"playing":false,"buffering":false,"t":0,"dur":0.402979,"state":"","waiting":""} @ :4
+[ 1174364ms] [LOG] [snd:status] cash {"isLoaded":true,"playing":false,"buffering":false,"t":0,"dur":1.450522,"state":"","waiting":""} @ :4
+[ 1174381ms] [LOG] [snd:status] coins {"isLoaded":true,"playing":false,"buffering":false,"t":0,"dur":0.26288,"state":"","waiting":""} @ :4
+[ 1174403ms] [LOG] [snd:status] dice {"isLoaded":true,"playing":false,"buffering":false,"t":0,"dur":2,"state":"","waiting":""} @ :4
+[ 1174705ms] [LOG] [snd:status] coins {"isLoaded":true,"playing":false,"buffering":false,"t":0.26288,"dur":0.26288,"state":"","waiting":""} @ :4
+[ 1174796ms] [LOG] [snd:status] click {"isLoaded":true,"playing":false,"buffering":false,"t":0,"dur":0.402979,"state":"","waiting":""} @ :4
+[ 1174796ms] [LOG] [snd:status] dice {"isLoaded":true,"playing":false,"buffering":false,"t":0,"dur":2,"state":"","waiting":""} @ :4
+[ 1174797ms] [LOG] [snd:status] cash {"isLoaded":true,"playing":false,"buffering":false,"t":0,"dur":1.450522,"state":"","waiting":""} @ :4
+[ 1174797ms] [LOG] [snd:status] coins {"isLoaded":true,"playing":false,"buffering":false,"t":0,"dur":0.26288,"state":"","waiting":""} @ :4
+[ 1174798ms] [LOG] [snd:status] cash {"isLoaded":true,"playing":false,"buffering":false,"t":0,"dur":1.450522,"state":"","waiting":""} @ :4
+[ 1174798ms] [LOG] [snd:status] dice {"isLoaded":true,"playing":false,"buffering":false,"t":0,"dur":2,"state":"","waiting":""} @ :4
+[ 1174798ms] [LOG] [snd:status] click {"isLoaded":true,"playing":false,"buffering":false,"t":0,"dur":0.402979,"state":"","waiting":""} @ :4
+[ 1420284ms] [LOG] [snd:init] click {"isLoaded":false,"playing":true,"paused":false,"buffering":false,"t":0,"dur":null,"vol":1,"muted":true} @ :4
+[ 1420286ms] [LOG] [snd:init] dice {"isLoaded":false,"playing":true,"paused":false,"buffering":false,"t":0,"dur":null,"vol":1,"muted":true} @ :4
+[ 1420286ms] [LOG] [snd:init] cash {"isLoaded":false,"playing":true,"paused":false,"buffering":false,"t":0,"dur":null,"vol":1,"muted":true} @ :4
+[ 1420287ms] [LOG] [snd:init] coins {"isLoaded":false,"playing":true,"paused":false,"buffering":false,"t":0,"dur":null,"vol":1,"muted":true} @ :4
+[ 1420288ms] [WARNING] `setVisibilityAsync` is only available on Android @ http://localhost:8090/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.routerRoot=app&transform.reactCompiler=true:71999
+[ 1420289ms] [WARNING] `setBehaviorAsync` is only available on Android @ http://localhost:8090/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.routerRoot=app&transform.reactCompiler=true:72107
+[ 1420298ms] [LOG] [snd:status] click {"isLoaded":true,"playing":true,"buffering":false,"t":0,"dur":null,"state":"","waiting":""} @ :4
+[ 1420298ms] [LOG] [snd:status] dice {"isLoaded":true,"playing":true,"buffering":false,"t":0,"dur":null,"state":"","waiting":""} @ :4
+[ 1420299ms] [LOG] [snd:status] cash {"isLoaded":true,"playing":true,"buffering":false,"t":0,"dur":null,"state":"","waiting":""} @ :4
+[ 1420299ms] [LOG] [snd:status] coins {"isLoaded":true,"playing":true,"buffering":false,"t":0,"dur":null,"state":"","waiting":""} @ :4
+[ 1420310ms] [LOG] [snd:status] cash {"isLoaded":true,"playing":true,"buffering":false,"t":0,"dur":null,"state":"","waiting":""} @ :4
+[ 1420304ms] The play() request was interrupted by a call to pause(). https://goo.gl/LdLk22
+[ 1420312ms] [LOG] [snd:status] coins {"isLoaded":true,"playing":true,"buffering":false,"t":0,"dur":null,"state":"","waiting":""} @ :4
+[ 1420307ms] The play() request was interrupted by a call to pause(). https://goo.gl/LdLk22
+[ 1420331ms] [LOG] [snd:status] click {"isLoaded":true,"playing":true,"buffering":false,"t":0,"dur":null,"state":"","waiting":""} @ :4
+[ 1420325ms] The play() request was interrupted by a call to pause(). https://goo.gl/LdLk22
+[ 1420333ms] [LOG] [snd:status] dice {"isLoaded":true,"playing":true,"buffering":false,"t":0,"dur":null,"state":"","waiting":""} @ :4
+[ 1420326ms] The play() request was interrupted by a call to pause(). https://goo.gl/LdLk22
+[ 1420337ms] [LOG] [snd:status] cash {"isLoaded":true,"playing":false,"buffering":false,"t":0,"dur":1.450522,"state":"","waiting":""} @ :4
+[ 1420349ms] [LOG] [snd:status] coins {"isLoaded":true,"playing":false,"buffering":false,"t":0,"dur":0.26288,"state":"","waiting":""} @ :4
+[ 1420360ms] [LOG] [snd:status] dice {"isLoaded":true,"playing":false,"buffering":false,"t":0,"dur":2,"state":"","waiting":""} @ :4
+[ 1420373ms] [LOG] [snd:status] click {"isLoaded":true,"playing":false,"buffering":false,"t":0,"dur":0.402979,"state":"","waiting":""} @ :4
+[ 1420674ms] [LOG] [snd:status] coins {"isLoaded":true,"playing":false,"buffering":false,"t":0.26288,"dur":0.26288,"state":"","waiting":""} @ :4
+[ 1420874ms] [LOG] [snd:status] click {"isLoaded":true,"playing":false,"buffering":false,"t":0.402979,"dur":0.402979,"state":"","waiting":""} @ :4
+[ 1420886ms] [LOG] [snd:status] dice {"isLoaded":true,"playing":false,"buffering":false,"t":0.475228,"dur":2,"state":"","waiting":""} @ :4
+[ 1420886ms] [LOG] [snd:status] cash {"isLoaded":true,"playing":false,"buffering":false,"t":0.475287,"dur":1.450522,"state":"","waiting":""} @ :4
+[ 1717292ms] [WARNING] `setVisibilityAsync` is only available on Android @ http://localhost:8090/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.routerRoot=app&transform.reactCompiler=true:71999
+[ 1717294ms] [WARNING] `setBehaviorAsync` is only available on Android @ http://localhost:8090/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.routerRoot=app&transform.reactCompiler=true:72107
+[ 1717344ms] The play() request was interrupted by a call to pause(). https://goo.gl/LdLk22
+[ 1717351ms] The play() request was interrupted by a call to pause(). https://goo.gl/LdLk22
+[ 1717352ms] The play() request was interrupted by a call to pause(). https://goo.gl/LdLk22
+[ 1717352ms] The play() request was interrupted by a call to pause(). https://goo.gl/LdLk22
+[ 1835523ms] [WARNING] `setVisibilityAsync` is only available on Android @ http://localhost:8090/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.routerRoot=app&transform.reactCompiler=true:71999
+[ 1835524ms] [WARNING] `setBehaviorAsync` is only available on Android @ http://localhost:8090/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.routerRoot=app&transform.reactCompiler=true:72107
+[ 1835554ms] The play() request was interrupted by a call to pause(). https://goo.gl/LdLk22
+[ 1835557ms] The play() request was interrupted by a call to pause(). https://goo.gl/LdLk22
+[ 1835558ms] The play() request was interrupted by a call to pause(). https://goo.gl/LdLk22
+[ 1835559ms] The play() request was interrupted by a call to pause(). https://goo.gl/LdLk22
+[ 1879481ms] [WARNING] `setVisibilityAsync` is only available on Android @ http://localhost:8090/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.routerRoot=app&transform.reactCompiler=true:71999
+[ 1879482ms] [WARNING] `setBehaviorAsync` is only available on Android @ http://localhost:8090/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.routerRoot=app&transform.reactCompiler=true:72107
+[ 1909922ms] [WARNING] `setVisibilityAsync` is only available on Android @ http://localhost:8090/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.routerRoot=app&transform.reactCompiler=true:71999
+[ 1909922ms] [WARNING] `setBehaviorAsync` is only available on Android @ http://localhost:8090/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.routerRoot=app&transform.reactCompiler=true:72107
+[ 2236639ms] [WARNING] `setVisibilityAsync` is only available on Android @ http://localhost:8090/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.routerRoot=app&transform.reactCompiler=true:71999
+[ 2236640ms] [WARNING] `setBehaviorAsync` is only available on Android @ http://localhost:8090/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.routerRoot=app&transform.reactCompiler=true:72107
+[ 2236662ms] The play() request was interrupted by a call to pause(). https://goo.gl/LdLk22
+[ 2236665ms] The play() request was interrupted by a call to pause(). https://goo.gl/LdLk22
+[ 2236666ms] The play() request was interrupted by a call to pause(). https://goo.gl/LdLk22
+[ 2236668ms] The play() request was interrupted by a call to pause(). https://goo.gl/LdLk22
+[ 2315294ms] [WARNING] `setVisibilityAsync` is only available on Android @ http://localhost:8090/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.routerRoot=app&transform.reactCompiler=true:71999
+[ 2315295ms] [WARNING] `setBehaviorAsync` is only available on Android @ http://localhost:8090/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.routerRoot=app&transform.reactCompiler=true:72107
+[ 2350708ms] [ERROR] %o
+
+%s
+
+%s
+ ReferenceError: SOUND_OPTIONS is not defined
+    at SoundProvider (http://localhost:8090/contexts/SoundContext.bundle//&platform=web&dev=true&hot=false&lazy=true&transform.routerRoot=app&transform.reactCompiler=true&minify=false&modulesOnly=true&runModule=false&shallow=true:73:71)
+    at react-stack-bottom-frame (http://localhost:8090/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.routerRoot=app&transform.reactCompiler=true:17335:20)
+    at renderWithHooks (http://localhost:8090/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.routerRoot=app&transform.reactCompiler=true:7545:22)
+    at updateFunctionComponent (http://localhost:8090/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.routerRoot=app&transform.reactCompiler=true:9238:19)
+    at beginWork (http://localhost:8090/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.routerRoot=app&transform.reactCompiler=true:9824:18)
+    at runWithFiberInDEV (http://localhost:8090/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.routerRoot=app&transform.reactCompiler=true:5317:70)
+    at performUnitOfWork (http://localhost:8090/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.routerRoot=app&transform.reactCompiler=true:11897:95)
+    at workLoopSync (http://localhost:8090/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.routerRoot=app&transform.reactCompiler=true:11790:40)
+    at renderRootSync (http://localhost:8090/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.routerRoot=app&transform.reactCompiler=true:11774:9)
+    at performWorkOnRoot (http://localhost:8090/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.routerRoot=app&transform.reactCompiler=true:11538:44)
+    at performSyncWorkOnRoot (http://localhost:8090/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.routerRoot=app&transform.reactCompiler=true:12502:7)
+    at flushSyncWorkAcrossRoots_impl (http://localhost:8090/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.routerRoot=app&transform.reactCompiler=true:12421:308)
+    at flushSyncWork$1 (http://localhost:8090/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.routerRoot=app&transform.reactCompiler=true:11652:84)
+    at Object.scheduleRefresh (http://localhost:8090/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.routerRoot=app&transform.reactCompiler=true:4285:9)
+    at http://localhost:8090/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.routerRoot=app&transform.reactCompiler=true:64833:23
+    at Set.forEach (<anonymous>)
+    at Object.performReactRefresh (http://localhost:8090/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.routerRoot=app&transform.reactCompiler=true:64825:32)
+    at Object.performReactRefresh (http://localhost:8090/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.routerRoot=app&transform.reactCompiler=true:64592:27)
+    at http://localhost:8090/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.routerRoot=app&transform.reactCompiler=true:429:21 The above error occurred in the <SoundProvider> component. React will try to recreate this component tree from scratch using the error boundary you provided, LogBoxStateSubscription. @ http://localhost:8090/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.routerRoot=app&transform.reactCompiler=true:2508
+[ 2358630ms] [WARNING] `setVisibilityAsync` is only available on Android @ http://localhost:8090/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.routerRoot=app&transform.reactCompiler=true:71999
+[ 2358630ms] [WARNING] `setBehaviorAsync` is only available on Android @ http://localhost:8090/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.routerRoot=app&transform.reactCompiler=true:72107
+[ 2358651ms] [WARNING] `setVisibilityAsync` is only available on Android @ http://localhost:8090/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.routerRoot=app&transform.reactCompiler=true:71999
+[ 2358652ms] [WARNING] `setBehaviorAsync` is only available on Android @ http://localhost:8090/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.routerRoot=app&transform.reactCompiler=true:72107
+[ 2589505ms] [WARNING] `setVisibilityAsync` is only available on Android @ http://localhost:8090/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.routerRoot=app&transform.reactCompiler=true:71999
+[ 2589506ms] [WARNING] `setBehaviorAsync` is only available on Android @ http://localhost:8090/node_modules/expo-router/entry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.routerRoot=app&transform.reactCompiler=true:72107

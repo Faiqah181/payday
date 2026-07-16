@@ -9,6 +9,8 @@ export interface PayStep {
   amount: number;
   /** Overrides the formatted amount (e.g. "—" or "-$200 · +$100"). */
   amountText?: string;
+  /** Overrides the sign-derived color (e.g. a neutral running balance). */
+  amountColor?: string;
 }
 
 export default function PayStepRow({ step, index }: { step: PayStep; index: number }) {
@@ -18,7 +20,8 @@ export default function PayStepRow({ step, index }: { step: PayStep; index: numb
       ? "$0"
       : `${step.amount > 0 ? "+" : "-"}$${Math.abs(step.amount)}`);
   const color =
-    step.amount > 0 ? SD.primary : step.amount < 0 ? SD.debt : SD.soft;
+    step.amountColor ??
+    (step.amount > 0 ? SD.primary : step.amount < 0 ? SD.debt : SD.soft);
 
   return (
     <View style={[styles.row, index > 0 && styles.rowDivider]}>

@@ -87,6 +87,8 @@ export interface PotHistoryEntry {
 
 /** What happened when a player hit Pay Day, for the Pay Day screen. */
 export interface PaydayReport {
+  /** Cash carried into Pay Day, before salary is collected. */
+  openingCash: number;
   salary: number;
   /** Signed: savings interest earned (+) or loan interest charged (−). */
   interest: number;
@@ -135,10 +137,16 @@ export interface GameState {
   currentMail: MailCard | null;
   pot: number;
   potHistory: PotHistoryEntry[];
-  electionActive: boolean;
   payday: PaydayReport | null;
   /** Commission from a just-bought deal, up for grabs by the highest roller. */
   pendingCommission: number | null;
+  /**
+   * Daylight Savings: players still waiting to resolve the space they were
+   * moved back onto, in turn order starting with the lander.
+   */
+  daylightQueue: number[] | null;
+  /** Whose turn to restore once the daylight queue is drained. */
+  daylightReturnIndex: number | null;
 }
 
 export const PLAYER_COLORS = ["#E5432E", "#2E7BD6", "#1FA45C", "#F4B400"];

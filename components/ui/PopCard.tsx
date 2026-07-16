@@ -1,8 +1,8 @@
 import Typography from "@/components/ui/Typography";
 import { SD, SD_LAYER } from "@/constants/theme";
 import { ReactNode } from "react";
-import { Pressable, StyleSheet, View } from "react-native";
-import Animated, { Easing, FadeIn, FadeOut, Keyframe } from "react-native-reanimated";
+import { Platform, Pressable, StyleSheet, View } from "react-native";
+import Animated, { Easing, FadeIn, FadeOut, Keyframe, ZoomIn } from "react-native-reanimated";
 
 // The spring-like overshoot comes from the bezier easing pushing past 1
 const PopIn = new Keyframe({
@@ -18,6 +18,11 @@ const PopOut = new Keyframe({
   from: { opacity: 1, transform: [{ scale: 1 }] },
   to: { opacity: 0, transform: [{ scale: 0.86 }], easing: Easing.ease },
 }).duration(180);
+
+// Custom Keyframes never start on web (element stays visibility:hidden) —
+// fall back to predefined animations there
+const cardIn = Platform.OS === "web" ? ZoomIn.duration(260) : PopIn;
+const cardOut = Platform.OS === "web" ? FadeOut.duration(180) : PopOut;
 
 interface PopCardProps {
   tone: string;
@@ -52,7 +57,7 @@ export default function PopCard({
           style={styles.backdrop}
         />
       </Pressable>
-      <Animated.View entering={PopIn} exiting={PopOut} style={styles.card}>
+      <Animated.View entering={cardIn} exiting={cardOut} style={styles.card}>
         <View style={[styles.header, { backgroundColor: tone }]}>
           <Typography design="body" weight={800} style={styles.eyebrow}>
             {eyebrow}

@@ -3,9 +3,10 @@ import { useSound } from "@/contexts/SoundContext";
 import { ReactNode } from "react";
 import { Pressable, StyleProp, StyleSheet, View, ViewStyle } from "react-native";
 import Animated, {
+  Easing,
   useAnimatedStyle,
   useSharedValue,
-  withSpring,
+  withTiming,
 } from "react-native-reanimated";
 
 interface ChunkyButtonProps {
@@ -51,8 +52,12 @@ export default function ChunkyButton({
         if (!silent) playClick();
         onPress();
       }}
-      onPressIn={() => (pressed.value = withSpring(1, { damping: 20, stiffness: 400 }))}
-      onPressOut={() => (pressed.value = withSpring(0, { damping: 20, stiffness: 400 }))}
+      onPressIn={() =>
+        (pressed.value = withTiming(1, { duration: 90, easing: Easing.out(Easing.quad) }))
+      }
+      onPressOut={() =>
+        (pressed.value = withTiming(0, { duration: 90, easing: Easing.out(Easing.quad) }))
+      }
       style={[{ paddingBottom: depth }, style]}
     >
       <View

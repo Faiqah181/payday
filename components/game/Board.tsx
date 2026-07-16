@@ -15,6 +15,7 @@ import type { AnimatingMove, Player, SpaceType } from "@/types/game";
 import { useEffect } from "react";
 import { StyleSheet, View } from "react-native";
 import Animated, {
+  Easing,
   useAnimatedStyle,
   useSharedValue,
   withSequence,
@@ -32,13 +33,133 @@ interface BoardProps {
   onCellPress?: (type: SpaceType) => void;
 }
 
-const STEP_DURATION = 120; // ms per cell hop
+const STEP_DURATION = 140; // ms per one-cell glide
 const GAP = BOARD_CELL_GAP;
+// Must match BoardCell's TokenStack: 19px tokens overlapping 7px,
+// anchored 4px from the cell's top-right corner
+const TOKEN_SIZE = 19;
+const TOKEN_INSET = 4;
+const TOKEN_OVERLAP_STEP = TOKEN_SIZE - 7;
 
-function getCellPosition(day: number, cellSize: number, ch: number) {
+/**
+ * The mover's exact slot within the token stack on this day's cell, so the
+ * pawn lifts off and lands precisely where the static token renders — even
+ * when other players share the cell.
+ * "rest" ranks the stack in player order (how TokenStack renders it);
+ * "pass" tucks the mover beside the residents while gliding through.
+ */
+function getMoverSlot(
+  day: number,
+  players: Player[],
+  moverIndex: number,
+  mode: "rest" | "pass",
+  cellSize: number,
+  ch: number,
+) {
   const space = getSpaceByDay(day);
   if (!space) return { x: 0, y: 0 };
-  return { x: space.col * (cellSize + GAP), y: space.row * (ch + GAP) };
+  const others = players
+    .map((_, i) => i)
+    .filter((i) => i !== moverIndex && players[i].position === day);
+  const stack =
+    mode === "rest"
+      ? [...others, moverIndex].sort((a, b) => a - b)
+      : [...others, moverIndex];
+  const rank = stack.indexOf(moverIndex);
+  const stackWidth = TOKEN_SIZE + (stack.length - 1) * TOKEN_OVERLAP_STEP;
+  const cellWidth =
+    space.type === "salary-day" ? cellSize * 4 + GAP * 3 : cellSize;
+  return {
+    x:
+      space.col * (cellSize + GAP) +
+      cellWidth -
+      TOKEN_INSET -
+      stackWidth +
+      rank * TOKEN_OVERLAP_STEP,
+    y: space.row * (ch + GAP) + TOKEN_INSET,
+  };
+}
+
+/**
+ * The pawn gliding across the board. Mounted fresh per move (keyed by the
+ * move) so the shared values start at the exact lift-off slot — no stale
+ * first frame from a previous move.
+ */
+function MovingPawn({
+  move,
+  players,
+  cellSize,
+  cellHeight,
+  onComplete,
+}: {
+  move: AnimatingMove;
+  players: Player[];
+  cellSize: number;
+  cellHeight: number;
+  onComplete: () => void;
+}) {
+  const { playerIndex, from, to } = move;
+  const start = getMoverSlot(from, players, playerIndex, "rest", cellSize, cellHeight);
+  const animX = useSharedValue(start.x);
+  const animY = useSharedValue(start.y);
+
+  useEffect(() => {
+    if (to - from <= 0) {
+      onComplete();
+      return;
+    }
+
+    // Constant velocity across the whole path: linear easing per step,
+    // durations scaled by distance (row wraps travel further), and a
+    // single ease-out on the final step so the pawn settles softly.
+    const hopDistance = cellSize + GAP;
+    const timingsX: number[] = [];
+    const timingsY: number[] = [];
+    let prev = start;
+    let totalDuration = 0;
+    for (let day = from + 1; day <= to; day++) {
+      const mode = day === to ? "rest" : "pass";
+      const pos = getMoverSlot(day, players, playerIndex, mode, cellSize, cellHeight);
+      const distance = Math.hypot(pos.x - prev.x, pos.y - prev.y);
+      const duration = Math.round(
+        STEP_DURATION * Math.max(0.6, distance / hopDistance),
+      );
+      const easing = day === to ? Easing.out(Easing.quad) : Easing.linear;
+      timingsX.push(withTiming(pos.x, { duration, easing }));
+      timingsY.push(withTiming(pos.y, { duration, easing }));
+      totalDuration += duration;
+      prev = pos;
+    }
+
+    animX.value =
+      timingsX.length === 1
+        ? timingsX[0]
+        : withSequence(...(timingsX as [number, ...number[]]));
+    animY.value =
+      timingsY.length === 1
+        ? timingsY[0]
+        : withSequence(...(timingsY as [number, ...number[]]));
+
+    const timeout = setTimeout(onComplete, totalDuration + 60);
+    return () => clearTimeout(timeout);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const overlayStyle = useAnimatedStyle(() => ({
+    transform: [{ translateX: animX.value }, { translateY: animY.value }],
+  }));
+
+  const player = players[playerIndex];
+
+  return (
+    <Animated.View style={[styles.overlayPawn, overlayStyle]} pointerEvents="none">
+      <View style={[styles.movingToken, { backgroundColor: player.color }]}>
+        <Typography design="title" style={styles.movingTokenText}>
+          {player.name?.trim()?.[0]?.toUpperCase() || "?"}
+        </Typography>
+      </View>
+    </Animated.View>
+  );
 }
 
 export default function Board({
@@ -55,65 +176,19 @@ export default function Board({
 
   const positionTokens = new Map<number, CellToken[]>();
   players.forEach((player, index) => {
-    // Hide the animating player's token at their current (source) position
-    if (animatingMove && index === animatingMove.playerIndex) return;
     const tokens = positionTokens.get(player.position) ?? [];
     tokens.push({
       color: player.color,
       initial: player.name?.trim()?.[0]?.toUpperCase() || "?",
       retired: retiredPlayerIndices?.has(index) ?? false,
+      // The mover keeps its stack slot as an invisible placeholder so
+      // neighbouring tokens don't shift while it flies
+      hidden: animatingMove?.playerIndex === index,
     });
     positionTokens.set(player.position, tokens);
   });
 
   const currentPlayerPosition = players[currentPlayerIndex]?.position ?? 0;
-
-  const animX = useSharedValue(0);
-  const animY = useSharedValue(0);
-
-  useEffect(() => {
-    if (!animatingMove) return;
-
-    const { from, to } = animatingMove;
-    const startPos = getCellPosition(from, cellSize, ch);
-    animX.value = startPos.x;
-    animY.value = startPos.y;
-
-    const steps = to - from;
-    if (steps <= 0) {
-      onAnimationComplete();
-      return;
-    }
-
-    const stepsX: number[] = [];
-    const stepsY: number[] = [];
-    for (let day = from + 1; day <= to; day++) {
-      const pos = getCellPosition(day, cellSize, ch);
-      stepsX.push(pos.x);
-      stepsY.push(pos.y);
-    }
-
-    const timingsX = stepsX.map((x) => withTiming(x, { duration: STEP_DURATION }));
-    const timingsY = stepsY.map((y) => withTiming(y, { duration: STEP_DURATION }));
-
-    animX.value =
-      timingsX.length === 1
-        ? timingsX[0]
-        : withSequence(...(timingsX as [number, ...number[]]));
-    animY.value =
-      timingsY.length === 1
-        ? timingsY[0]
-        : withSequence(...(timingsY as [number, ...number[]]));
-
-    const timeout = setTimeout(onAnimationComplete, steps * STEP_DURATION + 50);
-    return () => clearTimeout(timeout);
-  }, [animatingMove]);
-
-  const overlayStyle = useAnimatedStyle(() => ({
-    transform: [{ translateX: animX.value }, { translateY: animY.value }],
-  }));
-
-  const animatingPlayer = animatingMove ? players[animatingMove.playerIndex] : null;
 
   return (
     <View style={styles.panel}>
@@ -160,23 +235,15 @@ export default function Board({
           ))}
         </View>
 
-        {animatingMove && animatingPlayer && (
-          <Animated.View
-            style={[
-              styles.overlayPawn,
-              { width: cellSize, height: ch },
-              overlayStyle,
-            ]}
-            pointerEvents="none"
-          >
-            <View
-              style={[styles.movingToken, { backgroundColor: animatingPlayer.color }]}
-            >
-              <Typography design="title" style={styles.movingTokenText}>
-                {animatingPlayer.name?.trim()?.[0]?.toUpperCase() || "?"}
-              </Typography>
-            </View>
-          </Animated.View>
+        {animatingMove && (
+          <MovingPawn
+            key={`${animatingMove.playerIndex}:${animatingMove.from}:${animatingMove.to}`}
+            move={animatingMove}
+            players={players}
+            cellSize={cellSize}
+            cellHeight={ch}
+            onComplete={onAnimationComplete}
+          />
         )}
       </View>
     </View>
@@ -213,26 +280,25 @@ const styles = StyleSheet.create({
     position: "absolute",
     top: 0,
     left: 0,
-    alignItems: "center",
-    justifyContent: "center",
     zIndex: 10,
   },
+  // Pixel-identical to BoardCell's miniToken so start/landing are seamless
   movingToken: {
-    width: 22,
-    height: 22,
-    borderRadius: 11,
+    width: TOKEN_SIZE,
+    height: TOKEN_SIZE,
+    borderRadius: 10,
     borderWidth: 2,
     borderColor: SD.white,
     alignItems: "center",
     justifyContent: "center",
-    elevation: 4,
+    elevation: 2,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.35,
     shadowRadius: 4,
   },
   movingTokenText: {
-    fontSize: 10,
+    fontSize: 9,
     color: SD.white,
   },
 });

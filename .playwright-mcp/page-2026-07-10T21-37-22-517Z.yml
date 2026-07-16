@@ -1,0 +1,187 @@
+- generic [ref=f3e23]:
+  - generic [ref=f3e24]:
+    - generic [ref=f3e352] [cursor=pointer]: 
+    - generic [ref=f3e28]:
+      - generic [ref=f3e29]: Month 2 of 2
+      - generic [ref=f3e30]: PLAYER 1'S TURN
+    - generic [ref=f3e34] [cursor=pointer]: $
+  - generic [ref=f3e36]:
+    - generic [ref=f3e37]:
+      - generic [ref=f3e38]: S
+      - generic [ref=f3e39]: M
+      - generic [ref=f3e40]: T
+      - generic [ref=f3e41]: W
+      - generic [ref=f3e42]: T
+      - generic [ref=f3e43]: F
+      - generic [ref=f3e44]: S
+    - generic [ref=f3e46]:
+      - generic [ref=f3e47]:
+        - generic [ref=f3e73] [cursor=pointer]: START
+        - generic [ref=f3e81] [cursor=pointer]: "1"
+        - generic [ref=f3e86] [cursor=pointer]:
+          - generic [ref=f3e88]: "2"
+          - generic [ref=f3e91]: $
+          - generic [ref=f3e94]: +$400
+        - generic [ref=f3e97] [cursor=pointer]: "3"
+        - generic [ref=f3e104] [cursor=pointer]: "4"
+        - generic [ref=f3e111] [cursor=pointer]: "5"
+        - generic [ref=f3e116] [cursor=pointer]:
+          - generic [ref=f3e118]: "6"
+          - generic [ref=f3e1578]: P
+          - generic [ref=f3e122]: $
+          - generic [ref=f3e125]: "-$50"
+      - generic [ref=f3e126]:
+        - generic [ref=f3e129] [cursor=pointer]: "7"
+        - generic [ref=f3e134] [cursor=pointer]:
+          - generic [ref=f3e136]: "8"
+          - generic [ref=f3e139]: $
+          - generic [ref=f3e142]: +$100
+        - generic [ref=f3e145] [cursor=pointer]: "9"
+        - generic [ref=f3e150] [cursor=pointer]:
+          - generic [ref=f3e152]: "10"
+          - generic [ref=f3e161]: Poker
+        - generic [ref=f3e164] [cursor=pointer]: "11"
+        - generic [ref=f3e169] [cursor=pointer]:
+          - generic [ref=f3e171]: "12"
+          - generic [ref=f3e1608]: P
+        - generic [ref=f3e176] [cursor=pointer]:
+          - generic [ref=f3e178]: "13"
+          - generic [ref=f3e182]: $
+          - generic [ref=f3e185]: "-$40"
+      - generic [ref=f3e186]:
+        - generic [ref=f3e189] [cursor=pointer]: "14"
+        - generic [ref=f3e196] [cursor=pointer]: "15"
+        - generic [ref=f3e203] [cursor=pointer]: "16"
+        - generic [ref=f3e210] [cursor=pointer]: "17"
+        - generic [ref=f3e215] [cursor=pointer]:
+          - generic [ref=f3e217]: "18"
+          - generic [ref=f3e221]: $
+          - generic [ref=f3e224]: "-$75"
+        - generic [ref=f3e227] [cursor=pointer]: "19"
+        - generic [ref=f3e234] [cursor=pointer]: "20"
+      - generic [ref=f3e239]:
+        - generic [ref=f3e242] [cursor=pointer]: "21"
+        - generic [ref=f3e249] [cursor=pointer]: "22"
+        - generic [ref=f3e254] [cursor=pointer]:
+          - generic [ref=f3e256]: "23"
+          - generic [ref=f3e260]: $
+          - generic [ref=f3e263]: "-$50"
+        - generic [ref=f3e266] [cursor=pointer]: "24"
+        - generic [ref=f3e273] [cursor=pointer]: "25"
+        - generic [ref=f3e278] [cursor=pointer]:
+          - generic [ref=f3e280]: "26"
+          - generic [ref=f3e283]: $
+          - generic [ref=f3e286]: "-$50"
+        - generic [ref=f3e287] [cursor=pointer]:
+          - generic [ref=f3e289]: "27"
+          - generic [ref=f3e295]: Daylight
+      - generic [ref=f3e296]:
+        - generic [ref=f3e299] [cursor=pointer]: "28"
+        - generic [ref=f3e306] [cursor=pointer]: "29"
+        - generic [ref=f3e313] [cursor=pointer]: "30"
+        - generic [ref=f3e319] [cursor=pointer]:
+          - generic [ref=f3e320]:
+            - generic [ref=f3e321]: DAY 31
+            - generic [ref=f3e322]: PAY DAY
+          - generic [ref=f3e324]: +$325
+  - generic [ref=f3e325]:
+    - generic [ref=f3e328] [cursor=pointer]:
+      - generic [ref=f3e330]: 
+      - generic [ref=f3e331]: MAIL
+      - generic [ref=f3e333]: "0"
+    - generic [ref=f3e336] [cursor=pointer]:
+      - generic [ref=f3e338]: 
+      - generic [ref=f3e339]: DEALS
+      - generic [ref=f3e341]: "3"
+  - generic [ref=f3e1593]:
+    - generic [ref=f3e1595]: P
+    - generic [ref=f3e1596]:
+      - generic [ref=f3e1597]: Player 1
+      - generic [ref=f3e1598]: On Day 12 · your turn
+    - generic [ref=f3e1599]:
+      - generic [ref=f3e1600]: CASH
+      - generic [ref=f3e1601]: $0
+    - generic [ref=f3e1603]:
+      - generic [ref=f3e1604]: BANK
+      - generic [ref=f3e1605]: $0
+  - generic [ref=f3e343]:
+    - generic [ref=f3e348]: Roll Dice
+    - generic [ref=f3e351] [cursor=pointer]: End Turn
+  - generic [ref=f3e1673]:
+    - generic [ref=f3e1678]:
+      - generic [ref=f3e1679]:
+        - generic [ref=f3e1683] [cursor=pointer]: ‹
+        - generic [ref=f3e1684]:
+          - generic [ref=f3e1685]: The Bank
+          - generic [ref=f3e1686]: SAVINGS · LOAN · THE POT
+      - generic [ref=f3e1688]:
+        - generic [ref=f3e1689] [cursor=pointer]:
+          - generic [ref=f3e1691]: P
+          - generic [ref=f3e1692]: Player 1
+        - generic [ref=f3e1693] [cursor=pointer]:
+          - generic [ref=f3e1695]: P
+          - generic [ref=f3e1696]: Player 2
+      - generic [ref=f3e1698]:
+        - generic [ref=f3e1700] [cursor=pointer]:
+          - generic [ref=f3e1702]: ¢
+          - generic [ref=f3e1703]: THE POT
+          - generic [ref=f3e1704]: $0
+          - generic [ref=f3e1705]: ›
+        - generic [ref=f3e1706]:
+          - generic [ref=f3e1707]:
+            - generic [ref=f3e1708]: ALL SETTLED
+            - generic [ref=f3e1710]: no interest
+          - generic [ref=f3e1711]: $0
+          - generic [ref=f3e1712]: No savings, no loan — a clean slate.
+          - generic [ref=f3e1713]:
+            - generic [ref=f3e1714]: Cash in pocket
+            - generic [ref=f3e1715]: $0
+          - generic [ref=f3e1716]:
+            - generic [ref=f3e1717]: At next Pay Day
+            - generic [ref=f3e1718]: $0
+        - generic [ref=f3e1719]:
+          - generic [ref=f3e1720]: ACCOUNT ACTIONS
+          - generic [ref=f3e1721] [cursor=pointer]:
+            - generic [ref=f3e1723]: +
+            - generic [ref=f3e1724]:
+              - generic [ref=f3e1725]: Borrow money
+              - generic [ref=f3e1726]: Pick an amount · 10% interest each Pay Day
+            - generic [ref=f3e1727]: ›
+          - generic [ref=f3e1728]: 🔒 You can open a savings account only on Pay Day.
+    - generic [ref=f3e1763]:
+      - generic [ref=f3e1764]:
+        - generic [ref=f3e1766]: BORROW FROM THE BANK
+        - generic [ref=f3e1767]: Loans move in $100 steps · 10% interest every Pay Day
+      - generic [ref=f3e1768]:
+        - generic [ref=f3e1769]:
+          - generic [ref=f3e1770]: −
+          - generic [ref=f3e1771]: $100
+          - generic [ref=f3e1773] [cursor=pointer]: +
+        - generic [ref=f3e1774]:
+          - generic [ref=f3e1775]:
+            - generic [ref=f3e1776]: New loan total
+            - generic [ref=f3e1777]: $100
+          - generic [ref=f3e1778]:
+            - generic [ref=f3e1779]: Interest at each Pay Day (10%)
+            - generic [ref=f3e1780]: "-$10"
+          - generic [ref=f3e1781]:
+            - generic [ref=f3e1782]: Cash in hand after
+            - generic [ref=f3e1783]: $100
+        - generic [ref=f3e1784]:
+          - generic [ref=f3e1786] [cursor=pointer]: Cancel
+          - generic [ref=f3e1790] [cursor=pointer]: Borrow $100
+  - generic:
+    - generic:
+      - generic:
+        - generic:
+          - generic: "1"
+        - generic:
+          - generic: "6"
+        - generic:
+          - generic: "3"
+        - generic:
+          - generic: "4"
+        - generic:
+          - generic: "5"
+        - generic:
+          - generic: "2"

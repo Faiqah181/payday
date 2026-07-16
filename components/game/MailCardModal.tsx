@@ -10,6 +10,8 @@ interface MailCardModalProps {
   onDismiss: () => void;
   onBuyInsurance?: () => void;
   isCancelledByInsurance?: boolean;
+  /** Insurance only: premium affordable from cash + savings + loan combined. */
+  canAffordInsurance?: boolean;
 }
 
 const TONES: Record<Exclude<MailCardType, "swellfare">, string> = {
@@ -32,6 +34,7 @@ export default function MailCardModal({
   onDismiss,
   onBuyInsurance,
   isCancelledByInsurance = false,
+  canAffordInsurance = true,
 }: MailCardModalProps) {
   const type = mail.type as Exclude<MailCardType, "swellfare">;
   const tone = TONES[type] ?? SD.blue;
@@ -45,6 +48,10 @@ export default function MailCardModal({
           ? "MAIL · LOTTERY TICKET"
           : "MAIL · INSURANCE";
 
+  const insuranceNote = canAffordInsurance
+    ? "Held for the rest of the game. New bills of the covered type get cancelled for free."
+    : "You can't cover this premium — not even with savings or a full loan.";
+
   const note =
     type === "bill"
       ? isCancelledByInsurance
@@ -54,7 +61,7 @@ export default function MailCardModal({
         ? "Junk mail — nothing happens. Straight to the bin."
         : type === "lottery"
           ? "Cash it in if you land on Lottery Draw this month. Expires when the month ends."
-          : "Held for the rest of the game. New bills of the covered type get cancelled for free.";
+          : insuranceNote;
 
   return (
     <PopCard tone={tone} eyebrow={eyebrow} headerRight={<EnvelopeGlyph />}>
@@ -125,6 +132,7 @@ export default function MailCardModal({
             depthColor={SD.primaryShadow}
             depth={4}
             borderRadius={14}
+            disabled={!canAffordInsurance}
             style={styles.rowButton}
             contentStyle={styles.buttonFace}
             onPress={onBuyInsurance ?? onDismiss}

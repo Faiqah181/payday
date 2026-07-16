@@ -140,17 +140,17 @@ const CATEGORY_RULES: Record<string, string> = {
   mail: "Draw the number of Mail cards shown. Postcards and ads are free and discarded; bills are kept until Pay Day.",
   collect: "Good fortune! Collect the amount shown from the Bank right away.",
   deal: "Draw the top Deal card. You may buy it (a loan is allowed) and hold it until you land on a Buyer space. When bought, every player rolls for the commission.",
-  bill: "An expense lands. Keep the bill and pay it on your next Pay Day.",
+  bill: "An expense lands — pay the amount shown to the Bank right away.",
   rest: "Sweet Sunday — a day of rest. Nothing happens. Enjoy the quiet.",
   buyer:
     "Collect the Value shown on any one Deal card you hold, then return that card to the Deal stack.",
   event:
     "A chance to gamble. Pay in, roll the die, and the highest roller (or a winning roll) takes the money.",
   election:
-    "All players contribute $50 to the Pot. The next player to roll a 6 on their turn wins the whole Pot.",
+    "All players contribute $50 to the Pot, then take turns rolling the die. The first to roll a 6 wins the whole Pot.",
   daylight:
     "Each player moves back one space and follows the new space they land on.",
-  pay: `Collect your $${GAME_CONFIG.salary} wages, pay your bills and loan interest, then start the new month from Day 1.`,
+  pay: `Collect your $${GAME_CONFIG.salary} salary, pay your bills and loan interest, then start the new month from Day 1.`,
 };
 
 const SPACE_TITLES: Record<SpaceType, { title: string; sub: string; rule?: string }> = {
@@ -173,7 +173,7 @@ const SPACE_TITLES: Record<SpaceType, { title: string; sub: string; rule?: strin
     sub: "Cash your tickets",
     rule: "Cash any Lottery Tickets you drew this month at the Bank. Unused tickets expire at the end of the month.",
   },
-  "salary-day": { title: "Pay Day", sub: "Collect your wages" },
+  "salary-day": { title: "Pay Day", sub: "Collect your salary" },
 };
 
 export function getSpaceDetail(type: SpaceType): SpaceDetail {

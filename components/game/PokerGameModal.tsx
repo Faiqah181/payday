@@ -2,9 +2,20 @@ import { DieValue } from "@/components/game/dice/DiceCube";
 import { EventButton, EventCashRow } from "@/components/game/events/EventFooter";
 import EventPlayerRow from "@/components/game/events/EventPlayerRow";
 import EventShell from "@/components/game/events/EventShell";
-import PlayerToken from "@/components/ui/PlayerToken";
+import {
+  DIE_SETTLE_MS,
+  useDelayedReveal,
+} from "@/components/game/events/useDelayedReveal";
+import WinnerCelebration from "@/components/game/events/WinnerCelebration";
+import ConfirmDialog from "@/components/ui/ConfirmDialog";
 import Typography from "@/components/ui/Typography";
 import { SD, SD_EVENT_GRADIENTS } from "@/constants/theme";
+import {
+  canFinance,
+  fundingActionLabel,
+  fundingClause,
+  shortfallFunding,
+} from "@/lib/financing";
 import type { GameMode, Player } from "@/types/game";
 import { useState } from "react";
 import { ScrollView, StyleSheet, View } from "react-native";
@@ -41,13 +52,21 @@ export default function PokerGameModal({
 
   const [participantIndices, setParticipantIndices] = useState<number[]>([]);
   const [rolls, setRolls] = useState<(number | null)[]>([]);
+  // Bumped on every individual roll so a repeated value still tumbles
+  const [rollSeq, setRollSeq] = useState<number[]>([]);
   const [activeRollSlot, setActiveRollSlot] = useState(0);
   const [tieSlots, setTieSlots] = useState<number[] | null>(null);
   const [winnerSlot, setWinnerSlot] = useState<number | null>(null);
+  const [confirmJoin, setConfirmJoin] = useState(false);
+  const [revealPending, reveal] = useDelayedReveal();
 
   const me = players[currentPlayerIndex];
   // P&P asks every player in seat order; online only asks you
   const askIndex = isOnline ? currentPlayerIndex : decisions.indexOf(null);
+  // While asking in P&P, the footer shows the player being asked; everywhere
+  // else (and always online) it's the current player's cash.
+  const cashPlayer =
+    !isOnline && phase === "join" && askIndex >= 0 ? players[askIndex] : me;
   const joinedIndices = players
     .map((_, i) => i)
     .filter((i) => decisions[i] === true);
@@ -56,17 +75,33 @@ export default function PokerGameModal({
       ? joinedIndices.length
       : participantIndices.length) * ENTRY_FEE;
 
-  function decide(joins: boolean) {
+  function commitDecision(joins: boolean) {
     const next = [...decisions];
     next[askIndex] = joins;
     setDecisions(next);
-    if (!isOnline && !next.includes(null)) setPhase("confirm");
     // ONLINE: remote players' decisions would arrive over the network here
+    if (isOnline || next.includes(null)) return;
+    const joined = players.map((_, i) => i).filter((i) => next[i] === true);
+    if (joined.length >= 2) {
+      startGame(joined);
+    } else {
+      setPhase("confirm");
+    }
   }
 
-  function startGame() {
-    setParticipantIndices(joinedIndices);
-    setRolls(joinedIndices.map(() => null));
+  function decide(joins: boolean) {
+    // Joining short on cash pulls from savings/loan — get consent first
+    if (joins && asked && asked.cash < ENTRY_FEE) {
+      setConfirmJoin(true);
+      return;
+    }
+    commitDecision(joins);
+  }
+
+  function startGame(joined: number[]) {
+    setParticipantIndices(joined);
+    setRolls(joined.map(() => null));
+    setRollSeq(joined.map(() => 0));
     setActiveRollSlot(0);
     setTieSlots(null);
     setPhase("roll");
@@ -77,6 +112,7 @@ export default function PokerGameModal({
     const newRolls = [...rolls];
     newRolls[activeRollSlot] = value;
     setRolls(newRolls);
+    setRollSeq((seq) => seq.map((n, i) => (i === activeRollSlot ? n + 1 : n)));
 
     const slotsThisRound = tieSlots ?? participantIndices.map((_, i) => i);
     const lastInRound =
@@ -84,7 +120,8 @@ export default function PokerGameModal({
 
     if (!lastInRound) {
       const currentRoundIdx = slotsThisRound.indexOf(activeRollSlot);
-      setActiveRollSlot(slotsThisRound[currentRoundIdx + 1]);
+      const next = slotsThisRound[currentRoundIdx + 1];
+      reveal(() => setActiveRollSlot(next), DIE_SETTLE_MS);
       return;
     }
 
@@ -92,24 +129,26 @@ export default function PokerGameModal({
     const tied = slotsThisRound.filter((s) => newRolls[s] === maxRoll);
 
     if (tied.length === 1) {
-      setWinnerSlot(tied[0]);
-      setPhase("result");
-    } else {
-      const resetRolls = [...newRolls];
-      tied.forEach((s) => {
-        resetRolls[s] = null;
+      reveal(() => {
+        setWinnerSlot(tied[0]);
+        setPhase("result");
       });
-      setRolls(resetRolls);
-      setTieSlots(tied);
-      setActiveRollSlot(tied[0]);
+    } else {
+      // Draw: dice stay on their rolled faces; tied players reroll in turn
+      reveal(() => {
+        setTieSlots(tied);
+        setActiveRollSlot(tied[0]);
+      });
     }
   }
 
   const winner = winnerSlot !== null ? players[participantIndices[winnerSlot]] : null;
   const activePlayer =
     phase === "roll" ? players[participantIndices[activeRollSlot]] : null;
-  const enoughPlayers = joinedIndices.length >= 2;
   const iDecided = decisions[currentPlayerIndex] !== null;
+  const asked = players[askIndex];
+  // Affordable from cash + savings + loan; a shortfall is gated by a confirm
+  const askedCanPay = !!asked && canFinance(asked, ENTRY_FEE);
 
   function headerCopy(): { title: string; subtitle: string } {
     switch (phase) {
@@ -125,23 +164,21 @@ export default function PokerGameModal({
         };
       }
       case "confirm":
-        if (!enoughPlayers) {
-          return {
-            title: "Not enough players",
-            subtitle: "Poker needs at least two players",
-          };
-        }
         return {
-          title: "Table is set",
-          subtitle: `${joinedIndices.length} players · $${prize} on the table`,
+          title: "Not enough players",
+          subtitle: "Poker needs at least two players",
         };
-      case "roll":
+      case "roll": {
+        const tiedNames = tieSlots
+          ?.map((slot) => players[participantIndices[slot]].name)
+          .join(" & ");
         return {
-          title: `${activePlayer?.name} rolls…`,
+          title: tieSlots ? "It's a draw!" : `${activePlayer?.name} rolls…`,
           subtitle: tieSlots
-            ? "It's a tie — tied players roll again!"
+            ? `Draw between ${tiedNames} — they roll again`
             : "Highest roll takes the whole pot",
         };
+      }
       case "result":
         return {
           title: "We have a winner!",
@@ -160,16 +197,21 @@ export default function PokerGameModal({
     return { text: "Waiting…", color: undefined };
   };
 
-  return (
+  const shell = (
     <EventShell
       gradient={SD_EVENT_GRADIENTS.poker}
-      eyebrow="♠  POKER NIGHT"
+      emblem="♠️"
+      eyebrow="POKER NIGHT"
       title={title}
       subtitle={subtitle}
       pot={{ label: "POT", value: `$${prize}` }}
       footer={
         <>
-          <EventCashRow initial={initialOf(me)} color={me.color} cash={me.cash} />
+          <EventCashRow
+            initial={initialOf(cashPlayer)}
+            color={cashPlayer.color}
+            cash={cashPlayer.cash}
+          />
           {phase === "join" &&
             (isOnline && iDecided ? (
               <View style={styles.waitingBox}>
@@ -189,22 +231,15 @@ export default function PokerGameModal({
                   label={`$${ENTRY_FEE} to play`}
                   color={GOLD}
                   textColor="#5E4700"
+                  disabled={!askedCanPay}
                   style={styles.rowButton}
                   onPress={() => decide(true)}
                 />
               </View>
             ))}
-          {phase === "confirm" &&
-            (enoughPlayers ? (
-              <EventButton
-                label="Deal — roll the dice →"
-                color={GOLD}
-                textColor="#5E4700"
-                onPress={startGame}
-              />
-            ) : (
-              <EventButton label="Back to the board →" onPress={onSkip} />
-            ))}
+          {phase === "confirm" && (
+            <EventButton label="Back to the board →" onPress={onSkip} />
+          )}
           {phase === "roll" && (
             <EventButton
               label={
@@ -212,6 +247,7 @@ export default function PokerGameModal({
                   ? "🎲 Roll your hand"
                   : `🎲 Roll ${activePlayer?.name}'s hand`
               }
+              disabled={revealPending}
               onPress={handleRoll}
             />
           )}
@@ -229,17 +265,12 @@ export default function PokerGameModal({
       }
     >
       {phase === "result" && winner ? (
-        <View style={styles.winnerBlock}>
-          <View style={styles.winnerRing}>
-            <PlayerToken initial={initialOf(winner)} color={winner.color} size={72} />
-          </View>
-          <Typography design="money" style={styles.winnerAmount}>
-            🎉 +${prize}
-          </Typography>
-          <Typography design="body" weight={700} style={styles.winnerNote}>
-            Rolled a {rolls[winnerSlot!]} — takes it all
-          </Typography>
-        </View>
+        <WinnerCelebration
+          initial={initialOf(winner)}
+          color={winner.color}
+          amount={`🎉 +$${prize}`}
+          note={`Rolled a ${rolls[winnerSlot!]} — takes it all`}
+        />
       ) : (
         <ScrollView showsVerticalScrollIndicator={false}>
           {phase === "join" || phase === "confirm"
@@ -262,23 +293,26 @@ export default function PokerGameModal({
                 const player = players[playerIndex];
                 const roll = rolls[slot];
                 const isActive = slot === activeRollSlot;
+                const inDraw = tieSlots?.includes(slot) ?? false;
+                const statusText = isActive
+                  ? "Rolling now…"
+                  : inDraw
+                    ? `Rolled a ${roll} · rolls again`
+                    : roll != null
+                      ? `Rolled a ${roll}`
+                      : isOnline
+                        ? "Is rolling…"
+                        : "Waiting…";
                 return (
                   <EventPlayerRow
                     key={playerIndex}
                     name={player.name}
                     initial={initialOf(player)}
                     color={player.color}
-                    statusText={
-                      roll != null
-                        ? `Rolled a ${roll}`
-                        : isActive
-                          ? "Rolling now…"
-                          : isOnline
-                            ? "Is rolling…"
-                            : "Waiting…"
-                    }
-                    statusColor={roll != null ? GOLD : undefined}
+                    statusText={statusText}
+                    statusColor={roll != null && !inDraw ? GOLD : undefined}
                     die={roll as DieValue | null}
+                    dieNonce={rollSeq[slot]}
                     highlighted={isActive}
                   />
                 );
@@ -286,6 +320,28 @@ export default function PokerGameModal({
         </ScrollView>
       )}
     </EventShell>
+  );
+
+  if (!confirmJoin || !asked) return shell;
+
+  const funding = shortfallFunding(asked, ENTRY_FEE);
+  return (
+    <>
+      {shell}
+      <ConfirmDialog
+        title="Join on credit?"
+        body={`${asked.name} is $${ENTRY_FEE - asked.cash} short on the $${ENTRY_FEE} buy-in. Cover it with ${fundingClause(funding)}?`}
+        confirmLabel={fundingActionLabel(funding, "play")}
+        cancelLabel="Sit out"
+        tone={funding.fromLoan > 0 ? SD.debt : SD.primary}
+        glyph="$"
+        onConfirm={() => {
+          setConfirmJoin(false);
+          commitDecision(true);
+        }}
+        onCancel={() => setConfirmJoin(false)}
+      />
+    </>
   );
 }
 
@@ -311,26 +367,5 @@ const styles = StyleSheet.create({
   waitingText: {
     fontSize: 14,
     color: "rgba(255,255,255,0.8)",
-  },
-  winnerBlock: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  winnerRing: {
-    borderWidth: 4,
-    borderColor: GOLD,
-    borderRadius: 44,
-    padding: 2,
-  },
-  winnerAmount: {
-    fontSize: 22,
-    color: SD.white,
-    marginTop: 16,
-  },
-  winnerNote: {
-    fontSize: 13,
-    color: "rgba(255,255,255,0.7)",
-    marginTop: 4,
   },
 });

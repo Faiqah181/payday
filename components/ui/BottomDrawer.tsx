@@ -38,6 +38,12 @@ interface BottomDrawerProps {
   onClose: () => void;
   children: ReactNode;
   maxHeightRatio?: number;
+  /**
+   * Guards user-initiated dismissals (drag or backdrop tap). Return true to
+   * intercept — the sheet stays open and the caller is responsible for later
+   * calling `close()` on the ref to dismiss for real.
+   */
+  onRequestClose?: () => boolean;
 }
 
 /**
@@ -47,7 +53,10 @@ interface BottomDrawerProps {
  * ref (or tap the backdrop) to dismiss with the exit animation.
  */
 const BottomDrawer = forwardRef<BottomDrawerHandle, BottomDrawerProps>(
-  function BottomDrawer({ onClose, children, maxHeightRatio = 0.78 }, ref) {
+  function BottomDrawer(
+    { onClose, children, maxHeightRatio = 0.78, onRequestClose },
+    ref,
+  ) {
     const { height: winH } = useWindowDimensions();
     const progress = useSharedValue(0);
     const dragY = useSharedValue(0);
@@ -64,6 +73,15 @@ const BottomDrawer = forwardRef<BottomDrawerHandle, BottomDrawerProps>(
       setTimeout(onClose, CLOSE_MS + 10);
     };
 
+    // A dismiss the user triggered — let the guard veto it and stay open.
+    const requestClose = () => {
+      if (onRequestClose?.()) {
+        dragY.value = withSpring(0, SPRING_BACK);
+        return;
+      }
+      close();
+    };
+
     useImperativeHandle(ref, () => ({ close }));
 
     const drag = Gesture.Pan()
@@ -75,7 +93,7 @@ const BottomDrawer = forwardRef<BottomDrawerHandle, BottomDrawerProps>(
       })
       .onEnd((e) => {
         if (dragY.value > DISMISS_DISTANCE || e.velocityY > DISMISS_VELOCITY) {
-          runOnJS(close)();
+          runOnJS(requestClose)();
         } else {
           dragY.value = withSpring(0, SPRING_BACK);
         }
@@ -88,7 +106,7 @@ const BottomDrawer = forwardRef<BottomDrawerHandle, BottomDrawerProps>(
 
     return (
       <Animated.View style={styles.overlay}>
-        <Pressable style={StyleSheet.absoluteFill} onPress={close}>
+        <Pressable style={StyleSheet.absoluteFill} onPress={requestClose}>
           <Animated.View style={[styles.backdrop, backdropStyle]} />
         </Pressable>
         <Animated.View

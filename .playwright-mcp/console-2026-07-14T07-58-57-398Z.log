@@ -1,0 +1,196 @@
+[  198562ms] [LOG] [Client Instrumentation Hook] Slow execution detected: 63ms (Note: Code download overhead is not included in this measurement) @ http://localhost:3000/_next/static/chunks/29db0_%40sentry_core_build_esm_cea303e2._.js:11173
+[  198607ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:3000/_next/static/chunks/29db0_%40sentry_core_build_esm_cea303e2._.js:11173
+[  199265ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/29db0_%40sentry_core_build_esm_cea303e2._.js:11173
+[  199785ms] [LOG] [Fast Refresh] done in 624ms @ http://localhost:3000/_next/static/chunks/29db0_%40sentry_core_build_esm_cea303e2._.js:11173
+[  214177ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/29db0_%40sentry_core_build_esm_cea303e2._.js:11173
+[  214188ms] [LOG] [Fast Refresh] done in 112ms @ http://localhost:3000/_next/static/chunks/29db0_%40sentry_core_build_esm_cea303e2._.js:11173
+[  241969ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/29db0_%40sentry_core_build_esm_cea303e2._.js:11173
+[  276413ms] [LOG] [Fast Refresh] done in 34546ms @ http://localhost:3000/_next/static/chunks/29db0_%40sentry_core_build_esm_cea303e2._.js:11173
+[  276517ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/29db0_%40sentry_core_build_esm_cea303e2._.js:11173
+[  277588ms] [LOG] [Fast Refresh] done in 1174ms @ http://localhost:3000/_next/static/chunks/29db0_%40sentry_core_build_esm_cea303e2._.js:11173
+[  277770ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/29db0_%40sentry_core_build_esm_cea303e2._.js:11173
+[  277778ms] [LOG] [Fast Refresh] done in 108ms @ http://localhost:3000/_next/static/chunks/29db0_%40sentry_core_build_esm_cea303e2._.js:11173
+[  280099ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/29db0_%40sentry_core_build_esm_cea303e2._.js:11173
+[  282338ms] [LOG] [Fast Refresh] done in 2342ms @ http://localhost:3000/_next/static/chunks/29db0_%40sentry_core_build_esm_cea303e2._.js:11173
+[  283175ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/29db0_%40sentry_core_build_esm_cea303e2._.js:11173
+[  286584ms] [LOG] [Fast Refresh] done in 3510ms @ http://localhost:3000/_next/static/chunks/29db0_%40sentry_core_build_esm_cea303e2._.js:11173
+[  308089ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/29db0_%40sentry_core_build_esm_cea303e2._.js:11173
+[  308094ms] [LOG] [Fast Refresh] done in 105ms @ http://localhost:3000/_next/static/chunks/29db0_%40sentry_core_build_esm_cea303e2._.js:11173
+[  310024ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/29db0_%40sentry_core_build_esm_cea303e2._.js:11173
+[  310063ms] [LOG] [Fast Refresh] done in 139ms @ http://localhost:3000/_next/static/chunks/29db0_%40sentry_core_build_esm_cea303e2._.js:11173
+[  318031ms] [ERROR] Each child in a list should have a unique "key" prop.%s%s See https://react.dev/link/warning-keys for more information. 
+
+Check the render method of `QuizzesForTopicPopup`.  @ http://localhost:3000/_next/static/chunks/29db0_%40sentry_core_build_esm_cea303e2._.js:11173
+[  318423ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/29db0_%40sentry_core_build_esm_cea303e2._.js:11173
+[  318765ms] [LOG] [Fast Refresh] done in 466ms @ http://localhost:3000/_next/static/chunks/29db0_%40sentry_core_build_esm_cea303e2._.js:11173
+[  331378ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/29db0_%40sentry_core_build_esm_cea303e2._.js:11173
+[  347177ms] [LOG] [Fast Refresh] done in 15901ms @ http://localhost:3000/_next/static/chunks/29db0_%40sentry_core_build_esm_cea303e2._.js:11173
+[  347284ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/29db0_%40sentry_core_build_esm_cea303e2._.js:11173
+[  351702ms] [LOG] [Fast Refresh] done in 4524ms @ http://localhost:3000/_next/static/chunks/29db0_%40sentry_core_build_esm_cea303e2._.js:11173
+[  351901ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:3000/_next/static/chunks/29db0_%40sentry_core_build_esm_cea303e2._.js:11173
+[  352995ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/29db0_%40sentry_core_build_esm_cea303e2._.js:11173
+[  356689ms] [LOG] [Fast Refresh] done in 3795ms @ http://localhost:3000/_next/static/chunks/29db0_%40sentry_core_build_esm_cea303e2._.js:11173
+[  365517ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/29db0_%40sentry_core_build_esm_cea303e2._.js:11173
+[  365519ms] [LOG] [Fast Refresh] done in 108ms @ http://localhost:3000/_next/static/chunks/29db0_%40sentry_core_build_esm_cea303e2._.js:11173
+[  369617ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/29db0_%40sentry_core_build_esm_cea303e2._.js:11173
+[  369617ms] [LOG] [Fast Refresh] done in 106ms @ http://localhost:3000/_next/static/chunks/29db0_%40sentry_core_build_esm_cea303e2._.js:11173
+[  431695ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/29db0_%40sentry_core_build_esm_cea303e2._.js:11173
+[  433347ms] [LOG] [Fast Refresh] done in 1758ms @ http://localhost:3000/_next/static/chunks/29db0_%40sentry_core_build_esm_cea303e2._.js:11173
+[  433455ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/29db0_%40sentry_core_build_esm_cea303e2._.js:11173
+[  433976ms] [LOG] [Fast Refresh] done in 627ms @ http://localhost:3000/_next/static/chunks/29db0_%40sentry_core_build_esm_cea303e2._.js:11173
+[  434951ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/29db0_%40sentry_core_build_esm_cea303e2._.js:11173
+[  435418ms] [LOG] [Fast Refresh] done in 567ms @ http://localhost:3000/_next/static/chunks/29db0_%40sentry_core_build_esm_cea303e2._.js:11173
+[  459999ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/29db0_%40sentry_core_build_esm_cea303e2._.js:11173
+[  460088ms] [LOG] [Fast Refresh] done in 194ms @ http://localhost:3000/_next/static/chunks/29db0_%40sentry_core_build_esm_cea303e2._.js:11173
+[  462037ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/29db0_%40sentry_core_build_esm_cea303e2._.js:11173
+[  462050ms] [LOG] [Fast Refresh] done in 118ms @ http://localhost:3000/_next/static/chunks/29db0_%40sentry_core_build_esm_cea303e2._.js:11173
+[  462557ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/29db0_%40sentry_core_build_esm_cea303e2._.js:11173
+[  462691ms] [LOG] [Fast Refresh] done in 235ms @ http://localhost:3000/_next/static/chunks/29db0_%40sentry_core_build_esm_cea303e2._.js:11173
+[  605825ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/29db0_%40sentry_core_build_esm_cea303e2._.js:11173
+[  605861ms] [LOG] [Fast Refresh] done in 138ms @ http://localhost:3000/_next/static/chunks/29db0_%40sentry_core_build_esm_cea303e2._.js:11173
+[  654134ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/29db0_%40sentry_core_build_esm_cea303e2._.js:11173
+[  654157ms] [LOG] [Fast Refresh] done in 124ms @ http://localhost:3000/_next/static/chunks/29db0_%40sentry_core_build_esm_cea303e2._.js:11173
+[  786463ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/29db0_%40sentry_core_build_esm_cea303e2._.js:11173
+[  786483ms] [LOG] [Fast Refresh] done in 121ms @ http://localhost:3000/_next/static/chunks/29db0_%40sentry_core_build_esm_cea303e2._.js:11173
+[  787780ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/29db0_%40sentry_core_build_esm_cea303e2._.js:11173
+[  787784ms] [LOG] [Fast Refresh] done in 110ms @ http://localhost:3000/_next/static/chunks/29db0_%40sentry_core_build_esm_cea303e2._.js:11173
+[  789786ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/29db0_%40sentry_core_build_esm_cea303e2._.js:11173
+[  789788ms] [LOG] [Fast Refresh] done in 105ms @ http://localhost:3000/_next/static/chunks/29db0_%40sentry_core_build_esm_cea303e2._.js:11173
+[  902787ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/29db0_%40sentry_core_build_esm_cea303e2._.js:11173
+[  902807ms] [LOG] [Fast Refresh] done in 120ms @ http://localhost:3000/_next/static/chunks/29db0_%40sentry_core_build_esm_cea303e2._.js:11173
+[  903928ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/29db0_%40sentry_core_build_esm_cea303e2._.js:11173
+[  903946ms] [LOG] [Fast Refresh] done in 123ms @ http://localhost:3000/_next/static/chunks/29db0_%40sentry_core_build_esm_cea303e2._.js:11173
+[ 1073041ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/29db0_%40sentry_core_build_esm_cea303e2._.js:11173
+[ 1073057ms] [LOG] [Fast Refresh] done in 119ms @ http://localhost:3000/_next/static/chunks/29db0_%40sentry_core_build_esm_cea303e2._.js:11173
+[ 1082793ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/29db0_%40sentry_core_build_esm_cea303e2._.js:11173
+[ 1082810ms] [LOG] [Fast Refresh] done in 120ms @ http://localhost:3000/_next/static/chunks/29db0_%40sentry_core_build_esm_cea303e2._.js:11173
+[ 1252975ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/29db0_%40sentry_core_build_esm_cea303e2._.js:11173
+[ 1252979ms] [LOG] [Fast Refresh] done in 107ms @ http://localhost:3000/_next/static/chunks/29db0_%40sentry_core_build_esm_cea303e2._.js:11173
+[ 1360790ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/29db0_%40sentry_core_build_esm_cea303e2._.js:11173
+[ 1360802ms] [LOG] [Fast Refresh] done in 115ms @ http://localhost:3000/_next/static/chunks/29db0_%40sentry_core_build_esm_cea303e2._.js:11173
+[ 1363416ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/29db0_%40sentry_core_build_esm_cea303e2._.js:11173
+[ 1363432ms] [LOG] [Fast Refresh] done in 122ms @ http://localhost:3000/_next/static/chunks/29db0_%40sentry_core_build_esm_cea303e2._.js:11173
+[ 1364084ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/29db0_%40sentry_core_build_esm_cea303e2._.js:11173
+[ 1364090ms] [LOG] [Fast Refresh] done in 112ms @ http://localhost:3000/_next/static/chunks/29db0_%40sentry_core_build_esm_cea303e2._.js:11173
+[ 1398750ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/29db0_%40sentry_core_build_esm_cea303e2._.js:11173
+[ 1398780ms] [LOG] [Fast Refresh] done in 134ms @ http://localhost:3000/_next/static/chunks/29db0_%40sentry_core_build_esm_cea303e2._.js:11173
+[ 1582639ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/29db0_%40sentry_core_build_esm_cea303e2._.js:11173
+[ 1582667ms] [LOG] [Fast Refresh] done in 136ms @ http://localhost:3000/_next/static/chunks/29db0_%40sentry_core_build_esm_cea303e2._.js:11173
+[ 1584047ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/29db0_%40sentry_core_build_esm_cea303e2._.js:11173
+[ 1584298ms] [LOG] [Fast Refresh] done in 357ms @ http://localhost:3000/_next/static/chunks/29db0_%40sentry_core_build_esm_cea303e2._.js:11173
+[ 1623272ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/29db0_%40sentry_core_build_esm_cea303e2._.js:11173
+[ 1623274ms] [LOG] [Fast Refresh] done in 110ms @ http://localhost:3000/_next/static/chunks/29db0_%40sentry_core_build_esm_cea303e2._.js:11173
+[ 1650696ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/29db0_%40sentry_core_build_esm_cea303e2._.js:11173
+[ 1650931ms] [LOG] [Fast Refresh] done in 340ms @ http://localhost:3000/_next/static/chunks/29db0_%40sentry_core_build_esm_cea303e2._.js:11173
+[ 1663389ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/29db0_%40sentry_core_build_esm_cea303e2._.js:11173
+[ 1663434ms] [LOG] [Fast Refresh] done in 159ms @ http://localhost:3000/_next/static/chunks/29db0_%40sentry_core_build_esm_cea303e2._.js:11173
+[ 1684064ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/29db0_%40sentry_core_build_esm_cea303e2._.js:11173
+[ 1684067ms] [LOG] [Fast Refresh] done in 105ms @ http://localhost:3000/_next/static/chunks/29db0_%40sentry_core_build_esm_cea303e2._.js:11173
+[ 1719835ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/29db0_%40sentry_core_build_esm_cea303e2._.js:11173
+[ 1719906ms] [LOG] [Fast Refresh] done in 173ms @ http://localhost:3000/_next/static/chunks/29db0_%40sentry_core_build_esm_cea303e2._.js:11173
+[ 1745606ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/29db0_%40sentry_core_build_esm_cea303e2._.js:11173
+[ 1745658ms] [LOG] [Fast Refresh] done in 159ms @ http://localhost:3000/_next/static/chunks/29db0_%40sentry_core_build_esm_cea303e2._.js:11173
+[ 1802796ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/29db0_%40sentry_core_build_esm_cea303e2._.js:11173
+[ 1803021ms] [LOG] [Fast Refresh] done in 330ms @ http://localhost:3000/_next/static/chunks/29db0_%40sentry_core_build_esm_cea303e2._.js:11173
+[ 1804829ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/29db0_%40sentry_core_build_esm_cea303e2._.js:11173
+[ 1804895ms] [LOG] [Fast Refresh] done in 182ms @ http://localhost:3000/_next/static/chunks/29db0_%40sentry_core_build_esm_cea303e2._.js:11173
+[ 1808790ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/29db0_%40sentry_core_build_esm_cea303e2._.js:11173
+[ 1808791ms] [LOG] [Fast Refresh] done in 104ms @ http://localhost:3000/_next/static/chunks/29db0_%40sentry_core_build_esm_cea303e2._.js:11173
+[ 1811934ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/29db0_%40sentry_core_build_esm_cea303e2._.js:11173
+[ 1811950ms] [LOG] [Fast Refresh] done in 119ms @ http://localhost:3000/_next/static/chunks/29db0_%40sentry_core_build_esm_cea303e2._.js:11173
+[ 1812444ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/29db0_%40sentry_core_build_esm_cea303e2._.js:11173
+[ 1812447ms] [LOG] [Fast Refresh] done in 109ms @ http://localhost:3000/_next/static/chunks/29db0_%40sentry_core_build_esm_cea303e2._.js:11173
+[ 1813541ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/29db0_%40sentry_core_build_esm_cea303e2._.js:11173
+[ 1813555ms] [LOG] [Fast Refresh] done in 119ms @ http://localhost:3000/_next/static/chunks/29db0_%40sentry_core_build_esm_cea303e2._.js:11173
+[ 1844723ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/29db0_%40sentry_core_build_esm_cea303e2._.js:11173
+[ 1844743ms] [LOG] [Fast Refresh] done in 124ms @ http://localhost:3000/_next/static/chunks/29db0_%40sentry_core_build_esm_cea303e2._.js:11173
+[ 1846637ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/29db0_%40sentry_core_build_esm_cea303e2._.js:11173
+[ 1846663ms] [LOG] [Fast Refresh] done in 140ms @ http://localhost:3000/_next/static/chunks/29db0_%40sentry_core_build_esm_cea303e2._.js:11173
+[ 1846884ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/29db0_%40sentry_core_build_esm_cea303e2._.js:11173
+[ 1846885ms] [LOG] [Fast Refresh] done in 104ms @ http://localhost:3000/_next/static/chunks/29db0_%40sentry_core_build_esm_cea303e2._.js:11173
+[ 1847646ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/29db0_%40sentry_core_build_esm_cea303e2._.js:11173
+[ 1847737ms] [LOG] [Fast Refresh] done in 197ms @ http://localhost:3000/_next/static/chunks/29db0_%40sentry_core_build_esm_cea303e2._.js:11173
+[ 1852243ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/29db0_%40sentry_core_build_esm_cea303e2._.js:11173
+[ 1852244ms] [LOG] [Fast Refresh] done in 105ms @ http://localhost:3000/_next/static/chunks/29db0_%40sentry_core_build_esm_cea303e2._.js:11173
+[ 1856829ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/29db0_%40sentry_core_build_esm_cea303e2._.js:11173
+[ 1857476ms] [LOG] [Fast Refresh] done in 749ms @ http://localhost:3000/_next/static/chunks/29db0_%40sentry_core_build_esm_cea303e2._.js:11173
+[ 1880550ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/29db0_%40sentry_core_build_esm_cea303e2._.js:11173
+[ 1880570ms] [LOG] [Fast Refresh] done in 120ms @ http://localhost:3000/_next/static/chunks/29db0_%40sentry_core_build_esm_cea303e2._.js:11173
+[ 1881188ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/29db0_%40sentry_core_build_esm_cea303e2._.js:11173
+[ 1881223ms] [LOG] [Fast Refresh] done in 139ms @ http://localhost:3000/_next/static/chunks/29db0_%40sentry_core_build_esm_cea303e2._.js:11173
+[ 1911349ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/29db0_%40sentry_core_build_esm_cea303e2._.js:11173
+[ 1911350ms] [LOG] [Fast Refresh] done in 115ms @ http://localhost:3000/_next/static/chunks/29db0_%40sentry_core_build_esm_cea303e2._.js:11173
+[ 1949548ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/29db0_%40sentry_core_build_esm_cea303e2._.js:11173
+[ 1949888ms] [LOG] [Fast Refresh] done in 440ms @ http://localhost:3000/_next/static/chunks/29db0_%40sentry_core_build_esm_cea303e2._.js:11173
+[ 1951167ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/29db0_%40sentry_core_build_esm_cea303e2._.js:11173
+[ 1951247ms] [LOG] [Fast Refresh] done in 194ms @ http://localhost:3000/_next/static/chunks/29db0_%40sentry_core_build_esm_cea303e2._.js:11173
+[ 1951464ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/29db0_%40sentry_core_build_esm_cea303e2._.js:11173
+[ 1951505ms] [LOG] [Fast Refresh] done in 142ms @ http://localhost:3000/_next/static/chunks/29db0_%40sentry_core_build_esm_cea303e2._.js:11173
+[ 1959959ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/29db0_%40sentry_core_build_esm_cea303e2._.js:11173
+[ 1959960ms] [LOG] [Fast Refresh] done in 107ms @ http://localhost:3000/_next/static/chunks/29db0_%40sentry_core_build_esm_cea303e2._.js:11173
+[ 1961325ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/29db0_%40sentry_core_build_esm_cea303e2._.js:11173
+[ 1961358ms] [LOG] [Fast Refresh] done in 137ms @ http://localhost:3000/_next/static/chunks/29db0_%40sentry_core_build_esm_cea303e2._.js:11173
+[ 1967635ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/29db0_%40sentry_core_build_esm_cea303e2._.js:11173
+[ 1967990ms] [LOG] [Fast Refresh] done in 463ms @ http://localhost:3000/_next/static/chunks/29db0_%40sentry_core_build_esm_cea303e2._.js:11173
+[ 1972733ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/29db0_%40sentry_core_build_esm_cea303e2._.js:11173
+[ 1972902ms] [LOG] [Fast Refresh] done in 273ms @ http://localhost:3000/_next/static/chunks/29db0_%40sentry_core_build_esm_cea303e2._.js:11173
+[ 2102840ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/29db0_%40sentry_core_build_esm_cea303e2._.js:11173
+[ 2102842ms] [LOG] [Fast Refresh] done in 104ms @ http://localhost:3000/_next/static/chunks/29db0_%40sentry_core_build_esm_cea303e2._.js:11173
+[ 2164453ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/29db0_%40sentry_core_build_esm_cea303e2._.js:11173
+[ 2164454ms] [LOG] [Fast Refresh] done in 105ms @ http://localhost:3000/_next/static/chunks/29db0_%40sentry_core_build_esm_cea303e2._.js:11173
+[ 2263361ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/29db0_%40sentry_core_build_esm_cea303e2._.js:11173
+[ 2263362ms] [LOG] [Fast Refresh] done in 104ms @ http://localhost:3000/_next/static/chunks/29db0_%40sentry_core_build_esm_cea303e2._.js:11173
+[ 2271889ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/29db0_%40sentry_core_build_esm_cea303e2._.js:11173
+[ 2271889ms] [LOG] [Fast Refresh] done in 111ms @ http://localhost:3000/_next/static/chunks/29db0_%40sentry_core_build_esm_cea303e2._.js:11173
+[ 2287248ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/29db0_%40sentry_core_build_esm_cea303e2._.js:11173
+[ 2287250ms] [LOG] [Fast Refresh] done in 111ms @ http://localhost:3000/_next/static/chunks/29db0_%40sentry_core_build_esm_cea303e2._.js:11173
+[ 2406122ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/29db0_%40sentry_core_build_esm_cea303e2._.js:11173
+[ 2406139ms] [LOG] [Fast Refresh] done in 122ms @ http://localhost:3000/_next/static/chunks/29db0_%40sentry_core_build_esm_cea303e2._.js:11173
+[ 2406338ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/29db0_%40sentry_core_build_esm_cea303e2._.js:11173
+[ 2406339ms] [LOG] [Fast Refresh] done in 105ms @ http://localhost:3000/_next/static/chunks/29db0_%40sentry_core_build_esm_cea303e2._.js:11173
+[ 2454812ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/29db0_%40sentry_core_build_esm_cea303e2._.js:11173
+[ 2454830ms] [LOG] [Fast Refresh] done in 120ms @ http://localhost:3000/_next/static/chunks/29db0_%40sentry_core_build_esm_cea303e2._.js:11173
+[ 2560748ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/29db0_%40sentry_core_build_esm_cea303e2._.js:11173
+[ 2560766ms] [LOG] [Fast Refresh] done in 124ms @ http://localhost:3000/_next/static/chunks/29db0_%40sentry_core_build_esm_cea303e2._.js:11173
+[ 2562164ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/29db0_%40sentry_core_build_esm_cea303e2._.js:11173
+[ 2562180ms] [LOG] [Fast Refresh] done in 123ms @ http://localhost:3000/_next/static/chunks/29db0_%40sentry_core_build_esm_cea303e2._.js:11173
+[ 2562842ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/29db0_%40sentry_core_build_esm_cea303e2._.js:11173
+[ 2562858ms] [LOG] [Fast Refresh] done in 121ms @ http://localhost:3000/_next/static/chunks/29db0_%40sentry_core_build_esm_cea303e2._.js:11173
+[ 2586336ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/29db0_%40sentry_core_build_esm_cea303e2._.js:11173
+[ 2586351ms] [LOG] [Fast Refresh] done in 123ms @ http://localhost:3000/_next/static/chunks/29db0_%40sentry_core_build_esm_cea303e2._.js:11173
+[ 2587577ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/29db0_%40sentry_core_build_esm_cea303e2._.js:11173
+[ 2587594ms] [LOG] [Fast Refresh] done in 122ms @ http://localhost:3000/_next/static/chunks/29db0_%40sentry_core_build_esm_cea303e2._.js:11173
+[ 2754932ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/29db0_%40sentry_core_build_esm_cea303e2._.js:11173
+[ 2754940ms] [LOG] [Fast Refresh] done in 109ms @ http://localhost:3000/_next/static/chunks/29db0_%40sentry_core_build_esm_cea303e2._.js:11173
+[ 3005079ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/29db0_%40sentry_core_build_esm_cea303e2._.js:11173
+[ 3005095ms] [LOG] [Fast Refresh] done in 123ms @ http://localhost:3000/_next/static/chunks/29db0_%40sentry_core_build_esm_cea303e2._.js:11173
+[ 3006495ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/29db0_%40sentry_core_build_esm_cea303e2._.js:11173
+[ 3006496ms] [LOG] [Fast Refresh] done in 105ms @ http://localhost:3000/_next/static/chunks/29db0_%40sentry_core_build_esm_cea303e2._.js:11173
+[ 3054839ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/29db0_%40sentry_core_build_esm_cea303e2._.js:11173
+[ 3054843ms] [LOG] [Fast Refresh] done in 109ms @ http://localhost:3000/_next/static/chunks/29db0_%40sentry_core_build_esm_cea303e2._.js:11173
+[ 3173686ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/29db0_%40sentry_core_build_esm_cea303e2._.js:11173
+[ 3173689ms] [LOG] [Fast Refresh] done in 109ms @ http://localhost:3000/_next/static/chunks/29db0_%40sentry_core_build_esm_cea303e2._.js:11173
+[ 3186145ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/29db0_%40sentry_core_build_esm_cea303e2._.js:11173
+[ 3186146ms] [LOG] [Fast Refresh] done in 109ms @ http://localhost:3000/_next/static/chunks/29db0_%40sentry_core_build_esm_cea303e2._.js:11173
+[ 3353075ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/29db0_%40sentry_core_build_esm_cea303e2._.js:11173
+[ 3353076ms] [LOG] [Fast Refresh] done in 112ms @ http://localhost:3000/_next/static/chunks/29db0_%40sentry_core_build_esm_cea303e2._.js:11173
+[ 3658065ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/29db0_%40sentry_core_build_esm_cea303e2._.js:11173
+[ 3660062ms] [LOG] [Fast Refresh] done in 2102ms @ http://localhost:3000/_next/static/chunks/29db0_%40sentry_core_build_esm_cea303e2._.js:11173
+[ 3660173ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/29db0_%40sentry_core_build_esm_cea303e2._.js:11173
+[ 3660477ms] [LOG] [Fast Refresh] done in 413ms @ http://localhost:3000/_next/static/chunks/29db0_%40sentry_core_build_esm_cea303e2._.js:11173
+[ 3665006ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/29db0_%40sentry_core_build_esm_cea303e2._.js:11173
+[ 3665041ms] [LOG] [Fast Refresh] done in 142ms @ http://localhost:3000/_next/static/chunks/29db0_%40sentry_core_build_esm_cea303e2._.js:11173
+[ 3667268ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/29db0_%40sentry_core_build_esm_cea303e2._.js:11173
+[ 3667274ms] [LOG] [Fast Refresh] done in 122ms @ http://localhost:3000/_next/static/chunks/29db0_%40sentry_core_build_esm_cea303e2._.js:11173
+[ 3667530ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/29db0_%40sentry_core_build_esm_cea303e2._.js:11173
+[ 3667800ms] [LOG] [Fast Refresh] done in 371ms @ http://localhost:3000/_next/static/chunks/29db0_%40sentry_core_build_esm_cea303e2._.js:11173
+[ 3671160ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/29db0_%40sentry_core_build_esm_cea303e2._.js:11173
+[ 3671345ms] [LOG] [Fast Refresh] done in 288ms @ http://localhost:3000/_next/static/chunks/29db0_%40sentry_core_build_esm_cea303e2._.js:11173
+[ 3672862ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/29db0_%40sentry_core_build_esm_cea303e2._.js:11173
+[ 3672935ms] [LOG] [Fast Refresh] done in 174ms @ http://localhost:3000/_next/static/chunks/29db0_%40sentry_core_build_esm_cea303e2._.js:11173
+[ 3678002ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/29db0_%40sentry_core_build_esm_cea303e2._.js:11173
+[ 3678033ms] [LOG] [Fast Refresh] done in 138ms @ http://localhost:3000/_next/static/chunks/29db0_%40sentry_core_build_esm_cea303e2._.js:11173
+[ 3679270ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/29db0_%40sentry_core_build_esm_cea303e2._.js:11173
+[ 3679320ms] [LOG] [Fast Refresh] done in 151ms @ http://localhost:3000/_next/static/chunks/29db0_%40sentry_core_build_esm_cea303e2._.js:11173
+[ 3680052ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/29db0_%40sentry_core_build_esm_cea303e2._.js:11173
+[ 3680185ms] [LOG] [Fast Refresh] done in 234ms @ http://localhost:3000/_next/static/chunks/29db0_%40sentry_core_build_esm_cea303e2._.js:11173

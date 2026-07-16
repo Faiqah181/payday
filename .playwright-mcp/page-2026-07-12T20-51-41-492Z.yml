@@ -1,0 +1,121 @@
+- generic [ref=f1e23]:
+  - generic [ref=f1e25]:
+    - generic [ref=f1e26]:
+      - generic [ref=f1e27]: S
+      - generic [ref=f1e28]: M
+      - generic [ref=f1e29]: T
+      - generic [ref=f1e30]: W
+      - generic [ref=f1e31]: T
+      - generic [ref=f1e32]: F
+      - generic [ref=f1e33]: S
+    - generic [ref=f1e35]:
+      - generic [ref=f1e36]:
+        - generic [ref=f1e37] [cursor=pointer]:
+          - generic [ref=f1e91]: START
+          - generic [ref=f1e95]:
+            - generic [ref=f1e96]: A
+            - generic [ref=f1e98]: B
+        - generic [ref=f1e100] [cursor=pointer]: "1"
+        - generic [ref=f1e107] [cursor=pointer]:
+          - generic [ref=f1e108]: "2"
+          - generic [ref=f1e110]: $
+          - generic [ref=f1e113]: +$400
+        - generic [ref=f1e116] [cursor=pointer]: "3"
+        - generic [ref=f1e123] [cursor=pointer]: "4"
+        - generic [ref=f1e130] [cursor=pointer]: "5"
+        - generic [ref=f1e137] [cursor=pointer]:
+          - generic [ref=f1e138]: "6"
+          - generic [ref=f1e140]: $
+          - generic [ref=f1e144]: "-$50"
+      - generic [ref=f1e147]:
+        - generic [ref=f1e148] [cursor=pointer]: "7"
+        - generic [ref=f1e155] [cursor=pointer]:
+          - generic [ref=f1e156]: "8"
+          - generic [ref=f1e158]: $
+          - generic [ref=f1e161]: +$100
+        - generic [ref=f1e164] [cursor=pointer]: "9"
+        - generic [ref=f1e171] [cursor=pointer]:
+          - generic [ref=f1e172]: "10"
+          - generic [ref=f1e181]: Poker
+        - generic [ref=f1e183] [cursor=pointer]: "11"
+        - generic [ref=f1e190] [cursor=pointer]: "12"
+        - generic [ref=f1e197] [cursor=pointer]:
+          - generic [ref=f1e198]: "13"
+          - generic [ref=f1e200]: $
+          - generic [ref=f1e204]: "-$40"
+      - generic [ref=f1e207]:
+        - generic [ref=f1e208] [cursor=pointer]: "14"
+        - generic [ref=f1e215] [cursor=pointer]: "15"
+        - generic [ref=f1e222] [cursor=pointer]: "16"
+        - generic [ref=f1e229] [cursor=pointer]: "17"
+        - generic [ref=f1e236] [cursor=pointer]:
+          - generic [ref=f1e237]: "18"
+          - generic [ref=f1e239]: $
+          - generic [ref=f1e243]: "-$75"
+        - generic [ref=f1e246] [cursor=pointer]: "19"
+        - generic [ref=f1e253] [cursor=pointer]: "20"
+      - generic [ref=f1e260]:
+        - generic [ref=f1e261] [cursor=pointer]: "21"
+        - generic [ref=f1e268] [cursor=pointer]: "22"
+        - generic [ref=f1e275] [cursor=pointer]:
+          - generic [ref=f1e276]: "23"
+          - generic [ref=f1e278]: $
+          - generic [ref=f1e282]: "-$50"
+        - generic [ref=f1e285] [cursor=pointer]: "24"
+        - generic [ref=f1e292] [cursor=pointer]: "25"
+        - generic [ref=f1e299] [cursor=pointer]:
+          - generic [ref=f1e300]: "26"
+          - generic [ref=f1e302]: $
+          - generic [ref=f1e305]: "-$50"
+        - generic [ref=f1e308] [cursor=pointer]:
+          - generic [ref=f1e309]: "27"
+          - generic [ref=f1e315]: Daylight
+      - generic [ref=f1e317]:
+        - generic [ref=f1e318] [cursor=pointer]: "28"
+        - generic [ref=f1e325] [cursor=pointer]: "29"
+        - generic [ref=f1e332] [cursor=pointer]: "30"
+        - generic [ref=f1e340] [cursor=pointer]:
+          - generic [ref=f1e341]:
+            - generic [ref=f1e342]: DAY 31
+            - generic [ref=f1e343]: PAY DAY
+          - generic [ref=f1e344]: +$325
+  - generic [ref=f1e346]:
+    - generic [ref=f1e347]:
+      - generic [ref=f1e348] [cursor=pointer]: 
+      - generic [ref=f1e351]:
+        - generic [ref=f1e352]: Month 1 of 2
+        - generic [ref=f1e353]: A'S TURN
+      - generic [ref=f1e354] [cursor=pointer]: $
+    - generic [ref=f1e358]:
+      - generic [ref=f1e359]:
+        - generic [ref=f1e362] [cursor=pointer]:
+          - generic [ref=f1e363]: 
+          - generic [ref=f1e365]: MAIL
+          - generic [ref=f1e366]: "0"
+        - generic [ref=f1e370] [cursor=pointer]:
+          - generic [ref=f1e371]: 
+          - generic [ref=f1e373]: DEALS
+          - generic [ref=f1e374]: "0"
+      - generic [ref=f1e387]:
+        - generic [ref=f1e388]: A
+        - generic [ref=f1e390]:
+          - generic [ref=f1e391]: A
+          - generic [ref=f1e392]: At Start · your turn
+        - generic [ref=f1e393]:
+          - generic [ref=f1e394]: CASH
+          - generic [ref=f1e395]: $500
+        - generic [ref=f1e397]:
+          - generic [ref=f1e398]: BANK
+          - generic [ref=f1e399]: $0
+      - generic [ref=f1e377]:
+        - generic [ref=f1e378] [cursor=pointer]: Roll Dice
+        - generic: End Turn
+  - generic:
+    - generic:
+      - generic:
+        - generic: "1"
+        - generic: "6"
+        - generic: "3"
+        - generic: "4"
+        - generic: "5"
+        - generic: "2"

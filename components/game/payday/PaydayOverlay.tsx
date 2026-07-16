@@ -9,7 +9,7 @@ import { useSound } from "@/contexts/SoundContext";
 import type { PaydayReport, Player } from "@/types/game";
 import { useEffect, useRef, useState } from "react";
 import { Pressable, ScrollView, StyleSheet, View } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import PayStepRow, { PayStep } from "./PayStepRow";
 
 const STEP = GAME_CONFIG.borrowStep;
@@ -54,7 +54,14 @@ function buildSteps(
       .join(" · ") || "—";
 
   return [
-    { title: "Collect wages", sub: "Every Pay Day", amount: report.salary },
+    {
+      title: "Closing balance",
+      sub: "Cash carried into Pay Day",
+      amount: report.openingCash,
+      amountText: money(report.openingCash),
+      amountColor: SD.ink,
+    },
+    { title: "Collect salary", sub: "Every Pay Day", amount: report.salary },
     interestStep,
     {
       title: "Pay your bills",
@@ -80,6 +87,7 @@ export default function PaydayOverlay({
   onDone,
 }: PaydayOverlayProps) {
   const overlay = useRef<SlideOverlayHandle>(null);
+  const insets = useSafeAreaInsets();
   const { successHaptic } = useSound();
   const [sheet, setSheet] = useState<"repay" | "deposit" | null>(null);
   const [repaid, setRepaid] = useState(0);
@@ -91,18 +99,30 @@ export default function PaydayOverlay({
   }, []);
 
   const hasLoan = player.loanBalance > 0;
+  const isLastPayday = month >= totalMonths;
   const repayMax = Math.min(player.loanBalance, Math.floor(player.cash / STEP) * STEP);
   const depositMax = Math.floor(player.cash / STEP) * STEP;
+  // Depositing on the final Pay Day is pointless — there's no next month
+  const depositAllowed = depositMax >= STEP && !isLastPayday;
   const actionEnabled =
-    !report.bankrupt && (hasLoan ? repayMax >= STEP : depositMax >= STEP);
+    !report.bankrupt && (hasLoan ? repayMax >= STEP : depositAllowed);
   const wasShort =
     report.autoWithdrawn > 0 || report.autoBorrowed > 0 || report.liquidated > 0;
+
+  let actionSub: string;
+  if (hasLoan) {
+    actionSub = `$${player.loanBalance} outstanding · only allowed on Pay Day`;
+  } else if (isLastPayday) {
+    actionSub = "Final Pay Day — no more interest to earn";
+  } else {
+    actionSub = `Grow it ${GAME_CONFIG.savingsInterestPercentage}% every Pay Day · today only`;
+  }
 
   return (
     <SlideOverlay ref={overlay} onClose={onDone}>
       <ScreenBackground>
-        <SafeAreaView style={styles.screen}>
-          <View style={styles.header}>
+        <SafeAreaView style={styles.screen} edges={["left", "right", "bottom"]}>
+          <View style={[styles.header, { paddingTop: insets.top + 14 }]}>
             <Typography design="body" weight={800} style={styles.headerEyebrow}>
               MONTH {month} OF {totalMonths}
             </Typography>
@@ -166,9 +186,7 @@ export default function PaydayOverlay({
                   {hasLoan ? "Repay loan" : "Deposit to savings"}
                 </Typography>
                 <Typography design="body" weight={700} style={styles.actionSub}>
-                  {hasLoan
-                    ? `$${player.loanBalance} outstanding · only allowed on Pay Day`
-                    : `Grow it ${GAME_CONFIG.savingsInterestPercentage}% every Pay Day · today only`}
+                  {actionSub}
                 </Typography>
               </View>
               <Typography design="body" weight={800} style={styles.actionChevron}>

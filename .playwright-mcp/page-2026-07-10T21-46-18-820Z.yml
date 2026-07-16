@@ -1,0 +1,151 @@
+- generic [ref=f3e23]:
+  - generic [ref=f3e24]:
+    - generic [ref=f3e352] [cursor=pointer]: 
+    - generic [ref=f3e28]:
+      - generic [ref=f3e29]: Month 2 of 2
+      - generic [ref=f3e30]: PLAYER 2'S TURN
+    - generic [ref=f3e34]: $
+  - generic [ref=f3e36]:
+    - generic [ref=f3e37]:
+      - generic [ref=f3e38]: S
+      - generic [ref=f3e39]: M
+      - generic [ref=f3e40]: T
+      - generic [ref=f3e41]: W
+      - generic [ref=f3e42]: T
+      - generic [ref=f3e43]: F
+      - generic [ref=f3e44]: S
+    - generic [ref=f3e46]:
+      - generic [ref=f3e47]:
+        - generic [ref=f3e73] [cursor=pointer]: START
+        - generic [ref=f3e81] [cursor=pointer]: "1"
+        - generic [ref=f3e86] [cursor=pointer]:
+          - generic [ref=f3e88]: "2"
+          - generic [ref=f3e91]: $
+          - generic [ref=f3e94]: +$400
+        - generic [ref=f3e97] [cursor=pointer]: "3"
+        - generic [ref=f3e104] [cursor=pointer]: "4"
+        - generic [ref=f3e111] [cursor=pointer]: "5"
+        - generic [ref=f3e116] [cursor=pointer]:
+          - generic [ref=f3e118]: "6"
+          - generic [ref=f3e122]: $
+          - generic [ref=f3e125]: "-$50"
+      - generic [ref=f3e126]:
+        - generic [ref=f3e129] [cursor=pointer]: "7"
+        - generic [ref=f3e134] [cursor=pointer]:
+          - generic [ref=f3e136]: "8"
+          - generic [ref=f3e139]: $
+          - generic [ref=f3e142]: +$100
+        - generic [ref=f3e145] [cursor=pointer]: "9"
+        - generic [ref=f3e150] [cursor=pointer]:
+          - generic [ref=f3e152]: "10"
+          - generic [ref=f3e161]: Poker
+        - generic [ref=f3e164] [cursor=pointer]: "11"
+        - generic [ref=f3e171] [cursor=pointer]: "12"
+        - generic [ref=f3e176] [cursor=pointer]:
+          - generic [ref=f3e178]: "13"
+          - generic [ref=f3e182]: $
+          - generic [ref=f3e185]: "-$40"
+      - generic [ref=f3e186]:
+        - generic [ref=f3e189] [cursor=pointer]: "14"
+        - generic [ref=f3e196] [cursor=pointer]: "15"
+        - generic [ref=f3e203] [cursor=pointer]: "16"
+        - generic [ref=f3e210] [cursor=pointer]: "17"
+        - generic [ref=f3e215] [cursor=pointer]:
+          - generic [ref=f3e217]: "18"
+          - generic [ref=f3e221]: $
+          - generic [ref=f3e224]: "-$75"
+        - generic [ref=f3e227] [cursor=pointer]: "19"
+        - generic [ref=f3e234] [cursor=pointer]: "20"
+      - generic [ref=f3e239]:
+        - generic [ref=f3e242] [cursor=pointer]: "21"
+        - generic [ref=f3e249] [cursor=pointer]: "22"
+        - generic [ref=f3e254] [cursor=pointer]:
+          - generic [ref=f3e256]: "23"
+          - generic [ref=f3e260]: $
+          - generic [ref=f3e263]: "-$50"
+        - generic [ref=f3e266] [cursor=pointer]: "24"
+        - generic [ref=f3e273] [cursor=pointer]: "25"
+        - generic [ref=f3e278] [cursor=pointer]:
+          - generic [ref=f3e280]: "26"
+          - generic [ref=f3e2165]:
+            - generic [ref=f3e2167]: P
+            - generic [ref=f3e2274]: P
+          - generic [ref=f3e283]: $
+          - generic [ref=f3e286]: "-$50"
+        - generic [ref=f3e287] [cursor=pointer]:
+          - generic [ref=f3e289]: "27"
+          - generic [ref=f3e295]: Daylight
+      - generic [ref=f3e296]:
+        - generic [ref=f3e299] [cursor=pointer]: "28"
+        - generic [ref=f3e306] [cursor=pointer]: "29"
+        - generic [ref=f3e313] [cursor=pointer]: "30"
+        - generic [ref=f3e319] [cursor=pointer]:
+          - generic [ref=f3e320]:
+            - generic [ref=f3e321]: DAY 31
+            - generic [ref=f3e322]: PAY DAY
+          - generic [ref=f3e324]: +$325
+  - generic [ref=f3e325]:
+    - generic [ref=f3e328] [cursor=pointer]:
+      - generic [ref=f3e330]: 
+      - generic [ref=f3e331]: MAIL
+      - generic [ref=f3e333]: "2"
+    - generic [ref=f3e336] [cursor=pointer]:
+      - generic [ref=f3e338]: 
+      - generic [ref=f3e339]: DEALS
+      - generic [ref=f3e341]: "0"
+  - generic [ref=f3e2260]:
+    - generic [ref=f3e2262]: P
+    - generic [ref=f3e2263]:
+      - generic [ref=f3e2264]: Player 2
+      - generic [ref=f3e2265]: On Day 26 · your turn
+    - generic [ref=f3e2266]:
+      - generic [ref=f3e2267]: CASH
+      - generic [ref=f3e2268]: $361
+    - generic [ref=f3e2270]:
+      - generic [ref=f3e2271]: BANK
+      - generic [ref=f3e2272]: $0
+  - generic [ref=f3e343]:
+    - generic [ref=f3e348]: Roll Dice
+    - generic [ref=f3e351]: End Turn
+  - generic [ref=f3e2277]:
+    - generic [ref=f3e2278]:
+      - generic [ref=f3e2279]: 🗳️
+      - generic [ref=f3e2280]: TOWN ELECTION
+      - generic [ref=f3e2281]: First to roll a 6!
+      - generic [ref=f3e2282]: Take turns rolling — a 6 takes it all.
+    - generic [ref=f3e2283]:
+      - generic [ref=f3e2284]: THE POT
+      - generic [ref=f3e2285]: $100
+    - generic [ref=f3e2288]:
+      - generic:
+        - generic [ref=f3e2290]: P
+        - generic [ref=f3e2291]:
+          - generic [ref=f3e2292]: Player 1
+          - generic [ref=f3e2293]: Waiting…
+      - generic:
+        - generic [ref=f3e2297]: P
+        - generic [ref=f3e2298]:
+          - generic [ref=f3e2299]: Player 2
+          - generic [ref=f3e2300]: Rolling now…
+    - generic [ref=f3e2303]:
+      - generic [ref=f3e2304]:
+        - generic [ref=f3e2305]:
+          - generic [ref=f3e2307]: P
+          - generic [ref=f3e2308]: YOUR CASH
+        - generic [ref=f3e2309]: $361
+      - generic [ref=f3e2313] [cursor=pointer]: 🎲 Player 2 rolls for the Pot
+  - generic:
+    - generic:
+      - generic:
+        - generic:
+          - generic: "1"
+        - generic:
+          - generic: "6"
+        - generic:
+          - generic: "3"
+        - generic:
+          - generic: "4"
+        - generic:
+          - generic: "5"
+        - generic:
+          - generic: "2"

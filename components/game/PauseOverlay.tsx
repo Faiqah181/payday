@@ -1,5 +1,4 @@
 import ChunkyButton from "@/components/ui/ChunkyButton";
-import ConfirmDialog from "@/components/ui/ConfirmDialog";
 import ScreenBackground from "@/components/ui/ScreenBackground";
 import ScreenHeader from "@/components/ui/ScreenHeader";
 import SlideOverlay, { SlideOverlayHandle } from "@/components/ui/SlideOverlay";
@@ -7,7 +6,7 @@ import ToggleSwitch from "@/components/ui/ToggleSwitch";
 import Typography from "@/components/ui/Typography";
 import { SD } from "@/constants/theme";
 import { useSound } from "@/contexts/SoundContext";
-import { useRef, useState } from "react";
+import { useRef } from "react";
 import { StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -16,6 +15,7 @@ interface PauseOverlayProps {
   totalMonths: number;
   playerCount: number;
   onResume: () => void;
+  /** Opens the shared leave-game confirmation (owned by the game screen). */
   onLeave: () => void;
 }
 
@@ -59,7 +59,6 @@ export default function PauseOverlay({
   const overlay = useRef<SlideOverlayHandle>(null);
   const { soundEnabled, toggleSound, hapticsEnabled, toggleHaptics, playClick } =
     useSound();
-  const [confirmLeave, setConfirmLeave] = useState(false);
 
   return (
     <SlideOverlay ref={overlay} onClose={onResume} from="left">
@@ -133,24 +132,13 @@ export default function PauseOverlay({
               depth={5}
               borderRadius={18}
               contentStyle={styles.leaveFace}
-              onPress={() => setConfirmLeave(true)}
+              onPress={onLeave}
             >
               <Typography design="title" style={styles.leaveLabel}>
                 Leave Game
               </Typography>
             </ChunkyButton>
           </View>
-
-          {confirmLeave && (
-            <ConfirmDialog
-              title="Leave the game?"
-              body="Your current progress in this match will be lost. This can't be undone."
-              confirmLabel="Leave Game"
-              cancelLabel="Keep Playing"
-              onConfirm={onLeave}
-              onCancel={() => setConfirmLeave(false)}
-            />
-          )}
         </SafeAreaView>
       </ScreenBackground>
     </SlideOverlay>

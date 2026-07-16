@@ -1,0 +1,168 @@
+- generic [ref=f3e23]:
+  - generic [ref=f3e24]:
+    - generic [ref=f3e352] [cursor=pointer]: 
+    - generic [ref=f3e28]:
+      - generic [ref=f3e29]: Month 1 of 2
+      - generic [ref=f3e30]: PLAYER 2'S TURN
+    - generic [ref=f3e34]: $
+  - generic [ref=f3e36]:
+    - generic [ref=f3e37]:
+      - generic [ref=f3e38]: S
+      - generic [ref=f3e39]: M
+      - generic [ref=f3e40]: T
+      - generic [ref=f3e41]: W
+      - generic [ref=f3e42]: T
+      - generic [ref=f3e43]: F
+      - generic [ref=f3e44]: S
+    - generic [ref=f3e46]:
+      - generic [ref=f3e47]:
+        - generic [ref=f3e73] [cursor=pointer]: START
+        - generic [ref=f3e81] [cursor=pointer]: "1"
+        - generic [ref=f3e86] [cursor=pointer]:
+          - generic [ref=f3e88]: "2"
+          - generic [ref=f3e91]: $
+          - generic [ref=f3e94]: +$400
+        - generic [ref=f3e97] [cursor=pointer]: "3"
+        - generic [ref=f3e102] [cursor=pointer]:
+          - generic [ref=f3e104]: "4"
+          - generic [ref=f3e1379]: P
+        - generic [ref=f3e111] [cursor=pointer]: "5"
+        - generic [ref=f3e116] [cursor=pointer]:
+          - generic [ref=f3e118]: "6"
+          - generic [ref=f3e122]: $
+          - generic [ref=f3e125]: "-$50"
+      - generic [ref=f3e126]:
+        - generic [ref=f3e129] [cursor=pointer]: "7"
+        - generic [ref=f3e134] [cursor=pointer]:
+          - generic [ref=f3e136]: "8"
+          - generic [ref=f3e139]: $
+          - generic [ref=f3e142]: +$100
+        - generic [ref=f3e145] [cursor=pointer]: "9"
+        - generic [ref=f3e150] [cursor=pointer]:
+          - generic [ref=f3e152]: "10"
+          - generic [ref=f3e161]: Poker
+        - generic [ref=f3e164] [cursor=pointer]: "11"
+        - generic [ref=f3e171] [cursor=pointer]: "12"
+        - generic [ref=f3e176] [cursor=pointer]:
+          - generic [ref=f3e178]: "13"
+          - generic [ref=f3e182]: $
+          - generic [ref=f3e185]: "-$40"
+      - generic [ref=f3e186]:
+        - generic [ref=f3e189] [cursor=pointer]: "14"
+        - generic [ref=f3e196] [cursor=pointer]: "15"
+        - generic [ref=f3e203] [cursor=pointer]: "16"
+        - generic [ref=f3e210] [cursor=pointer]: "17"
+        - generic [ref=f3e215] [cursor=pointer]:
+          - generic [ref=f3e217]: "18"
+          - generic [ref=f3e221]: $
+          - generic [ref=f3e224]: "-$75"
+        - generic [ref=f3e227] [cursor=pointer]: "19"
+        - generic [ref=f3e234] [cursor=pointer]: "20"
+      - generic [ref=f3e239]:
+        - generic [ref=f3e242] [cursor=pointer]: "21"
+        - generic [ref=f3e249] [cursor=pointer]: "22"
+        - generic [ref=f3e254] [cursor=pointer]:
+          - generic [ref=f3e256]: "23"
+          - generic [ref=f3e260]: $
+          - generic [ref=f3e263]: "-$50"
+        - generic [ref=f3e266] [cursor=pointer]: "24"
+        - generic [ref=f3e273] [cursor=pointer]: "25"
+        - generic [ref=f3e278] [cursor=pointer]:
+          - generic [ref=f3e280]: "26"
+          - generic [ref=f3e283]: $
+          - generic [ref=f3e286]: "-$50"
+        - generic [ref=f3e287] [cursor=pointer]:
+          - generic [ref=f3e289]: "27"
+          - generic [ref=f3e295]: Daylight
+      - generic [ref=f3e296]:
+        - generic [ref=f3e299] [cursor=pointer]: "28"
+        - generic [ref=f3e306] [cursor=pointer]: "29"
+        - generic [ref=f3e313] [cursor=pointer]: "30"
+        - generic [ref=f3e318] [cursor=pointer]:
+          - generic [ref=f3e319]:
+            - generic [ref=f3e320]:
+              - generic [ref=f3e321]: DAY 31
+              - generic [ref=f3e322]: PAY DAY
+            - generic [ref=f3e324]: +$325
+          - generic [ref=f3e1485]: P
+  - generic [ref=f3e325]:
+    - generic [ref=f3e328] [cursor=pointer]:
+      - generic [ref=f3e330]: 
+      - generic [ref=f3e331]: MAIL
+      - generic [ref=f3e333]: "0"
+    - generic [ref=f3e336] [cursor=pointer]:
+      - generic [ref=f3e338]: 
+      - generic [ref=f3e339]: DEALS
+      - generic [ref=f3e341]: "0"
+  - generic [ref=f3e1470]:
+    - generic [ref=f3e1472]: P
+    - generic [ref=f3e1473]:
+      - generic [ref=f3e1474]: Player 2
+      - generic [ref=f3e1475]: On Day 31 · your turn
+    - generic [ref=f3e1476]:
+      - generic [ref=f3e1477]: CASH
+      - generic [ref=f3e1478]: $351
+    - generic [ref=f3e1480]:
+      - generic [ref=f3e1481]: BANK
+      - generic [ref=f3e1482]: $0
+  - generic [ref=f3e343]:
+    - generic [ref=f3e348]: Roll Dice
+    - generic [ref=f3e351]: End Turn
+  - generic [ref=f3e1491]:
+    - generic [ref=f3e1492]:
+      - generic [ref=f3e1493]: MONTH 1 OF 2
+      - generic [ref=f3e1494]: PAY DAY
+      - generic [ref=f3e1495]: Settle up, then start a fresh month.
+    - generic [ref=f3e1497]:
+      - generic [ref=f3e1498]:
+        - generic [ref=f3e1499]:
+          - generic [ref=f3e1501]: "1"
+          - generic [ref=f3e1502]:
+            - generic [ref=f3e1503]: Collect wages
+            - generic [ref=f3e1504]: Every Pay Day
+          - generic [ref=f3e1505]: +$325
+        - generic [ref=f3e1506]:
+          - generic [ref=f3e1508]: "2"
+          - generic [ref=f3e1509]:
+            - generic [ref=f3e1510]: No interest
+            - generic [ref=f3e1511]: No savings, no loan
+          - generic [ref=f3e1512]: $0
+        - generic [ref=f3e1513]:
+          - generic [ref=f3e1515]: "3"
+          - generic [ref=f3e1516]:
+            - generic [ref=f3e1517]: Pay your bills
+            - generic [ref=f3e1518]: Dr. Goodbody, M.D. · Push & Pull Auto · Charge It & Owe It
+          - generic [ref=f3e1519]: "-$550"
+        - generic [ref=f3e1520]:
+          - generic [ref=f3e1522]: "4"
+          - generic [ref=f3e1523]:
+            - generic [ref=f3e1524]: Repay loan / savings
+            - generic [ref=f3e1525]: Optional · $100 steps · today only
+          - generic [ref=f3e1526]: —
+      - generic [ref=f3e1527] [cursor=pointer]:
+        - generic [ref=f3e1529]: +
+        - generic [ref=f3e1530]:
+          - generic [ref=f3e1531]: Deposit to savings
+          - generic [ref=f3e1532]: Grow it 10% every Pay Day · today only
+        - generic [ref=f3e1533]: ›
+      - generic [ref=f3e1534]:
+        - generic [ref=f3e1535]:
+          - generic [ref=f3e1536]: NEW BALANCE
+          - generic [ref=f3e1537]: Player 2 · after bills
+        - generic [ref=f3e1538]: $351
+    - generic [ref=f3e1543] [cursor=pointer]: Start next month →
+  - generic:
+    - generic:
+      - generic:
+        - generic:
+          - generic: "1"
+        - generic:
+          - generic: "6"
+        - generic:
+          - generic: "3"
+        - generic:
+          - generic: "4"
+        - generic:
+          - generic: "5"
+        - generic:
+          - generic: "2"

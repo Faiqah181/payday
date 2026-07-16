@@ -1,165 +1,69 @@
-# PayDay - Digital Board Game App
+# PayDay ("Salary Day") - Digital Board Game App
 
 ## Overview
-A digital adaptation of the **1974 PayDay board game**, built with **Expo 54 / React Native**. Players move through a 31-day calendar month, managing finances through deals, mail cards, bills, insurance, and salary collection. The game supports 2-4 players in pass-and-play mode.
+A digital adaptation of the **1974 PayDay board game**, built with **Expo 54 / React Native**. Players move through a 31-day calendar month, managing finances through deals, mail cards, bills, insurance, loans/savings and Pay Day settlement. 2-4 players, pass-and-play. The whole UI follows the "Sunshine" design system exported from Claude Design (`D:\Projects\Android\Payday Board Game\Payday board game design\`, master file `Pay Period.dc.html`).
 
 ## Tech Stack
-- **Framework**: Expo SDK 54, React Native 0.81.5, TypeScript 5.9.2
-- **Navigation**: expo-router (file-based routing)
-- **Animations**: react-native-reanimated v4 (FadeIn, FadeOut, spring physics, sequential step animations)
-- **Audio**: expo-audio (click sound effects)
-- **Font**: Baloo 2 (Google Fonts, static weights 400–800 in `assets/fonts/`). Loaded via `expo-font` `useFonts` in `app/_layout.tsx`; `constants/fonts.ts` patches `Text`/`TextInput` to map `fontWeight` → the matching Baloo static family app-wide. `StrokeText` (SVG titles) uses Baloo2 ExtraBold.
-- **State**: useReducer pattern for game state machine in `app/game.tsx`
+- **Framework**: Expo SDK 54, React Native 0.81, TypeScript 5.9, pnpm (`nodeLinker: hoisted` in pnpm-workspace.yaml — required for Expo)
+- **Navigation**: expo-router. Routes: `index`, `game-setup`, `game`, `how-to-play`, `settings`, `profile`. In-game "screens" (bank, pause, payday) are OVERLAYS inside the game route — the game never navigates away except Leave/Home.
+- **Animations**: react-native-reanimated v4; gestures via react-native-gesture-handler (root view in `_layout`)
+- **Audio/Haptics**: expo-audio (click) + expo-haptics — both behind toggles in `contexts/SoundContext` (`playClick`, `impactHaptic`, `successHaptic`)
+- **Persistence**: `lib/PersistentStorage.ts` (typed wrapper over expo-sqlite/kv-store, sync API) — sound/haptics/avatarIdx
+- **Fonts**: Baloo 2 (600/700/800 headings & buttons), Nunito (600/700/800 UI text), Bungee (400, display & ALL money). Loaded via `useFonts(APP_FONTS)`. Always use `components/ui/Typography` (`design="money"|"title"|"body"`, `weight` 600/700/800) — raw `Text` renders the system font.
+- **State**: useReducer game state machine in `app/game.tsx`
 
-## Project Structure
+## Design System (`constants/theme.ts`)
+- `SD` — core palette (surface/surface2/ink/soft/line/primary/accent/debt/blue/purple…)
+- `SD_CATEGORY` — board tile category colors; `SD_EVENT_GRADIENTS` — full-screen event washes
+- `SD_LAYER` — z-index tokens (hud 10, screenOverlay 30, drawer 44, event 45, diceRoll 46, itemModal 47, dialog 50). NEVER use raw zIndex numbers.
+- `mixHex(a, b, t)` — color mixing used for tile tints, shadows, disabled states
+- `GAME_CONFIG` (`constants/gameConfig.ts`) — ALL tunable economy numbers: initialCash, salary, maxLoan, borrowStep, interestPercentage, savingsInterestPercentage, earlySavingWithdrawFine (0 = free withdrawals, fine UI auto-hides). Game code must use these, never hardcoded amounts.
 
-```
-app/
-  _layout.tsx        — Root layout: JS splash screen overlay, SoundProvider, Stack nav
-  index.tsx          — Main menu: "Pass & Play" and "Online" (disabled) buttons
-  game-setup.tsx     — Player config: names, count (2-4), months (2-6), account types
-  game.tsx           — Main game screen: reducer, board, modals, all game logic (~700 lines)
-  how-to-play.tsx    — Rules/tutorial with 11 card sections
-  settings.tsx       — Sound toggle, support link, quit button
+## Reusable UI kit (`components/ui/`)
+`Typography`, `ChunkyButton` (3D press button; disabled = solid washed colors), `ScreenBackground` (bg art + cream fade — every in-app screen), `ScreenHeader`, `BottomDrawer` (draggable sheet: pull-down dismisses, up-overshoot springs back), `SlideOverlay` (full-screen slide-in, `from="right"|"left"`), `PopCard` (pop-in card with colored eyebrow header), `ConfirmDialog`, `ToggleSwitch`, `Avatar`, `PlayerToken`, `LoadingScreen`.
 
-components/game/
-  Board.tsx          — 5×7 calendar grid, animated pawn movement (step-by-step 120ms/cell)
-  BoardCell.tsx      — Individual cell: day number, type icon, player tokens, highlight
-  Dice.tsx           — Interactive die with shake animation, random 1-6
-  PlayerCard.tsx     — Player stats: name, cash, loans, deals count, mail count
-  EventToast.tsx     — Pop-up for space events (birthday +$400, rent -$50, etc.)
-  DealCardModal.tsx  — Deal purchase modal: buy price, sell value, commission
-  MailCardModal.tsx  — Polymorphic mail modal (ad/bill/insurance/lottery/swellfare)
-  LotteryRedeemModal.tsx — Select lottery tickets to cash on lottery-result space
-  DealsViewer.tsx    — Tabbed viewer (Deals + Mail tabs) for held cards, sell mode for asset-buyer
+## Game components (`components/game/`)
+- `Board.tsx` / `BoardCell.tsx` — design calendar grid (PAY DAY spans 4 cols); cells tappable → `CellDetailDrawer`
+- `dice/` — `DiceCube` (true 3D matrix cube), `DiceRoller` (THE single die: docked over RollButton, flies/tumbles/returns), `RollButton`, `StaticDie`
+- `drawers/` — `CellDetailDrawer`, `MailDrawer`, `DealsDrawer` (view + sell mode), `CardItemModal`, `DrawerHeader`, `DrawerRow`
+- `bank/` — `BankScreen` (player tabs, pot row, AccountCard, actions), `AccountCard`, `AmountSheet` (shared borrow/withdraw/repay/deposit stepper), `PotDrawer` (history ledger)
+- `payday/` — `PaydayOverlay` (settlement ledger + repay/deposit), `PayStepRow`
+- `events/` — `EventShell` (gradient event screen; "curtain" enter/exit — pours down from above, falls out the bottom, fading at both ends. The panel hangs a `WAVE_H` SVG wave-cap past each screen edge (`react-native-svg`, filled with the gradient's end colours) so a liquid edge sweeps through while sliding; the caps park off-screen at rest and the gradient still covers exactly the screen), `EventPlayerRow`, `EventFooter`, `WinnerCelebration`, `useDelayedReveal`
+- Event modals: `PokerGameModal`, `ElectionModal`, `DaylightSavingModal`, `SwellfareModal`, `CommissionModal`, `LotteryRedeemModal`, `EventToast`, `GameOverModal` (results screen), `PauseOverlay`
+- Draw modals: `MailCardModal`, `DealCardModal` (on PopCard)
 
-components/menu/
-  MenuButton.tsx     — Animated button with press spring, sound, variants (primary/secondary/disabled)
-  IconButton.tsx     — Circular icon button (settings, help)
-  ComingSoonBadge.tsx — Rotated orange badge for disabled features
-
-constants/
-  board.ts           — BOARD_SPACES (32 spaces, day 0-31), SPACE_CONFIG (icons/colors), SPACE_EVENTS
-  colors.ts          — COLORS (yellow bg, button styles, text), SPACING (xs-xl), BORDER_RADIUS
-  deals.ts           — ALL_DEALS (30 cards, $30-$800 range), shuffleDeck()
-  mail.ts            — ALL_MAIL (58 cards), shuffleMailDeck()
-
-types/game.ts        — All game types: SpaceType, BoardSpace, DealCard, MailCard, Player, GameState
-contexts/SoundContext.tsx — Global sound toggle + playClick() via expo-audio
-```
-
-## Game State Machine
-
-State is managed by `useReducer` in `app/game.tsx`. The `GameState` tracks:
-- `players[]` — each with cash, position, deals, unpaidBills, lotteryTickets, insurance
-- `phase` — current game phase (drives which UI is shown)
-- `dealDeck[]`, `mailDeck[]` — shuffled card decks
-- `currentDeal`, `currentMail` — card being shown in modal
+## Economy Rules (implemented)
+- **No account choice** — `getAccountStatus(player)` in `types/game.ts` derives `"loan" | "savings" | "neutral"` from balances. Never both at once.
+- **Borrow**: anytime, `borrowStep` increments, capped at `maxLoan`, blocked while savings exist
+- **No silent spend beyond cash**: mandatory payments (Town Election pay-in, Pay Day bills/interest) auto-drain savings then auto-loan via `coverShortfall()` — you can't refuse them. Every *optional* buy — deal, insurance, poker entry — first checks cash: if cash covers it the buy is immediate, otherwise a `ConfirmDialog` names the exact funding (`lib/financing.ts` → `shortfallFunding`/`fundingClause`, e.g. "$320 from your savings" or "a $200 loan", using savings→loan order since accounts are savings-XOR-loan) and only on confirm dispatches the buy (which runs the same `coverShortfall()`). `canFinance()` (cash + savings + loan headroom) still hard-disables the Buy/Join button when even everything combined can't cover it. Swellfare bets are capped at cash in hand.
+- **Withdraw savings**: anytime; fine only if `earlySavingWithdrawFine > 0`
+- **Repay loan / deposit savings**: Pay Day only (reducer phase-guarded). Repay fully, then deposit becomes available in the same Pay Day.
+- **Pay Day** (landing on day 31): reducer `settlePayday()` applies salary → interest (savings interest compounds into savings; loan interest charged to cash) → pays all bills → auto-covers shortfalls (savings first, then auto-loan). `PaydayOverlay` shows the report + optional repay/deposit, then `START_NEW_MONTH`.
+- **Commission**: buying a deal → phase `"commission"` → every player rolls, highest collects `deal.commission` from the bank
+- **Pot**: lost swellfare bets fill it; the Town Election is an on-screen dice race (`ElectionModal`: everyone pays $50 in → players take turns rolling → first 6 wins the whole Pot on the spot; resolved by `CONFIRM_ELECTION { winnerIndex }`, pot resets to 0). All movements logged to `potHistory` (shown in PotDrawer).
+- **Daylight Savings**: every in-game player moves back one space and resolves the new space AS A REGULAR TURN, in order starting with the lander (`daylightQueue` in GameState; `resolveLanding()` + the `gameReducer` wrapper drive it). Start players just collect salary again; day-1 players return to Start with no consequences; never chains onto another Daylight space.
+- **Bankruptcy**: if the loan maxes out on Pay Day and bills still can't be paid, the Bank buys back deals & insurance at cost; if that's not enough the player goes bankrupt (`Player.bankrupt`), retires immediately, skips all turns, and ranks last on the results screen. Unsold deals are worthless at game end (1974 rule).
 
 ### Phase Flow
-```
-"roll" → player rolls dice
-  → "event" → animation plays, space logic resolves
-    → "deal" → deal card modal (buy/discard)
-    → "mail" → mail card modal (type-specific actions)
-    → "lottery-result" → redeem lottery tickets
-    → "asset-buyer" → sell held deals
-    → "salary-day" → (currently auto-resolves via END_TURN)
-    → "end-turn" → player ends turn
-      → back to "roll" for next player
-      → "game-over" when all players finish all months
-```
+`roll` → dice overlay → `ANIMATION_COMPLETE` resolves the space → `event` / `deal`(→`commission`) / `mail` / `lottery-result` / `asset-buyer` / `poker-game` / `election` / `daylight-saving` / `salary-day`(→`START_NEW_MONTH`) → `end-turn` → next player → `game-over` (results screen).
 
-### Reducer Actions
-| Action | Purpose |
-|--------|---------|
-| `ROLL_DICE` | Calculate target position, start animation |
-| `ANIMATION_COMPLETE` | Resolve space: draw cards, apply events, set next phase |
-| `DISMISS_EVENT` | Close event toast, advance to end-turn |
-| `BUY_DEAL` | Deduct buyPrice, add deal to player |
-| `DISCARD_DEAL` | Skip deal, advance to end-turn |
-| `SELL_DEAL` | Add sellPrice to cash, remove deal from player |
-| `SKIP_ASSET_BUYER` | No sale, advance to end-turn |
-| `DISMISS_MAIL` | Handle mail by type: bills→unpaidBills, lottery→tickets, insurance discard, ad→nothing |
-| `BUY_INSURANCE` | Deduct premium, add to player.insurance |
-| `REDEEM_LOTTERY` | Cash selected tickets, add amounts to cash |
-| `SKIP_LOTTERY` | No redemption, advance to end-turn |
-| `END_TURN` | If at Salary Day (pos 31): reset pos, increment month, deduct bills, expire tickets. Advance player. |
+## Mail & Deal Systems
+- 58 mail cards (`constants/mail.ts`): bills (kept until Pay Day; insurance can cancel by `billCategory`), ads (discard), lottery tickets (valid only in month received, cashed on Lottery Draw), insurance (buy once, permanent), swellfare (gamble when in debt: bet ≤$100, roll 5-6 wins 10×, loss feeds the pot)
+- 30 deal cards (`constants/deals.ts`): buy on Deal spaces (loans allowed), sell one card at value on Buyer spaces, commission rolled on purchase
 
-## Mail Card System (58 cards in `constants/mail.ts`)
+## Board data (`constants/board.ts`)
+`BOARD_SPACES` day 0-31, `SPACE_CATEGORY` (type → design category), `getCellAmount`, `getSpaceDetail` (tap-a-cell rules text), layout constants (`BOARD_CELL_GAP` etc. — game.tsx sizing math depends on them).
 
-| Type | Count | Behavior |
-|------|-------|----------|
-| **Lottery** | 4 | Kept until lottery-result space. Valid only in month received. |
-| **Ad** | 12 | Shown then immediately discarded. No action needed. |
-| **Bill** | 36 | Kept in unpaidBills until Salary Day, then paid and discarded. |
-| **Insurance** | 6 | Must buy ($150-$200) or discard immediately. If bought, held permanently. |
-| **Swellfare** | 0 | Type exists but no cards yet. Gambling mechanic TBD. |
-
-### Bill Categories & Insurance Cancellation
-- Bills have `billCategory`: "auto", "doctor", "dentist", "other"
-- Insurance has `cancelsCategories`: CARR Insurance cancels "auto"; Aches & Pains cancels "doctor" + "dentist"
-- When a bill is drawn, if player holds matching insurance → bill is cancelled (discarded, not kept)
-- "other" category bills are never cancelled by insurance
-- Check happens in both UI (green "Cancelled!" note) and reducer logic
-
-## Deal Card System (30 cards in `constants/deals.ts`)
-- Buy price: $30-$400, Sell price: $50-$800
-- Bought on "deal" spaces, sold on "asset-buyer" spaces
-- Commission field exists but not yet deducted in sell logic
-
-## Board Layout (`constants/board.ts`)
-- 7 columns (Sun-Sat) × 5 rows = 32 spaces (day 0 START through day 31 SALARY DAY)
-- Calendar-style grid. Players move left-to-right through each week.
-- Space types trigger different phases/events (see SPACE_CONFIG for icons and labels)
-
-### Space Events (instant cash changes)
-- Birthday Gift: +$400
-- Performance Bonus: +$100
-- Visitor Surprise: -$50
-- School Reunion: -$40
-- Household Essentials: -$75
-- Home Rent: -$50
-
-## Salary Day (END_TURN at position 31)
-When a player reaches day 31:
-1. Position resets to 0
-2. `currentMonth` increments
-3. All `unpaidBills` totaled and deducted from cash (negative cash allowed for now)
-4. `unpaidBills` cleared
-5. Expired lottery tickets (from current month) removed
-6. If player completed all months → check game over
-
-## Player Initialization
-- Starting cash: $500
-- Starting loanBalance: $0
-- Position: 0 (START)
-- Month: 1
-- Empty arrays for deals, unpaidBills, lotteryTickets, insurance
-- Color assigned from PLAYER_COLORS (red, blue, green, orange)
-
-## UI/UX Patterns
-- **Responsive layout**: Portrait (stacked) vs Landscape (split panel) based on dimensions
-- **Color coding per mail type**: Blue (bills), Gold (lottery), Grey (ads), Purple (insurance)
-- **System bold font**: fontWeight "800" used for all title text in modals and headers
-- **Reanimated animations**: Spring press effects, fade in/out modals, step-by-step pawn movement
-- **Sound**: Click sound on button presses, toggleable via SoundContext
-
-## Pending Features (Not Yet Implemented)
-- **Loan/Savings account mechanics**: loanBalance field exists but no UI. Negative cash allowed temporarily.
-- **Salary collection**: Players don't receive salary on Salary Day yet.
-- **Interest on loans**: Not implemented.
-- **Swellfare cards**: Type exists, no cards or logic.
-- **Commission deduction**: Commission shown on deals but not deducted on sell.
-- **Poker Game space**: Space exists on board, no special logic.
-- **Election space**: Space exists, no logic.
-- **Daylight Saving space**: Space exists, no logic.
-- **Online multiplayer**: Button exists but disabled with "Coming Soon" badge.
-- **Game-over summary**: Currently just an Alert dialog, no proper summary screen.
-- **How-to-play updates**: Needs updating for bill/insurance/lottery mechanics.
+## Pending / Not Implemented
+- Online multiplayer (buttons disabled, design screens exist: OnlineHub/Join/Lobby; `gameMode` scaffold + online poker branches ready)
+- Google Play Games sign-in (profile screen UI ready, no-op)
+- Rate-the-app link (needs store listing), real support email
+- Design polka-dot board texture; board landscape layout is functional but unpolished
 
 ## Build Notes
 - Android SDK path: `C:\Users\Faiqah\AppData\Local\Android\Sdk` — set ANDROID_HOME env var
 - `npx expo prebuild --clean` deletes `android/local.properties` — use env var instead
-- Splash screen: `assets/images/splash-screen.png` with cover mode, bg color #1a6b5a
-- App name in app.json: "paycheck", slug: "salaryday", package: "com.anonymous.salaryday"
+- Native splash: `logo.png` wordmark on `#1A627D` (expo-splash-screen plugin); JS splash = full-bleed `splash-9x19.png` tap-to-start gate in `_layout`
+- App name in app.json: "Salary Day", slug: "salaryday", package/bundleId: "com.kamico.salaryday" — a package change requires `npx expo prebuild --clean` + reinstall on device
+- Metro misses newly created directories on Windows — restart with `npx expo start -c` after adding folders
+- **Web (testing only, not shipped)**: `pnpm web` — metro.config.js carries the wasm asset ext + COEP/COOP headers for expo-sqlite; `PersistentStorage` falls back to localStorage on web (sqlite sync wasm bridge times out); custom Reanimated Keyframes never start on web (element stays hidden) so `PopCard`/`PlayerHud` use predefined `FadeIn`/`ZoomIn` fallbacks behind `Platform.OS === "web"`. Reanimated **custom layout animations are Android/iOS-only by design** (per its docs) — they silently render the final state on web, so `EventShell`'s curtain falls back to predefined `FadeInDown`/`FadeOutDown` there. Rule of thumb: only *predefined* layout animations run on web — always add a `Platform.OS === "web"` fallback.

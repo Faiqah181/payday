@@ -7,6 +7,7 @@ import { StyleSheet } from "react-native";
 
 interface EventToastProps {
   event: EventMessage;
+  /** Settles the event's cash change (and plays the coin sound with it). */
   onDismiss: () => void;
 }
 

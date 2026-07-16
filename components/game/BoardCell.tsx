@@ -12,6 +12,8 @@ export interface CellToken {
   color: string;
   initial: string;
   retired: boolean;
+  /** Mid-flight placeholder: keeps the stack slot but renders invisible. */
+  hidden?: boolean;
 }
 
 interface BoardCellProps {
@@ -119,6 +121,12 @@ function AmountPill({ amount }: { amount: number }) {
   );
 }
 
+function tokenOpacity(token: CellToken): number {
+  if (token.hidden) return 0;
+  if (token.retired) return 0.35;
+  return 1;
+}
+
 function TokenStack({ tokens }: { tokens: CellToken[] }) {
   return (
     <View style={styles.tokenStack}>
@@ -130,7 +138,7 @@ function TokenStack({ tokens }: { tokens: CellToken[] }) {
             {
               backgroundColor: token.color,
               marginLeft: i > 0 ? -7 : 0,
-              opacity: token.retired ? 0.35 : 1,
+              opacity: tokenOpacity(token),
             },
           ]}
         >

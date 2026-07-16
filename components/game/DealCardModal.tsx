@@ -7,11 +7,18 @@ import { StyleSheet, View } from "react-native";
 
 interface DealCardModalProps {
   deal: DealCard;
+  /** Affordable from cash + savings + loan combined. */
+  canAfford: boolean;
   onBuy: () => void;
   onDiscard: () => void;
 }
 
-export default function DealCardModal({ deal, onBuy, onDiscard }: DealCardModalProps) {
+export default function DealCardModal({
+  deal,
+  canAfford,
+  onBuy,
+  onDiscard,
+}: DealCardModalProps) {
   return (
     <PopCard tone={SD.purple} eyebrow="DEAL CARD">
       <Typography design="title" style={styles.title}>
@@ -41,8 +48,9 @@ export default function DealCardModal({ deal, onBuy, onDiscard }: DealCardModalP
       </View>
 
       <Typography design="body" weight={700} style={styles.note}>
-        Hold it, cash in at a Buyer space. Commission ${deal.commission} — highest
-        roller takes it.
+        {canAfford
+          ? `Hold it, cash in at a Buyer space. Commission $${deal.commission} — highest roller takes it.`
+          : "You can't cover this — not even with savings or a full loan."}
       </Typography>
 
       <View style={styles.buttonRow}>
@@ -64,6 +72,7 @@ export default function DealCardModal({ deal, onBuy, onDiscard }: DealCardModalP
           depthColor={SD.primaryShadow}
           depth={4}
           borderRadius={14}
+          disabled={!canAfford}
           style={styles.rowButton}
           contentStyle={styles.buttonFace}
           onPress={onBuy}

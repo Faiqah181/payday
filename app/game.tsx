@@ -9,6 +9,7 @@ import CellDetailDrawer from "@/components/game/drawers/CellDetailDrawer";
 import DealsDrawer from "@/components/game/drawers/DealsDrawer";
 import MailDrawer from "@/components/game/drawers/MailDrawer";
 import PauseOverlay from "@/components/game/PauseOverlay";
+import PlayerHud from "@/components/game/PlayerHud";
 import ElectionModal from "@/components/game/ElectionModal";
 import EventToast from "@/components/game/EventToast";
 import GameOverModal from "@/components/game/GameOverModal";
@@ -18,9 +19,15 @@ import PokerGameModal from "@/components/game/PokerGameModal";
 import PaydayOverlay from "@/components/game/payday/PaydayOverlay";
 import SwellfareModal from "@/components/game/SwellfareModal";
 import ChunkyButton from "@/components/ui/ChunkyButton";
-import PlayerToken from "@/components/ui/PlayerToken";
+import ConfirmDialog from "@/components/ui/ConfirmDialog";
 import ScreenBackground from "@/components/ui/ScreenBackground";
 import Typography from "@/components/ui/Typography";
+import {
+  canFinance,
+  fundingActionLabel,
+  fundingClause,
+  shortfallFunding,
+} from "@/lib/financing";
 import { SD } from "@/constants/theme";
 import {
   BOARD_CELL_GAP,
@@ -35,6 +42,7 @@ import {
 } from "@/constants/board";
 import LoadingScreen from "@/components/ui/LoadingScreen";
 import { GAME_CONFIG } from "@/constants/gameConfig";
+import { useSound } from "@/contexts/SoundContext";
 import { ALL_DEALS, shuffleDeck } from "@/constants/deals";
 import { ALL_MAIL, shuffleMailDeck } from "@/constants/mail";
 import type { GameState, PaydayReport, Player, PotHistoryEntry } from "@/types/game";
@@ -43,7 +51,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { Asset } from "expo-asset";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useReducer, useState } from "react";
-import { StyleSheet, View, useWindowDimensions } from "react-native";
+import { BackHandler, StyleSheet, View, useWindowDimensions } from "react-native";
 import {
   SafeAreaView,
   useSafeAreaInsets,
@@ -79,7 +87,7 @@ type GameAction =
   | { type: "WITHDRAW_SAVINGS"; amount: number }
   | { type: "USE_SWELLFARE"; bet: number; roll: number }
   | { type: "DISCARD_SWELLFARE" }
-  | { type: "CONFIRM_ELECTION" }
+  | { type: "CONFIRM_ELECTION"; winnerIndex: number }
   | { type: "CONFIRM_DAYLIGHT_SAVING" }
   | {
       type: "CONFIRM_POKER_GAME";
@@ -90,7 +98,7 @@ type GameAction =
   | { type: "END_TURN" };
 
 /**
- * Pay Day settlement, in rule order: collect wages, apply interest,
+ * Pay Day settlement, in rule order: collect salary, apply interest,
  * pay all bills. If cash runs short, savings are pulled first (free),
  * then a loan is taken automatically in borrowStep increments. If the
  * loan maxes out, the Bank buys back deals & insurance at cost — and if
@@ -155,6 +163,7 @@ function settlePayday(player: Player): { player: Player; report: PaydayReport } 
       unpaidBills: [],
     },
     report: {
+      openingCash: player.cash,
       salary: GAME_CONFIG.salary,
       interest,
       interestOn,
@@ -169,6 +178,24 @@ function settlePayday(player: Player): { player: Player; report: PaydayReport } 
   };
 }
 
+/** Cover a cash shortfall: savings first, then an auto-loan in borrowStep steps. */
+function coverShortfall(player: Player): Player {
+  let { cash, savingsBalance, loanBalance } = player;
+  if (cash < 0 && savingsBalance > 0) {
+    const withdrawal = Math.min(savingsBalance, -cash);
+    savingsBalance -= withdrawal;
+    cash += withdrawal;
+  }
+  if (cash < 0) {
+    const needed =
+      Math.ceil(-cash / GAME_CONFIG.borrowStep) * GAME_CONFIG.borrowStep;
+    const borrowed = Math.min(needed, GAME_CONFIG.maxLoan - loanBalance);
+    loanBalance += borrowed;
+    cash += borrowed;
+  }
+  return { ...player, cash, savingsBalance, loanBalance };
+}
+
 function potEntry(state: GameState, label: string, amount: number): PotHistoryEntry {
   const player = state.players[state.currentPlayerIndex];
   return {
@@ -178,7 +205,175 @@ function potEntry(state: GameState, label: string, amount: number): PotHistoryEn
   };
 }
 
+/**
+ * Resolve the space the current player is standing on, exactly as a
+ * regular landing: draw cards, open events, settle Pay Day, or apply an
+ * instant space event. Assumes positions are already updated.
+ */
+function resolveLanding(state: GameState): GameState {
+  const playerIndex = state.currentPlayerIndex;
+  const player = state.players[playerIndex];
+  const space = getSpaceByDay(player.position);
+  const event = space ? SPACE_EVENTS[space.type] : undefined;
+
+  // Deal space: draw a card from the deck
+  if (space?.type === "deal") {
+    let deck = [...state.dealDeck];
+    if (deck.length === 0) deck = shuffleDeck([...ALL_DEALS]);
+    const [drawnCard, ...remainingDeck] = deck;
+    return {
+      ...state,
+      phase: "deal",
+      dealDeck: remainingDeck,
+      currentDeal: drawnCard,
+    };
+  }
+
+  // Post-mail space: draw a mail card
+  if (space?.type === "post-mail") {
+    let mailDeck = [...state.mailDeck];
+    if (mailDeck.length === 0) mailDeck = shuffleMailDeck([...ALL_MAIL]);
+    const [drawnMail, ...remainingMail] = mailDeck;
+    return {
+      ...state,
+      phase: "mail",
+      mailDeck: remainingMail,
+      currentMail: drawnMail,
+    };
+  }
+
+  // Lottery-result space: redeem lottery tickets
+  if (space?.type === "lottery-result") {
+    const validTickets = player.lotteryTickets.filter(
+      (t) => t.monthReceived === player.currentMonth,
+    );
+    if (validTickets.length > 0) {
+      return { ...state, phase: "lottery-result" };
+    }
+    return {
+      ...state,
+      phase: "event",
+      eventMessage: {
+        title: "Lottery Result",
+        description: "You have no lottery tickets!",
+        amount: 0,
+      },
+    };
+  }
+
+  // Asset-buyer space: sell a deal
+  if (space?.type === "asset-buyer") {
+    if (player.deals.length > 0) {
+      return { ...state, phase: "asset-buyer" };
+    }
+    return {
+      ...state,
+      phase: "event",
+      eventMessage: {
+        title: "Asset Buyer",
+        description: "You have no deals to sell!",
+        amount: 0,
+      },
+    };
+  }
+
+  // Poker game space: optional $100 wager, highest roller wins
+  if (space?.type === "poker-game") {
+    return { ...state, phase: "poker-game" };
+  }
+
+  // Daylight Saving space: all players move back 1
+  if (space?.type === "daylight-saving") {
+    return { ...state, phase: "daylight-saving" };
+  }
+
+  // Election space: all players contribute to pot. Needs opponents — a lone
+  // survivor would just pay in and win it straight back, so skip it.
+  if (space?.type === "election") {
+    const inGame = state.players.filter(
+      (p) => !p.bankrupt && p.currentMonth <= state.totalMonths,
+    ).length;
+    if (inGame <= 1) {
+      return {
+        ...state,
+        phase: "event",
+        eventMessage: {
+          title: "Town Election",
+          description: "You're the only candidate left — no election is held.",
+          amount: 0,
+        },
+      };
+    }
+    return { ...state, phase: "election" };
+  }
+
+  // Salary day: settle salary, interest and bills immediately, then
+  // show the Pay Day screen for optional repay/deposit.
+  if (space?.type === "salary-day") {
+    const settled = settlePayday(player);
+    return {
+      ...state,
+      players: state.players.map((p, i) => (i === playerIndex ? settled.player : p)),
+      phase: "salary-day",
+      payday: settled.report,
+    };
+  }
+
+  return {
+    ...state,
+    phase: event ? "event" : "end-turn",
+    eventMessage: event ?? null,
+  };
+}
+
+/**
+ * Daylight Savings: resolve queued players one by one, each following
+ * their new space as a regular turn. Interactive spaces pause the queue
+ * (the wrapper resumes it when their phase reaches end-turn); quiet
+ * spaces resolve inline. Never chains onto another Daylight space.
+ */
+function advanceDaylightQueue(state: GameState): GameState {
+  let current = state;
+  while (current.daylightQueue && current.daylightQueue.length > 0) {
+    const [next, ...rest] = current.daylightQueue;
+    current = { ...current, currentPlayerIndex: next, daylightQueue: rest };
+    const space = getSpaceByDay(current.players[next].position);
+    if (space?.type === "daylight-saving") continue;
+    const resolved = resolveLanding(current);
+    if (resolved.phase !== "end-turn") return resolved;
+    current = resolved;
+  }
+  return {
+    ...current,
+    currentPlayerIndex: current.daylightReturnIndex ?? current.currentPlayerIndex,
+    daylightQueue: null,
+    daylightReturnIndex: null,
+    phase: "end-turn",
+  };
+}
+
+/** Players still in the game (not retired, not bankrupt). */
+function activeCount(state: GameState): number {
+  return state.players.filter(
+    (p) => !p.bankrupt && p.currentMonth <= state.totalMonths,
+  ).length;
+}
+
 function gameReducer(state: GameState, action: GameAction): GameState {
+  let next = coreReducer(state, action);
+  // A queued Daylight resolution finished — hand the stage to the next player
+  if (next.daylightQueue && next.phase === "end-turn") {
+    next = advanceDaylightQueue(next);
+  }
+  // One player left just loops End Turn back to themselves — auto-advance
+  // straight into their next roll (and drop into game-over when none remain).
+  if (next.phase === "end-turn" && activeCount(next) <= 1) {
+    next = coreReducer(next, { type: "END_TURN" });
+  }
+  return next;
+}
+
+function coreReducer(state: GameState, action: GameAction): GameState {
   switch (action.type) {
     case "ROLL_DICE": {
       const player = state.players[state.currentPlayerIndex];
@@ -193,171 +388,17 @@ function gameReducer(state: GameState, action: GameAction): GameState {
     case "ANIMATION_COMPLETE": {
       if (!state.animatingMove) return state;
       const { playerIndex, to } = state.animatingMove;
-      const space = getSpaceByDay(to);
-      const event = space ? SPACE_EVENTS[space.type] : undefined;
-      const isDeal = space?.type === "deal";
 
       const updatedPlayers = state.players.map((player, i) => {
         if (i !== playerIndex) return player;
         return { ...player, position: to };
       });
 
-      // Election win: rolled a 6 while election is active
-      if (state.electionActive && state.diceValue === 6) {
-        const potAmount = state.pot;
-        const winnerName = state.players[state.currentPlayerIndex].name;
-        return {
-          ...state,
-          players: updatedPlayers,
-          animatingMove: null,
-          electionActive: false,
-          pot: 0,
-          potHistory: [
-            ...state.potHistory,
-            potEntry(state, `${winnerName} rolled a 6 — won the Pot`, -potAmount),
-          ],
-          phase: "event",
-          eventMessage: {
-            title: "Election Won!",
-            description: "You rolled a 6 and won the Election Pot!",
-            amount: potAmount,
-          },
-        };
-      }
-
-      // Deal space: draw a card from the deck
-      if (isDeal) {
-        let deck = [...state.dealDeck];
-        if (deck.length === 0) deck = shuffleDeck([...ALL_DEALS]);
-        const [drawnCard, ...remainingDeck] = deck;
-        return {
-          ...state,
-          players: updatedPlayers,
-          animatingMove: null,
-          phase: "deal",
-          dealDeck: remainingDeck,
-          currentDeal: drawnCard,
-        };
-      }
-
-      // Post-mail space: draw a mail card
-      if (space?.type === "post-mail") {
-        let mailDeck = [...state.mailDeck];
-        if (mailDeck.length === 0) mailDeck = shuffleMailDeck([...ALL_MAIL]);
-        const [drawnMail, ...remainingMail] = mailDeck;
-        return {
-          ...state,
-          players: updatedPlayers,
-          animatingMove: null,
-          phase: "mail",
-          mailDeck: remainingMail,
-          currentMail: drawnMail,
-        };
-      }
-
-      // Lottery-result space: redeem lottery tickets
-      if (space?.type === "lottery-result") {
-        const player = updatedPlayers[playerIndex];
-        const validTickets = player.lotteryTickets.filter(
-          (t) => t.monthReceived === player.currentMonth,
-        );
-        if (validTickets.length > 0) {
-          return {
-            ...state,
-            players: updatedPlayers,
-            animatingMove: null,
-            phase: "lottery-result",
-          };
-        }
-        return {
-          ...state,
-          players: updatedPlayers,
-          animatingMove: null,
-          phase: "event",
-          eventMessage: {
-            title: "Lottery Result",
-            description: "You have no lottery tickets!",
-            amount: 0,
-          },
-        };
-      }
-
-      // Asset-buyer space: sell a deal
-      if (space?.type === "asset-buyer") {
-        const hasDeals = updatedPlayers[playerIndex].deals.length > 0;
-        if (hasDeals) {
-          return {
-            ...state,
-            players: updatedPlayers,
-            animatingMove: null,
-            phase: "asset-buyer",
-          };
-        }
-        return {
-          ...state,
-          players: updatedPlayers,
-          animatingMove: null,
-          phase: "event",
-          eventMessage: {
-            title: "Asset Buyer",
-            description: "You have no deals to sell!",
-            amount: 0,
-          },
-        };
-      }
-
-      // Poker game space: optional $100 wager, highest roller wins
-      if (space?.type === "poker-game") {
-        return {
-          ...state,
-          players: updatedPlayers,
-          animatingMove: null,
-          phase: "poker-game",
-        };
-      }
-
-      // Daylight Saving space: all players move back 1
-      if (space?.type === "daylight-saving") {
-        return {
-          ...state,
-          players: updatedPlayers,
-          animatingMove: null,
-          phase: "daylight-saving",
-        };
-      }
-
-      // Election space: all players contribute to pot
-      if (space?.type === "election") {
-        return {
-          ...state,
-          players: updatedPlayers,
-          animatingMove: null,
-          phase: "election",
-        };
-      }
-
-      // Salary day: settle wages, interest and bills immediately, then
-      // show the Pay Day screen for optional repay/deposit.
-      if (space?.type === "salary-day") {
-        const settled = settlePayday(updatedPlayers[state.currentPlayerIndex]);
-        return {
-          ...state,
-          players: updatedPlayers.map((p, i) =>
-            i === state.currentPlayerIndex ? settled.player : p,
-          ),
-          animatingMove: null,
-          phase: "salary-day",
-          payday: settled.report,
-        };
-      }
-
-      return {
+      return resolveLanding({
         ...state,
         players: updatedPlayers,
         animatingMove: null,
-        phase: event ? "event" : "end-turn",
-        eventMessage: event ?? null,
-      };
+      });
     }
     case "DISMISS_EVENT": {
       const amount = state.eventMessage?.amount ?? 0;
@@ -380,11 +421,12 @@ function gameReducer(state: GameState, action: GameAction): GameState {
       const deal = state.currentDeal;
       const updatedPlayers = state.players.map((player, i) => {
         if (i !== state.currentPlayerIndex) return player;
-        return {
+        // Shortfall consent is gated by a confirm before dispatch
+        return coverShortfall({
           ...player,
           cash: player.cash - deal.buyPrice,
           deals: [...player.deals, deal],
-        };
+        });
       });
       // Rule: when a deal is bought, every player rolls for its commission
       const hasCommission = deal.commission > 0;
@@ -419,17 +461,25 @@ function gameReducer(state: GameState, action: GameAction): GameState {
       };
     }
     case "SELL_DEAL": {
-      const updatedPlayers = state.players.map((player, i) => {
-        if (i !== state.currentPlayerIndex) return player;
-        const deal = player.deals.find((d) => d.id === action.dealId);
-        if (!deal) return player;
-        return {
-          ...player,
-          cash: player.cash + deal.sellPrice,
-          deals: player.deals.filter((d) => d.id !== action.dealId),
-        };
-      });
-      return { ...state, players: updatedPlayers, phase: "end-turn" };
+      const seller = state.players[state.currentPlayerIndex];
+      const deal = seller.deals.find((d) => d.id === action.dealId);
+      if (!deal) return state;
+      const updatedPlayers = state.players.map((player, i) =>
+        i === state.currentPlayerIndex
+          ? { ...player, deals: player.deals.filter((d) => d.id !== action.dealId) }
+          : player,
+      );
+      // The sale amount lands in DISMISS_EVENT, like other event payouts
+      return {
+        ...state,
+        players: updatedPlayers,
+        phase: "event",
+        eventMessage: {
+          title: "Deal Sold!",
+          description: `${deal.title} went to the buyer — $${deal.sellPrice - deal.buyPrice} profit`,
+          amount: deal.sellPrice,
+        },
+      };
     }
     case "SKIP_ASSET_BUYER": {
       return { ...state, phase: "end-turn" };
@@ -486,11 +536,12 @@ function gameReducer(state: GameState, action: GameAction): GameState {
       const insuranceCard = state.currentMail;
       const updatedPlayers = state.players.map((player, i) => {
         if (i !== state.currentPlayerIndex) return player;
-        return {
+        // Shortfall consent is gated by a confirm before dispatch
+        return coverShortfall({
           ...player,
           cash: player.cash - insuranceCard.amount,
           insurance: [...player.insurance, insuranceCard],
-        };
+        });
       });
       return {
         ...state,
@@ -574,11 +625,13 @@ function gameReducer(state: GameState, action: GameAction): GameState {
       const updatedPlayers = state.players.map((p, i) => {
         if (i !== state.currentPlayerIndex) return p;
         const newMonth = p.currentMonth + 1;
+        const retires = newMonth > state.totalMonths;
         return {
           ...p,
-          position: 0,
+          // Retired players stay on the Pay Day tile instead of returning home
+          position: retires ? p.position : 0,
           currentMonth: newMonth,
-          deals: newMonth > state.totalMonths ? [] : p.deals,
+          deals: retires ? [] : p.deals,
           lotteryTickets: p.lotteryTickets.filter(
             (t) => t.monthReceived !== p.currentMonth,
           ),
@@ -674,7 +727,8 @@ function gameReducer(state: GameState, action: GameAction): GameState {
       const updatedPlayers = state.players.map((player, i) => {
         if (!participantIndices.includes(i)) return player;
         const delta = i === winnerIndex ? prize - 100 : -100;
-        return { ...player, cash: player.cash + delta };
+        // Shortfall consent is gated by a confirm at join time
+        return coverShortfall({ ...player, cash: player.cash + delta });
       });
       return { ...state, players: updatedPlayers, phase: "end-turn" };
     }
@@ -682,116 +736,71 @@ function gameReducer(state: GameState, action: GameAction): GameState {
       return { ...state, phase: "end-turn" };
     }
     case "CONFIRM_DAYLIGHT_SAVING": {
-      const playerCount = state.players.length;
-
-      // Move all players back 1; Start players collect wages again and stay
+      // Rules: every player moves back one space and follows it as a
+      // regular turn, starting with the lander. Start players collect
+      // salary again and stay; day-1 players move to Start with no
+      // further consequences. Retired players sit out.
+      const movers = new Set<number>();
       const movedPlayers = state.players.map((player, i) => {
+        const isOut = player.bankrupt || player.currentMonth > state.totalMonths;
+        if (isOut) return player;
         if (player.position === 0) {
           return { ...player, cash: player.cash + GAME_CONFIG.salary };
         }
-        const newPos = player.position - 1;
-        if (i !== state.currentPlayerIndex) {
-          // Auto-apply instant event for non-current players; skip complex spaces
-          const sp = getSpaceByDay(newPos);
-          const ev = sp ? SPACE_EVENTS[sp.type] : undefined;
-          return {
-            ...player,
-            position: newPos,
-            cash: player.cash + (ev?.amount ?? 0),
-          };
+        if (player.position === 1) {
+          return { ...player, position: 0 };
         }
-        return { ...player, position: newPos };
+        movers.add(i);
+        return { ...player, position: player.position - 1 };
       });
 
-      // Resolve current player's new space
-      const currentPlayer = movedPlayers[state.currentPlayerIndex];
-      const currentSpace = getSpaceByDay(currentPlayer.position);
-
-      if (currentSpace?.type === "election") {
-        // Inline election: all players contribute $50, electionActive = true
-        const contribution = 50;
-        const withElection = movedPlayers.map((player) => {
-          let cash = player.cash - contribution;
-          let savings = player.savingsBalance;
-          let loan = player.loanBalance;
-          if (cash < 0 && savings > 0) {
-            const withdrawal = Math.min(savings, -cash);
-            savings -= withdrawal;
-            cash += withdrawal;
-          }
-          if (cash < 0) {
-            const loanNeeded = Math.ceil(-cash / 100) * 100;
-            loan += loanNeeded;
-            cash += loanNeeded;
-          }
-          return {
-            ...player,
-            cash,
-            savingsBalance: savings,
-            loanBalance: loan,
-          };
-        });
-        const newPot = state.pot + playerCount * contribution;
-        return {
-          ...state,
-          players: withElection,
-          pot: newPot,
-          potHistory: [
-            ...state.potHistory,
-            potEntry(state, "Town Election — all paid in", playerCount * contribution),
-          ],
-          electionActive: true,
-          phase: "end-turn",
-        };
+      const queue: number[] = [];
+      for (let step = 0; step < state.players.length; step++) {
+        const idx = (state.currentPlayerIndex + step) % state.players.length;
+        if (movers.has(idx)) queue.push(idx);
       }
 
-      // Generic fallback: apply instant event for current player if any
-      const ev = currentSpace ? SPACE_EVENTS[currentSpace.type] : undefined;
-      const finalPlayers = ev
-        ? movedPlayers.map((player, i) => {
-            if (i !== state.currentPlayerIndex) return player;
-            return { ...player, cash: player.cash + ev.amount };
-          })
-        : movedPlayers;
-      return {
+      return advanceDaylightQueue({
         ...state,
-        players: finalPlayers,
-        phase: ev ? "event" : "end-turn",
-        eventMessage: ev ?? null,
-      };
+        players: movedPlayers,
+        daylightQueue: queue,
+        daylightReturnIndex: state.currentPlayerIndex,
+        phase: "end-turn",
+      });
     }
     case "CONFIRM_ELECTION": {
       const contribution = 50;
-      const updatedPlayers = state.players.map((player) => {
-        let cash = player.cash - contribution;
-        let savings = player.savingsBalance;
-        let loan = player.loanBalance;
-        if (cash < 0 && savings > 0) {
-          const withdrawal = Math.min(savings, -cash);
-          savings -= withdrawal;
-          cash += withdrawal;
+      // Only players still in the game contribute
+      const contributes = (player: Player) =>
+        !player.bankrupt && player.currentMonth <= state.totalMonths;
+      const contributors = state.players.filter(contributes).length;
+      const prize = state.pot + contributors * contribution;
+
+      const updatedPlayers = state.players.map((player, i) => {
+        let next = player;
+        if (contributes(player)) {
+          next = coverShortfall({ ...next, cash: next.cash - contribution });
         }
-        if (cash < 0) {
-          const loanNeeded = Math.ceil(-cash / 100) * 100;
-          loan += loanNeeded;
-          cash += loanNeeded;
+        // The race winner takes the whole pot on the spot
+        if (i === action.winnerIndex) {
+          next = { ...next, cash: next.cash + prize };
         }
-        return { ...player, cash, savingsBalance: savings, loanBalance: loan };
+        return next;
       });
-      const newPot = state.pot + state.players.length * contribution;
+
       return {
         ...state,
         players: updatedPlayers,
-        pot: newPot,
+        pot: 0,
         potHistory: [
           ...state.potHistory,
+          potEntry(state, "Town Election — all paid in", contributors * contribution),
           potEntry(
             state,
-            "Town Election — all paid in",
-            state.players.length * contribution,
+            `${state.players[action.winnerIndex].name} rolled a 6 — won the Pot`,
+            -prize,
           ),
         ],
-        electionActive: true,
         phase: "end-turn",
       };
     }
@@ -862,9 +871,10 @@ function createInitialState(params: {
     currentMail: null,
     pot: 0,
     potHistory: [],
-    electionActive: false,
     payday: null,
     pendingCommission: null,
+    daylightQueue: null,
+    daylightReturnIndex: null,
   };
 }
 
@@ -903,6 +913,7 @@ export default function Game() {
     { playerCount, monthCount, names },
     createInitialState,
   );
+  const { playCashRegister, playCoins } = useSound();
 
   const { players, currentPlayerIndex } = gameState;
   const currentPlayer = players[currentPlayerIndex];
@@ -914,7 +925,50 @@ export default function Game() {
   const [rollAnchor, setRollAnchor] = useState<AnchorRect | null>(null);
   const [rolling, setRolling] = useState(false);
   const [cellDetail, setCellDetail] = useState<SpaceDetail | null>(null);
+  const [leaveConfirm, setLeaveConfirm] = useState(false);
+  // An optional buy that needs savings/loan — held until the player confirms
+  const [pendingSpend, setPendingSpend] = useState<{
+    noun: string;
+    price: number;
+    commit: () => void;
+  } | null>(null);
   const canBank = gameState.phase === "roll" || gameState.phase === "end-turn";
+
+  // Android hardware back never navigates away silently: it closes the topmost
+  // overlay, or (in the bare game) opens the leave-game confirmation.
+  useEffect(() => {
+    const onBack = () => {
+      if (leaveConfirm) setLeaveConfirm(false);
+      else if (cellDetail) setCellDetail(null);
+      else if (showCardsViewer) setShowCardsViewer(null);
+      else if (pendingSpend) setPendingSpend(null);
+      else if (showBankModal) setShowBankModal(false);
+      else if (showPause) setShowPause(false);
+      else if (gameState.phase === "game-over") router.dismissAll();
+      else setLeaveConfirm(true);
+      return true; // always consume — never pop the navigation stack
+    };
+    const sub = BackHandler.addEventListener("hardwareBackPress", onBack);
+    return () => sub.remove();
+  }, [
+    leaveConfirm,
+    cellDetail,
+    showCardsViewer,
+    pendingSpend,
+    showBankModal,
+    showPause,
+    gameState.phase,
+    router,
+  ]);
+
+  // Buy now if cash covers it; otherwise get consent for the savings/loan draw
+  const attemptSpend = (noun: string, price: number, commit: () => void) => {
+    if (currentPlayer.cash >= price) {
+      commit();
+    } else {
+      setPendingSpend({ noun, price, commit });
+    }
+  };
 
   // Compute cellSize based on orientation
   const sidebarWidth = isLandscape
@@ -941,7 +995,7 @@ export default function Game() {
       totalMonths={gameState.totalMonths}
       playerCount={players.length}
       onResume={() => setShowPause(false)}
-      onLeave={() => router.dismissAll()}
+      onLeave={() => setLeaveConfirm(true)}
     />
   ) : null;
 
@@ -959,10 +1013,11 @@ export default function Game() {
       </ChunkyButton>
       <View style={styles.topCenter}>
         <Typography design="title" style={styles.monthLabel}>
-          Month {currentPlayer.currentMonth} of {gameState.totalMonths}
+          Month {Math.min(currentPlayer.currentMonth, gameState.totalMonths)} of{" "}
+          {gameState.totalMonths}
         </Typography>
         <Typography design="body" weight={800} style={styles.turnLabel}>
-          {currentPlayer.name.toUpperCase()}'S TURN
+          {currentPlayer.name.toUpperCase()}&apos;S TURN
         </Typography>
       </View>
       <ChunkyButton
@@ -1054,59 +1109,7 @@ export default function Game() {
     </View>
   );
 
-  const savings = currentPlayer.savingsBalance;
-  const loan = currentPlayer.loanBalance;
-  const bankLabel = savings > 0 ? "SAVINGS" : loan > 0 ? "LOAN" : "BANK";
-  const bankValue = savings > 0 ? `+$${savings}` : loan > 0 ? `-$${loan}` : "$0";
-  const bankColor = savings > 0 ? SD.primary : loan > 0 ? SD.debt : SD.soft;
-  const cashText =
-    currentPlayer.cash < 0
-      ? `-$${Math.abs(currentPlayer.cash).toLocaleString("en-US")}`
-      : `$${currentPlayer.cash.toLocaleString("en-US")}`;
-
-  const hud = (
-    <View style={styles.hud}>
-      <PlayerToken
-        initial={currentPlayer.name?.trim()?.[0]?.toUpperCase() || "?"}
-        color={currentPlayer.color}
-        size={38}
-      />
-      <View style={styles.hudText}>
-        <Typography design="title" style={styles.hudName} numberOfLines={1}>
-          {currentPlayer.name}
-        </Typography>
-        <Typography design="body" weight={800} style={styles.hudDay}>
-          {currentPlayer.position === 0
-            ? "At Start"
-            : `On Day ${currentPlayer.position}`}{" "}
-          · your turn
-        </Typography>
-      </View>
-      <View style={styles.hudCol}>
-        <Typography design="body" weight={800} style={styles.hudColLabel}>
-          CASH
-        </Typography>
-        <Typography
-          design="money"
-          style={[
-            styles.hudColValue,
-            { color: currentPlayer.cash < 0 ? SD.debt : SD.primary },
-          ]}
-        >
-          {cashText}
-        </Typography>
-      </View>
-      <View style={styles.hudDivider} />
-      <View style={styles.hudCol}>
-        <Typography design="body" weight={800} style={styles.hudColLabel}>
-          {bankLabel}
-        </Typography>
-        <Typography design="money" style={[styles.hudColValue, { color: bankColor }]}>
-          {bankValue}
-        </Typography>
-      </View>
-    </View>
-  );
+  const hud = <PlayerHud player={currentPlayer} playerIndex={currentPlayerIndex} />;
 
   const actionBar = (
     <View style={styles.actionBar}>
@@ -1132,11 +1135,20 @@ export default function Game() {
     </View>
   );
 
+  /**
+   * The one place an event's instant cash change settles. Every board tile
+   * that charges or pays on the spot (visitor, reunion, household bills,
+   * rent, birthday, bonus, deal sale) lands here, so the coin sound always
+   * fires with the deduction and no tile can drift out of sync.
+   */
+  const settleInstantCash = () => {
+    const amount = gameState.eventMessage?.amount ?? 0;
+    if (amount < 0) playCoins();
+    dispatch({ type: "DISMISS_EVENT" });
+  };
+
   const eventToast = gameState.eventMessage ? (
-    <EventToast
-      event={gameState.eventMessage}
-      onDismiss={() => dispatch({ type: "DISMISS_EVENT" })}
-    />
+    <EventToast event={gameState.eventMessage} onDismiss={settleInstantCash} />
   ) : null;
 
   const cardsViewer =
@@ -1159,7 +1171,11 @@ export default function Game() {
       <MailCardModal
         mail={gameState.currentMail}
         onDismiss={() => dispatch({ type: "DISMISS_MAIL" })}
-        onBuyInsurance={() => dispatch({ type: "BUY_INSURANCE" })}
+        onBuyInsurance={() =>
+          attemptSpend("insurance", gameState.currentMail!.amount, () =>
+            dispatch({ type: "BUY_INSURANCE" }),
+          )
+        }
         isCancelledByInsurance={
           gameState.currentMail.type === "bill" &&
           gameState.currentMail.billCategory !== "other" &&
@@ -1170,6 +1186,7 @@ export default function Game() {
             ),
           )
         }
+        canAffordInsurance={canFinance(currentPlayer, gameState.currentMail.amount)}
       />
     ) : null;
 
@@ -1204,6 +1221,7 @@ export default function Game() {
     gameState.phase === "daylight-saving" ? (
       <DaylightSavingModal
         players={gameState.players}
+        totalMonths={gameState.totalMonths}
         onConfirm={() => dispatch({ type: "CONFIRM_DAYLIGHT_SAVING" })}
       />
     ) : null;
@@ -1212,9 +1230,14 @@ export default function Game() {
     gameState.phase === "election" ? (
       <ElectionModal
         players={gameState.players}
+        eligibleIndices={players.flatMap((p, i) =>
+          p.bankrupt || p.currentMonth > gameState.totalMonths ? [] : [i],
+        )}
         pot={gameState.pot}
         currentPlayerIndex={currentPlayerIndex}
-        onConfirm={() => dispatch({ type: "CONFIRM_ELECTION" })}
+        onFinish={(winnerIndex) =>
+          dispatch({ type: "CONFIRM_ELECTION", winnerIndex })
+        }
       />
     ) : null;
 
@@ -1248,7 +1271,10 @@ export default function Game() {
       <DealsDrawer
         deals={currentPlayer.deals}
         mode="sell"
-        onSell={(deal) => dispatch({ type: "SELL_DEAL", dealId: deal.id })}
+        onSell={(deal) => {
+          playCashRegister();
+          dispatch({ type: "SELL_DEAL", dealId: deal.id });
+        }}
         onClose={() => dispatch({ type: "SKIP_ASSET_BUYER" })}
       />
     ) : null;
@@ -1281,13 +1307,51 @@ export default function Game() {
   const dealModal = gameState.currentDeal ? (
     <DealCardModal
       deal={gameState.currentDeal}
-      onBuy={() => dispatch({ type: "BUY_DEAL" })}
+      canAfford={canFinance(currentPlayer, gameState.currentDeal.buyPrice)}
+      onBuy={() =>
+        attemptSpend("deal", gameState.currentDeal!.buyPrice, () => {
+          playCashRegister();
+          dispatch({ type: "BUY_DEAL" });
+        })
+      }
       onDiscard={() => dispatch({ type: "DISCARD_DEAL" })}
     />
   ) : null;
 
   const cellDetailDrawer = cellDetail ? (
     <CellDetailDrawer detail={cellDetail} onClose={() => setCellDetail(null)} />
+  ) : null;
+
+  const spendConfirm = (() => {
+    if (!pendingSpend) return null;
+    const funding = shortfallFunding(currentPlayer, pendingSpend.price);
+    const gap = pendingSpend.price - currentPlayer.cash;
+    return (
+      <ConfirmDialog
+        title="Spend beyond your cash?"
+        body={`This ${pendingSpend.noun} costs $${pendingSpend.price} — $${gap} more than your $${currentPlayer.cash} cash. Cover the rest with ${fundingClause(funding)}?`}
+        confirmLabel={fundingActionLabel(funding, "buy")}
+        cancelLabel="Not now"
+        tone={funding.fromLoan > 0 ? SD.debt : SD.primary}
+        glyph="$"
+        onConfirm={() => {
+          pendingSpend.commit();
+          setPendingSpend(null);
+        }}
+        onCancel={() => setPendingSpend(null)}
+      />
+    );
+  })();
+
+  const leaveConfirmDialog = leaveConfirm ? (
+    <ConfirmDialog
+      title="Leave the game?"
+      body="Your current progress in this match will be lost. This can't be undone."
+      confirmLabel="Leave Game"
+      cancelLabel="Keep Playing"
+      onConfirm={() => router.dismissAll()}
+      onCancel={() => setLeaveConfirm(false)}
+    />
   ) : null;
 
   const commissionModal =
@@ -1348,6 +1412,8 @@ export default function Game() {
           {assetBuyerViewer}
           {commissionModal}
           {cellDetailDrawer}
+          {spendConfirm}
+          {leaveConfirmDialog}
           {diceRoller}
           {pauseOverlay}
         </SafeAreaView>
@@ -1392,6 +1458,8 @@ export default function Game() {
         {assetBuyerViewer}
         {commissionModal}
         {cellDetailDrawer}
+        {spendConfirm}
+        {leaveConfirmDialog}
         {diceRoller}
         {pauseOverlay}
       </SafeAreaView>
@@ -1504,52 +1572,6 @@ const styles = StyleSheet.create({
   quickCountText: {
     fontSize: 13,
     color: SD.white,
-  },
-  hud: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-    marginHorizontal: 14,
-    marginTop: 8,
-    backgroundColor: SD.surface2,
-    borderRadius: 18,
-    paddingVertical: 10,
-    paddingHorizontal: 14,
-    elevation: 2,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.07,
-    shadowRadius: 0,
-  },
-  hudText: {
-    flex: 1,
-    minWidth: 0,
-  },
-  hudName: {
-    fontSize: 15,
-    color: SD.ink,
-  },
-  hudDay: {
-    fontSize: 10,
-    letterSpacing: 0.5,
-    color: SD.soft,
-  },
-  hudCol: {
-    alignItems: "flex-end",
-  },
-  hudColLabel: {
-    fontSize: 9,
-    letterSpacing: 1,
-    color: SD.soft,
-  },
-  hudColValue: {
-    fontSize: 15,
-  },
-  hudDivider: {
-    width: 2,
-    height: 32,
-    borderRadius: 2,
-    backgroundColor: SD.line,
   },
   actionBar: {
     flexDirection: "row",
