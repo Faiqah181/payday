@@ -9,14 +9,13 @@ import {
 import WinnerCelebration from "@/components/game/events/WinnerCelebration";
 import { SD_EVENT_GRADIENTS } from "@/constants/theme";
 import type { Player } from "@/types/game";
-import { useEffect, useState } from "react";
-import { ScrollView, StyleSheet, View } from "react-native";
+import { useState } from "react";
+import { ScrollView } from "react-native";
 
 const CONTRIBUTION = 50;
-const PAY_TICK_MS = 450;
 const GOLD = "#F4D03F";
 
-type ElectionPhase = "paying" | "race" | "won";
+type ElectionPhase = "race" | "won";
 
 interface ElectionModalProps {
   players: Player[];
@@ -37,8 +36,7 @@ export default function ElectionModal({
   currentPlayerIndex,
   onFinish,
 }: ElectionModalProps) {
-  const [phase, setPhase] = useState<ElectionPhase>("paying");
-  const [paidCount, setPaidCount] = useState(0);
+  const [phase, setPhase] = useState<ElectionPhase>("race");
   // Lander rolls first, then turn order
   const [rollOrder] = useState<number[]>(() => {
     const start = Math.max(0, eligibleIndices.indexOf(currentPlayerIndex));
@@ -52,19 +50,8 @@ export default function ElectionModal({
   const [winnerIndex, setWinnerIndex] = useState<number | null>(null);
   const [revealPending, reveal] = useDelayedReveal();
 
-  // Stage the pay-in: one player ticks "Paid $50" at a time
-  useEffect(() => {
-    if (phase !== "paying") return;
-    if (paidCount >= eligibleIndices.length) {
-      const timer = setTimeout(() => setPhase("race"), 600);
-      return () => clearTimeout(timer);
-    }
-    const timer = setTimeout(() => setPaidCount((n) => n + 1), PAY_TICK_MS);
-    return () => clearTimeout(timer);
-  }, [phase, paidCount, eligibleIndices.length]);
-
   const activeIndex = rollOrder[activePos];
-  const potShown = pot + paidCount * CONTRIBUTION;
+  const potShown = pot + eligibleIndices.length * CONTRIBUTION;
   const me = players[currentPlayerIndex];
   const winner = winnerIndex !== null ? players[winnerIndex] : null;
 
@@ -86,17 +73,13 @@ export default function ElectionModal({
   }
 
   const title =
-    phase === "paying"
+    phase === "race"
       ? `${me.name} is holding town elections`
-      : phase === "race"
-        ? "First to roll a 6!"
-        : `${winner?.name} takes the Pot!`;
+      : `${winner?.name} takes the Pot!`;
   const subtitle =
-    phase === "paying"
-      ? `Every player pays $${CONTRIBUTION} into the Pot.`
-      : phase === "race"
-        ? "Take turns rolling — a 6 takes it all."
-        : "The whole Pot is theirs.";
+    phase === "race"
+      ? `Everyone paid $${CONTRIBUTION} to the Pot · first to roll a 6 takes it all`
+      : "The whole Pot is theirs.";
 
   return (
     <EventShell
@@ -135,20 +118,17 @@ export default function ElectionModal({
         />
       ) : (
         <ScrollView showsVerticalScrollIndicator={false}>
-          {eligibleIndices.map((playerIndex, k) => {
-            const player = players[playerIndex];
-            if (phase === "paying") {
-              const paid = k < paidCount;
+          {players.map((player, playerIndex) => {
+            const rank = eligibleIndices.indexOf(playerIndex);
+            if (rank === -1) {
               return (
                 <EventPlayerRow
                   key={playerIndex}
                   name={player.name}
                   initial={initialOf(player)}
                   color={player.color}
-                  statusText={paid ? `Paid $${CONTRIBUTION}` : "…"}
-                  statusColor={paid ? "#FF9B8E" : undefined}
-                  highlighted={k === paidCount}
-                  right={<View style={styles.noSlot} />}
+                  statusText="Retired · sits out"
+                  out
                 />
               );
             }
@@ -179,10 +159,3 @@ export default function ElectionModal({
     </EventShell>
   );
 }
-
-const styles = StyleSheet.create({
-  noSlot: {
-    width: 0,
-    height: 40,
-  },
-});

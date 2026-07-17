@@ -1,3 +1,4 @@
+import AnimatedCash from "@/components/ui/AnimatedCash";
 import PlayerToken from "@/components/ui/PlayerToken";
 import Typography from "@/components/ui/Typography";
 import { SD } from "@/constants/theme";
@@ -31,20 +32,13 @@ interface PlayerHudProps {
   playerIndex: number;
 }
 
-function money(n: number) {
-  return `${n < 0 ? "-" : ""}$${Math.abs(n).toLocaleString("en-US")}`;
-}
-
 export default function PlayerHud({ player, playerIndex }: PlayerHudProps) {
   const status = getAccountStatus(player);
   const bankLabel =
     status === "savings" ? "SAVINGS" : status === "loan" ? "LOAN" : "BANK";
+  // Savings shows +$X, loan shows -$X (negative value), neutral shows $0
   const bankValue =
-    status === "savings"
-      ? `+$${player.savingsBalance}`
-      : status === "loan"
-        ? `-$${player.loanBalance}`
-        : "$0";
+    status === "loan" ? -player.loanBalance : player.savingsBalance;
   const bankColor =
     status === "savings" ? SD.primary : status === "loan" ? SD.debt : SD.soft;
 
@@ -74,21 +68,21 @@ export default function PlayerHud({ player, playerIndex }: PlayerHudProps) {
           <Typography design="body" weight={800} style={styles.colLabel}>
             CASH
           </Typography>
-          <Typography
-            design="money"
+          <AnimatedCash
+            value={player.cash}
             style={[styles.colValue, { color: player.cash < 0 ? SD.debt : SD.primary }]}
-          >
-            {money(player.cash)}
-          </Typography>
+          />
         </View>
         <View style={styles.divider} />
         <View style={styles.col}>
           <Typography design="body" weight={800} style={styles.colLabel}>
             {bankLabel}
           </Typography>
-          <Typography design="money" style={[styles.colValue, { color: bankColor }]}>
-            {bankValue}
-          </Typography>
+          <AnimatedCash
+            value={bankValue}
+            signed={status === "savings"}
+            style={[styles.colValue, { color: bankColor }]}
+          />
         </View>
       </Animated.View>
     </View>

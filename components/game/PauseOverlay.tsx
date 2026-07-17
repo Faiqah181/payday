@@ -57,8 +57,15 @@ export default function PauseOverlay({
   onLeave,
 }: PauseOverlayProps) {
   const overlay = useRef<SlideOverlayHandle>(null);
-  const { soundEnabled, toggleSound, hapticsEnabled, toggleHaptics, playClick } =
-    useSound();
+  const {
+    soundEnabled,
+    toggleSound,
+    musicEnabled,
+    toggleMusic,
+    hapticsEnabled,
+    toggleHaptics,
+    playClick,
+  } = useSound();
 
   return (
     <SlideOverlay ref={overlay} onClose={onResume} from="left">
@@ -96,6 +103,17 @@ export default function PauseOverlay({
                   onToggle={() => {
                     playClick();
                     toggleSound();
+                  }}
+                />
+                <QuickSettingRow
+                  tileColor={SD.primary}
+                  glyph="♫"
+                  label="Music"
+                  value={musicEnabled}
+                  divider
+                  onToggle={() => {
+                    playClick();
+                    toggleMusic();
                   }}
                 />
                 <QuickSettingRow

@@ -1,13 +1,11 @@
+import AnimatedCash from "@/components/ui/AnimatedCash";
 import Typography from "@/components/ui/Typography";
 import { GAME_CONFIG } from "@/constants/gameConfig";
 import { mixHex, SD } from "@/constants/theme";
 import type { Player } from "@/types/game";
 import { getAccountStatus } from "@/types/game";
+import { type ReactNode } from "react";
 import { StyleSheet, View } from "react-native";
-
-function money(n: number) {
-  return `$${n.toLocaleString("en-US")}`;
-}
 
 /** The big colored balance card: green savings, red loan, brown neutral. */
 export default function AccountCard({ player }: { player: Player }) {
@@ -42,9 +40,7 @@ export default function AccountCard({ player }: { player: Player }) {
           </Typography>
         </View>
       </View>
-      <Typography design="money" style={styles.balance}>
-        {money(balance)}
-      </Typography>
+      <AnimatedCash value={balance} style={styles.balance} />
       <Typography design="body" weight={700} style={styles.balanceNote}>
         {state === "neutral"
           ? "No savings, no loan — a clean slate."
@@ -52,7 +48,10 @@ export default function AccountCard({ player }: { player: Player }) {
             ? "Earning interest every Pay Day."
             : "Costing you interest every Pay Day."}
       </Typography>
-      <InfoRow label="Cash in pocket" value={money(player.cash)} />
+      <InfoRow
+        label="Cash in pocket"
+        value={<AnimatedCash value={player.cash} style={styles.infoValue} />}
+      />
       <InfoRow
         label="At next Pay Day"
         value={
@@ -63,15 +62,19 @@ export default function AccountCard({ player }: { player: Player }) {
   );
 }
 
-function InfoRow({ label, value }: { label: string; value: string }) {
+function InfoRow({ label, value }: { label: string; value: ReactNode }) {
   return (
     <View style={styles.infoRow}>
       <Typography design="body" weight={700} style={styles.infoLabel}>
         {label}
       </Typography>
-      <Typography design="money" style={styles.infoValue}>
-        {value}
-      </Typography>
+      {typeof value === "string" ? (
+        <Typography design="money" style={styles.infoValue}>
+          {value}
+        </Typography>
+      ) : (
+        value
+      )}
     </View>
   );
 }

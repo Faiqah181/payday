@@ -1,6 +1,7 @@
 import PlayerToken from "@/components/ui/PlayerToken";
 import Typography from "@/components/ui/Typography";
 import { SD } from "@/constants/theme";
+import { useSound } from "@/contexts/SoundContext";
 import { useEffect, useMemo, useState } from "react";
 import { Platform, StyleSheet, useWindowDimensions, View } from "react-native";
 import Animated, {
@@ -56,6 +57,12 @@ export default function WinnerCelebration({
 }: WinnerCelebrationProps) {
   const [box, setBox] = useState<{ w: number; h: number } | null>(null);
   const { width: screenW } = useWindowDimensions();
+  const { playEventWin } = useSound();
+
+  useEffect(() => {
+    playEventWin();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <View

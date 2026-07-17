@@ -5,6 +5,7 @@ import Typography from "@/components/ui/Typography";
 import { SD } from "@/constants/theme";
 import { useSound } from "@/contexts/SoundContext";
 import { useRouter } from "expo-router";
+import * as StoreReview from "expo-store-review";
 import { ReactNode } from "react";
 import { Linking, Pressable, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -86,8 +87,22 @@ function Section({ label, children }: { label: string; children: ReactNode }) {
 
 export default function Settings() {
   const router = useRouter();
-  const { soundEnabled, toggleSound, hapticsEnabled, toggleHaptics, playClick } =
-    useSound();
+  const {
+    soundEnabled,
+    toggleSound,
+    musicEnabled,
+    toggleMusic,
+    hapticsEnabled,
+    toggleHaptics,
+    playClick,
+  } = useSound();
+
+  const rateApp = async () => {
+    playClick();
+    try {
+      if (await StoreReview.isAvailableAsync()) await StoreReview.requestReview();
+    } catch {}
+  };
 
   return (
     <ScreenBackground>
@@ -128,6 +143,22 @@ export default function Settings() {
             }
           />
           <SettingsRow
+            tileColor={SD.primary}
+            glyph="♫"
+            title="Music"
+            subtitle="Background soundtrack"
+            divider
+            right={
+              <ToggleSwitch
+                value={musicEnabled}
+                onToggle={() => {
+                  playClick();
+                  toggleMusic();
+                }}
+              />
+            }
+          />
+          <SettingsRow
             tileColor={SD.purple}
             glyph="≈"
             title="Haptic feedback"
@@ -156,7 +187,7 @@ export default function Settings() {
                 ★★★★★
               </Typography>
             }
-            onPress={() => {}}
+            onPress={rateApp}
           />
           <SettingsRow
             tileColor={SD.primary}

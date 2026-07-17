@@ -1,8 +1,11 @@
+import { Ionicons } from "@expo/vector-icons";
 import ChunkyButton from "@/components/ui/ChunkyButton";
 import PopCard from "@/components/ui/PopCard";
 import Typography from "@/components/ui/Typography";
 import { mixHex, SD, SD_CATEGORY } from "@/constants/theme";
+import { useSound } from "@/contexts/SoundContext";
 import type { MailCard, MailCardType } from "@/types/game";
+import { useEffect } from "react";
 import { StyleSheet, View } from "react-native";
 
 interface MailCardModalProps {
@@ -12,6 +15,8 @@ interface MailCardModalProps {
   isCancelledByInsurance?: boolean;
   /** Insurance only: premium affordable from cash + savings + loan combined. */
   canAffordInsurance?: boolean;
+  /** Insurance only: the player already holds this coverage. */
+  alreadyOwned?: boolean;
 }
 
 const TONES: Record<Exclude<MailCardType, "swellfare">, string> = {
@@ -21,23 +26,22 @@ const TONES: Record<Exclude<MailCardType, "swellfare">, string> = {
   insurance: SD.purple,
 };
 
-function EnvelopeGlyph() {
-  return (
-    <View style={styles.envelope}>
-      <View style={styles.envelopeFlap} />
-    </View>
-  );
-}
-
 export default function MailCardModal({
   mail,
   onDismiss,
   onBuyInsurance,
   isCancelledByInsurance = false,
   canAffordInsurance = true,
+  alreadyOwned = false,
 }: MailCardModalProps) {
   const type = mail.type as Exclude<MailCardType, "swellfare">;
   const tone = TONES[type] ?? SD.blue;
+  const { playMail } = useSound();
+
+  useEffect(() => {
+    playMail();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const eyebrow =
     type === "bill"
@@ -48,9 +52,11 @@ export default function MailCardModal({
           ? "MAIL · LOTTERY TICKET"
           : "MAIL · INSURANCE";
 
-  const insuranceNote = canAffordInsurance
-    ? "Held for the rest of the game. New bills of the covered type get cancelled for free."
-    : "You can't cover this premium — not even with savings or a full loan.";
+  const insuranceNote = alreadyOwned
+    ? "You already hold this coverage — one policy is all you need."
+    : canAffordInsurance
+      ? "Held for the rest of the game. New bills of the covered type get cancelled for free."
+      : "You can't cover this premium — not even with savings or a full loan.";
 
   const note =
     type === "bill"
@@ -64,7 +70,11 @@ export default function MailCardModal({
           : insuranceNote;
 
   return (
-    <PopCard tone={tone} eyebrow={eyebrow} headerRight={<EnvelopeGlyph />}>
+    <PopCard
+      tone={tone}
+      eyebrow={eyebrow}
+      headerRight={<Ionicons name="mail" size={20} color={SD.white} />}
+    >
       <Typography design="title" style={styles.title}>
         {mail.title}
       </Typography>
@@ -113,35 +123,51 @@ export default function MailCardModal({
       </View>
 
       {type === "insurance" ? (
-        <View style={styles.buttonRow}>
+        alreadyOwned ? (
           <ChunkyButton
             color={SD.surface2}
             depthColor="rgba(0,0,0,0.1)"
             depth={4}
             borderRadius={14}
-            style={styles.rowButton}
+            style={styles.singleButton}
             contentStyle={styles.buttonFace}
             onPress={onDismiss}
           >
             <Typography design="title" style={styles.neutralLabel}>
-              Discard
+              I already have it
             </Typography>
           </ChunkyButton>
-          <ChunkyButton
-            color={SD.primary}
-            depthColor={SD.primaryShadow}
-            depth={4}
-            borderRadius={14}
-            disabled={!canAffordInsurance}
-            style={styles.rowButton}
-            contentStyle={styles.buttonFace}
-            onPress={onBuyInsurance ?? onDismiss}
-          >
-            <Typography design="title" style={styles.primaryLabel}>
-              Buy ${mail.amount}
-            </Typography>
-          </ChunkyButton>
-        </View>
+        ) : (
+          <View style={styles.buttonRow}>
+            <ChunkyButton
+              color={SD.surface2}
+              depthColor="rgba(0,0,0,0.1)"
+              depth={4}
+              borderRadius={14}
+              style={styles.rowButton}
+              contentStyle={styles.buttonFace}
+              onPress={onDismiss}
+            >
+              <Typography design="title" style={styles.neutralLabel}>
+                Discard
+              </Typography>
+            </ChunkyButton>
+            <ChunkyButton
+              color={SD.primary}
+              depthColor={SD.primaryShadow}
+              depth={4}
+              borderRadius={14}
+              disabled={!canAffordInsurance}
+              style={styles.rowButton}
+              contentStyle={styles.buttonFace}
+              onPress={onBuyInsurance ?? onDismiss}
+            >
+              <Typography design="title" style={styles.primaryLabel}>
+                Buy ${mail.amount}
+              </Typography>
+            </ChunkyButton>
+          </View>
+        )
       ) : (
         <ChunkyButton
           color={SD.primary}
@@ -225,21 +251,5 @@ const styles = StyleSheet.create({
   neutralLabel: {
     fontSize: 15,
     color: SD.ink,
-  },
-  envelope: {
-    width: 26,
-    height: 19,
-    borderRadius: 3,
-    backgroundColor: SD.white,
-    overflow: "hidden",
-  },
-  envelopeFlap: {
-    position: "absolute",
-    top: -6,
-    alignSelf: "center",
-    width: 22,
-    height: 22,
-    backgroundColor: "rgba(0,0,0,0.2)",
-    transform: [{ rotate: "45deg" }],
   },
 });

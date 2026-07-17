@@ -631,7 +631,6 @@ function coreReducer(state: GameState, action: GameAction): GameState {
           // Retired players stay on the Pay Day tile instead of returning home
           position: retires ? p.position : 0,
           currentMonth: newMonth,
-          deals: retires ? [] : p.deals,
           lotteryTickets: p.lotteryTickets.filter(
             (t) => t.monthReceived !== p.currentMonth,
           ),
@@ -913,7 +912,7 @@ export default function Game() {
     { playerCount, monthCount, names },
     createInitialState,
   );
-  const { playCashRegister, playCoins } = useSound();
+  const { playCashRegister, playCoins, playCashWin } = useSound();
 
   const { players, currentPlayerIndex } = gameState;
   const currentPlayer = players[currentPlayerIndex];
@@ -1144,6 +1143,7 @@ export default function Game() {
   const settleInstantCash = () => {
     const amount = gameState.eventMessage?.amount ?? 0;
     if (amount < 0) playCoins();
+    else if (amount > 0) playCashWin();
     dispatch({ type: "DISMISS_EVENT" });
   };
 
@@ -1187,6 +1187,12 @@ export default function Game() {
           )
         }
         canAffordInsurance={canFinance(currentPlayer, gameState.currentMail.amount)}
+        alreadyOwned={
+          gameState.currentMail.type === "insurance" &&
+          currentPlayer.insurance.some(
+            (ins) => ins.title === gameState.currentMail!.title,
+          )
+        }
       />
     ) : null;
 

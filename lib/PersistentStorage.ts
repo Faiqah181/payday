@@ -3,8 +3,10 @@ import { Platform } from "react-native";
 
 interface Schema {
   soundEnabled: boolean;
+  musicEnabled: boolean;
   hapticsEnabled: boolean;
   avatarIdx: number;
+  playerName: string;
 }
 
 const PREFIX = "salaryday:";

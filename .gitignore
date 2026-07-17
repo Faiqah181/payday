@@ -43,3 +43,6 @@ app-example
 /android
 
 .claude/*
+
+# playwright mcp test artifacts
+.playwright-mcp/

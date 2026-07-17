@@ -57,7 +57,7 @@ export const SD_LAYER = {
 export const SD_EVENT_GRADIENTS = {
   election: ["#2A1C52", "#3F2B6B", "#5A3A8C"],
   poker: ["#0F3D2E", "#155741", "#1C7A54"],
-  swellfare: ["#3B2668", "#54398F", "#6A4BB0"],
+  swellfare: ["#4E1621", "#7C2531", "#AE3543"],
   daylight: ["#232B66", "#3A448F", "#5566C9"],
   commission: ["#3A2354", "#523579", "#6D46A3"],
 } as const;

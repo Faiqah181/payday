@@ -63,10 +63,14 @@ export default function PokerGameModal({
   const me = players[currentPlayerIndex];
   // P&P asks every player in seat order; online only asks you
   const askIndex = isOnline ? currentPlayerIndex : decisions.indexOf(null);
-  // While asking in P&P, the footer shows the player being asked; everywhere
-  // else (and always online) it's the current player's cash.
-  const cashPlayer =
-    !isOnline && phase === "join" && askIndex >= 0 ? players[askIndex] : me;
+  // In P&P the footer follows whoever's acting — the player being asked while
+  // joining, the one rolling during the race. Online (and elsewhere) it's you.
+  const cashPlayer = (() => {
+    if (isOnline) return me;
+    if (phase === "join" && askIndex >= 0) return players[askIndex];
+    if (phase === "roll") return players[participantIndices[activeRollSlot]] ?? me;
+    return me;
+  })();
   const joinedIndices = players
     .map((_, i) => i)
     .filter((i) => decisions[i] === true);
@@ -207,11 +211,13 @@ export default function PokerGameModal({
       pot={{ label: "POT", value: `$${prize}` }}
       footer={
         <>
-          <EventCashRow
-            initial={initialOf(cashPlayer)}
-            color={cashPlayer.color}
-            cash={cashPlayer.cash}
-          />
+          {phase !== "result" && (
+            <EventCashRow
+              initial={initialOf(cashPlayer)}
+              color={cashPlayer.color}
+              cash={cashPlayer.cash}
+            />
+          )}
           {phase === "join" &&
             (isOnline && iDecided ? (
               <View style={styles.waitingBox}>

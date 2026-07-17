@@ -1,13 +1,17 @@
 import Typography from "@/components/ui/Typography";
 import { SD_LAYER } from "@/constants/theme";
 import { LinearGradient } from "expo-linear-gradient";
-import { ReactNode } from "react";
+import { ReactNode, useEffect, useRef } from "react";
 import { Platform, StyleSheet, View } from "react-native";
 import Animated, {
   Easing,
   FadeInDown,
   FadeOutDown,
+  useAnimatedStyle,
+  useSharedValue,
   withDelay,
+  withSequence,
+  withSpring,
   withTiming,
   type EntryAnimationsValues,
   type ExitAnimationsValues,
@@ -101,6 +105,36 @@ function curtainOut(values: ExitAnimationsValues) {
 const shellEnter = Platform.OS === "web" ? FadeInDown.duration(FLOW_MS) : curtainIn;
 const shellExit = Platform.OS === "web" ? FadeOutDown.duration(FLOW_MS) : curtainOut;
 
+/** Title that zoom-pulses once each time its text changes (phase steps, draws). */
+function AnimatedTitle({ title }: { title: string }) {
+  const scale = useSharedValue(1);
+  const firstRender = useRef(true);
+
+  useEffect(() => {
+    if (firstRender.current) {
+      firstRender.current = false;
+      return;
+    }
+    scale.value = withSequence(
+      withTiming(1.12, { duration: 90, easing: Easing.out(Easing.quad) }),
+      withSpring(1, { damping: 20, stiffness: 600 }),
+    );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [title]);
+
+  const style = useAnimatedStyle(() => ({
+    transform: [{ scale: scale.value }],
+  }));
+
+  return (
+    <Animated.View style={style}>
+      <Typography design="money" style={styles.title}>
+        {title}
+      </Typography>
+    </Animated.View>
+  );
+}
+
 interface EventShellProps {
   gradient: readonly [string, string, string];
   eyebrow: string;
@@ -147,9 +181,7 @@ export default function EventShell({
             <Typography design="body" weight={800} style={styles.eyebrow}>
               {eyebrow}
             </Typography>
-            <Typography design="money" style={styles.title}>
-              {title}
-            </Typography>
+            <AnimatedTitle title={title} />
             <Typography design="body" weight={700} style={styles.subtitle}>
               {subtitle}
             </Typography>

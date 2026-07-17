@@ -9,6 +9,7 @@ interface ProfileContextType {
   avatarIdx: number;
   avatarColor: string;
   setAvatarIdx: (idx: number) => void;
+  setName: (name: string) => void;
 }
 
 const ProfileContext = createContext<ProfileContextType>({
@@ -18,11 +19,15 @@ const ProfileContext = createContext<ProfileContextType>({
   avatarIdx: 0,
   avatarColor: SD_AVATAR_COLORS[0],
   setAvatarIdx: () => {},
+  setName: () => {},
 });
 
 export function ProfileProvider({ children }: { children: ReactNode }) {
   const [avatarIdx, setAvatarIdxState] = useState(() =>
     PersistentStorage.get("avatarIdx", 0),
+  );
+  const [name, setNameState] = useState(() =>
+    PersistentStorage.get("playerName", "Guest"),
   );
 
   const setAvatarIdx = (idx: number) => {
@@ -30,8 +35,12 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
     setAvatarIdxState(idx);
   };
 
-  const name = "Guest";
-  const initial = name[0].toUpperCase();
+  const setName = (next: string) => {
+    PersistentStorage.set("playerName", next);
+    setNameState(next);
+  };
+
+  const initial = (name.trim()[0] ?? "G").toUpperCase();
   const avatarColor = SD_AVATAR_COLORS[avatarIdx % SD_AVATAR_COLORS.length];
 
   return (
@@ -43,6 +52,7 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
         avatarIdx,
         avatarColor,
         setAvatarIdx,
+        setName,
       }}
     >
       {children}

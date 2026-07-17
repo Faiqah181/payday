@@ -47,7 +47,7 @@ export default function SwellfareModal({
   const initial = player.name?.trim()?.[0]?.toUpperCase() || "?";
 
   const title = !isInDebt
-    ? "You're not in debt!"
+    ? "Nothing to gamble on"
     : !canBet
       ? "No cash to bet"
       : rolled === null
@@ -56,7 +56,7 @@ export default function SwellfareModal({
           ? "You won!"
           : "Bad luck…";
   const subtitle = !isInDebt
-    ? "Swellfare only works when you owe more than you have"
+    ? "Swellfare is only for players in the red"
     : !canBet
       ? `A bet needs at least $${BET_STEP} in hand`
       : rolled === null
@@ -75,9 +75,14 @@ export default function SwellfareModal({
       pot={{ label: "THE POT", value: `$${pot}` }}
       footer={
         <>
-          <EventCashRow initial={initial} color={player.color} cash={player.cash} />
+          {isInDebt && (
+            <EventCashRow initial={initial} color={player.color} cash={player.cash} />
+          )}
           {!canBet ? (
-            <EventButton label="Discard card" onPress={onDiscard} />
+            <EventButton
+              label={isInDebt ? "Discard card" : "Got it"}
+              onPress={onDiscard}
+            />
           ) : rolled === null ? (
             <EventButton
               label={`Bet $${bet} & roll`}
@@ -94,6 +99,24 @@ export default function SwellfareModal({
         </>
       }
     >
+      {!isInDebt && (
+        <View style={styles.infoArea}>
+          <View style={styles.infoCard}>
+            <Typography design="title" weight={800} style={styles.infoHeading}>
+              What is Swellfare?
+            </Typography>
+            <Typography design="body" weight={700} style={styles.infoText}>
+              A last-ditch gamble for players who owe more than they hold. Bet up
+              to ${MAX_BET} and roll one die — a 5 or 6 pays {WIN_MULTIPLIER}× your
+              bet, anything else feeds the Pot.
+            </Typography>
+            <Typography design="body" weight={700} style={styles.infoText}>
+              You're in the clear right now, so there's nothing to bet your way out
+              of.
+            </Typography>
+          </View>
+        </View>
+      )}
       {canBet && rolled === null && (
         <View style={styles.betArea}>
           <View style={styles.stepper}>
@@ -167,6 +190,25 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     gap: 18,
+  },
+  infoArea: {
+    flex: 1,
+    justifyContent: "center",
+  },
+  infoCard: {
+    backgroundColor: "rgba(255,255,255,0.1)",
+    borderRadius: 18,
+    padding: 20,
+    gap: 12,
+  },
+  infoHeading: {
+    fontSize: 18,
+    color: "#FFFFFF",
+  },
+  infoText: {
+    fontSize: 14,
+    lineHeight: 21,
+    color: "rgba(255,255,255,0.85)",
   },
   stepper: {
     flexDirection: "row",

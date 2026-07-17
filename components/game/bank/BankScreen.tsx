@@ -139,7 +139,7 @@ export default function BankScreen({
               </LinearGradient>
             </Pressable>
 
-            <AccountCard player={viewing} />
+            <AccountCard key={viewingIndex} player={viewing} />
 
             {isSelf ? (
               <View>

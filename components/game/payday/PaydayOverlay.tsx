@@ -1,4 +1,5 @@
 import AmountSheet from "@/components/game/bank/AmountSheet";
+import AnimatedCash from "@/components/ui/AnimatedCash";
 import ChunkyButton from "@/components/ui/ChunkyButton";
 import ScreenBackground from "@/components/ui/ScreenBackground";
 import SlideOverlay, { SlideOverlayHandle } from "@/components/ui/SlideOverlay";
@@ -28,32 +29,19 @@ function money(n: number) {
   return `${n < 0 ? "-" : ""}$${Math.abs(n).toLocaleString("en-US")}`;
 }
 
+function billCountLabel(count: number): string {
+  if (count === 0) return "No bills this month";
+  return count === 1 ? "1 bill" : `${count} bills`;
+}
+
+// Every row's `amount` is a cash change, so the running total tracks the
+// player's cash exactly — from closing balance down to NEW BALANCE.
 function buildSteps(
   report: PaydayReport,
   repaid: number,
   deposited: number,
 ): PayStep[] {
-  const interestStep: PayStep =
-    report.accountStatus === "loan"
-      ? {
-          title: `Loan interest ${GAME_CONFIG.interestPercentage}%`,
-          sub: `On your $${report.interestOn} loan`,
-          amount: report.interest,
-        }
-      : report.accountStatus === "savings"
-        ? {
-            title: `Savings interest ${GAME_CONFIG.savingsInterestPercentage}%`,
-            sub: `On your $${report.interestOn} savings`,
-            amount: report.interest,
-          }
-        : { title: "No interest", sub: "No savings, no loan", amount: 0 };
-
-  const adjustments =
-    [repaid > 0 && `-$${repaid}`, deposited > 0 && `+$${deposited}`]
-      .filter(Boolean)
-      .join(" · ") || "—";
-
-  return [
+  const steps: PayStep[] = [
     {
       title: "Closing balance",
       sub: "Cash carried into Pay Day",
@@ -62,19 +50,67 @@ function buildSteps(
       amountColor: SD.ink,
     },
     { title: "Collect salary", sub: "Every Pay Day", amount: report.salary },
-    interestStep,
-    {
-      title: "Pay your bills",
-      sub: report.billTitles.slice(0, 3).join(" · ") || "No bills this month",
-      amount: -report.billsPaid,
-    },
-    {
-      title: "Repay loan / savings",
-      sub: `Optional · $${STEP} steps · today only`,
-      amountText: adjustments,
-      amount: deposited - repaid,
-    },
   ];
+
+  if (report.accountStatus === "loan") {
+    steps.push({
+      title: `Loan interest ${GAME_CONFIG.interestPercentage}%`,
+      sub: `On your $${report.interestOn} loan`,
+      amount: report.interest,
+    });
+  } else if (report.accountStatus === "savings") {
+    // Savings interest compounds into savings — it doesn't touch cash
+    steps.push({
+      title: `Savings interest ${GAME_CONFIG.savingsInterestPercentage}%`,
+      sub: `Earned on your $${report.interestOn} savings`,
+      amount: 0,
+      amountText: `+$${report.interest} → savings`,
+      amountColor: SD.primary,
+    });
+  } else {
+    steps.push({ title: "No interest", sub: "No savings, no loan", amount: 0 });
+  }
+
+  steps.push({
+    title: "Pay your bills",
+    sub: billCountLabel(report.billTitles.length),
+    amount: -report.billsPaid,
+  });
+
+  if (report.autoWithdrawn > 0) {
+    steps.push({
+      title: "Pulled from savings",
+      sub: "Cash ran short",
+      amount: report.autoWithdrawn,
+    });
+  }
+  if (report.autoBorrowed > 0) {
+    steps.push({
+      title: "Auto-loan taken",
+      sub: "Cash ran short",
+      amount: report.autoBorrowed,
+    });
+  }
+  if (report.liquidated > 0) {
+    steps.push({
+      title: "Cards sold to the Bank",
+      sub: "To cover the shortfall",
+      amount: report.liquidated,
+    });
+  }
+
+  const adjustments =
+    [repaid > 0 && `-$${repaid}`, deposited > 0 && `-$${deposited}`]
+      .filter(Boolean)
+      .join(" · ") || "—";
+  steps.push({
+    title: "Repay loan / savings",
+    sub: `Optional · $${STEP} steps · today only`,
+    amountText: adjustments,
+    amount: -(repaid + deposited),
+  });
+
+  return steps;
 }
 
 export default function PaydayOverlay({
@@ -106,8 +142,6 @@ export default function PaydayOverlay({
   const depositAllowed = depositMax >= STEP && !isLastPayday;
   const actionEnabled =
     !report.bankrupt && (hasLoan ? repayMax >= STEP : depositAllowed);
-  const wasShort =
-    report.autoWithdrawn > 0 || report.autoBorrowed > 0 || report.liquidated > 0;
 
   let actionSub: string;
   if (hasLoan) {
@@ -130,7 +164,9 @@ export default function PaydayOverlay({
               PAY DAY
             </Typography>
             <Typography design="body" weight={700} style={styles.headerSub}>
-              Settle up, then start a fresh month.
+              {isLastPayday
+                ? "Settle up — this is your final month."
+                : "Settle up, then start a fresh month."}
             </Typography>
           </View>
 
@@ -140,18 +176,6 @@ export default function PaydayOverlay({
                 <PayStepRow key={step.title} step={step} index={i} />
               ))}
             </View>
-
-            {wasShort && (
-              <Typography design="body" weight={700} style={styles.shortNote}>
-                Cash ran short — covered with
-                {report.autoWithdrawn > 0 && ` $${report.autoWithdrawn} from savings`}
-                {report.autoWithdrawn > 0 && report.autoBorrowed > 0 && ","}
-                {report.autoBorrowed > 0 && ` a $${report.autoBorrowed} loan`}
-                {report.liquidated > 0 &&
-                  ` and the Bank buying back your cards for $${report.liquidated}`}
-                .
-              </Typography>
-            )}
 
             {report.bankrupt && (
               <View style={styles.bankruptBox}>
@@ -206,9 +230,7 @@ export default function PaydayOverlay({
                   {player.name} · after bills
                 </Typography>
               </View>
-              <Typography design="money" style={styles.balanceValue}>
-                {money(player.cash)}
-              </Typography>
+              <AnimatedCash value={player.cash} style={styles.balanceValue} />
             </View>
           </ScrollView>
 
@@ -222,7 +244,9 @@ export default function PaydayOverlay({
               onPress={() => overlay.current?.close()}
             >
               <Typography design="title" style={styles.doneLabel}>
-                {report.bankrupt ? "Retire from the game" : "Start next month →"}
+                {report.bankrupt || isLastPayday
+                  ? "Retire from the game"
+                  : "Start next month →"}
               </Typography>
             </ChunkyButton>
           </View>
@@ -338,12 +362,6 @@ const styles = StyleSheet.create({
     borderRadius: 18,
     paddingVertical: 6,
     paddingHorizontal: 16,
-  },
-  shortNote: {
-    fontSize: 12,
-    lineHeight: 18,
-    color: SD.debt,
-    paddingHorizontal: 6,
   },
   actionRow: {
     flexDirection: "row",

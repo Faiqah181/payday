@@ -55,10 +55,10 @@ A digital adaptation of the **1974 PayDay board game**, built with **Expo 54 / R
 `BOARD_SPACES` day 0-31, `SPACE_CATEGORY` (type → design category), `getCellAmount`, `getSpaceDetail` (tap-a-cell rules text), layout constants (`BOARD_CELL_GAP` etc. — game.tsx sizing math depends on them).
 
 ## Pending / Not Implemented
-- Online multiplayer (buttons disabled, design screens exist: OnlineHub/Join/Lobby; `gameMode` scaffold + online poker branches ready)
-- Google Play Games sign-in (profile screen UI ready, no-op)
-- Rate-the-app link (needs store listing), real support email
-- Design polka-dot board texture; board landscape layout is functional but unpolished
+- Online multiplayer (buttons disabled with "Coming Soon" badge, design screens exist: OnlineHub/Join/Lobby; `gameMode` scaffold + online poker branches ready)
+- Google Play Games sign-in (profile screen UI ready, sign-in button disabled with "Coming Soon" badge, no-op). Display name is locally editable & persisted (`playerName`) via `ProfileContext.setName`.
+- Rate the app uses `expo-store-review` (`StoreReview.requestReview()` → native Google Play / App Store in-app review); only surfaces in production store builds, quota-limited by Google. Feedback = `mailto:` in settings.
+- Board landscape layout is functional but unpolished
 
 ## Build Notes
 - Android SDK path: `C:\Users\Faiqah\AppData\Local\Android\Sdk` — set ANDROID_HOME env var

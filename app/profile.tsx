@@ -1,3 +1,4 @@
+import ComingSoonBadge from "@/components/menu/ComingSoonBadge";
 import ChunkyButton from "@/components/ui/ChunkyButton";
 import ScreenBackground from "@/components/ui/ScreenBackground";
 import Typography from "@/components/ui/Typography";
@@ -5,7 +6,7 @@ import { mixHex, SD, SD_AVATAR_COLORS } from "@/constants/theme";
 import { useProfile } from "@/contexts/ProfileContext";
 import { useSound } from "@/contexts/SoundContext";
 import { useRouter } from "expo-router";
-import { Pressable, StyleSheet, View } from "react-native";
+import { Pressable, StyleSheet, TextInput, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 const GOOGLE_BLUE = "#4285F4";
@@ -14,7 +15,7 @@ const GOOGLE_BLUE_SHADOW = "#2C63C7";
 export default function Profile() {
   const router = useRouter();
   const { playClick } = useSound();
-  const { name, initial, isSignedIn, avatarIdx, avatarColor, setAvatarIdx } =
+  const { name, initial, isSignedIn, avatarIdx, avatarColor, setAvatarIdx, setName } =
     useProfile();
 
   return (
@@ -64,6 +65,7 @@ export default function Profile() {
           </View>
 
           <View style={styles.googleCard}>
+            <ComingSoonBadge />
             <View style={styles.googleRow}>
               <View style={styles.googleTile}>
                 <Typography design="title" style={styles.googleG}>
@@ -97,6 +99,7 @@ export default function Profile() {
                 depthColor={GOOGLE_BLUE_SHADOW}
                 depth={4}
                 borderRadius={13}
+                disabled
                 style={styles.signInButton}
                 contentStyle={styles.signInFace}
                 onPress={() => {}}
@@ -152,17 +155,18 @@ export default function Profile() {
           </View>
 
           <View style={styles.nameCard}>
-            <View>
-              <Typography design="title" weight={800} style={styles.nameTitle}>
-                Display name
-              </Typography>
-              <Typography design="body" weight={700} style={styles.nameHint}>
-                {isSignedIn ? "From your Google account" : "Sign in to set a name"}
-              </Typography>
-            </View>
-            <Typography design="title" weight={800} style={styles.nameValue}>
-              {name}
+            <Typography design="title" weight={800} style={styles.nameTitle}>
+              Display name
             </Typography>
+            <TextInput
+              value={name}
+              onChangeText={setName}
+              placeholder="Your name"
+              placeholderTextColor={SD.soft}
+              maxLength={16}
+              selectTextOnFocus
+              style={styles.nameInput}
+            />
           </View>
         </View>
       </SafeAreaView>
@@ -371,12 +375,13 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: SD.ink,
   },
-  nameHint: {
-    fontSize: 11,
-    color: SD.soft,
-  },
-  nameValue: {
+  nameInput: {
+    flex: 1,
+    marginLeft: 12,
+    textAlign: "right",
     fontSize: 15,
+    fontFamily: "Nunito_800ExtraBold",
     color: SD.ink,
+    paddingVertical: 0,
   },
 });

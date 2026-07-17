@@ -1,10 +1,13 @@
+import ConfettiRain from "@/components/game/events/ConfettiRain";
 import ChunkyButton from "@/components/ui/ChunkyButton";
 import PlayerToken from "@/components/ui/PlayerToken";
 import ScreenBackground from "@/components/ui/ScreenBackground";
 import Typography from "@/components/ui/Typography";
 import { SD, SD_LAYER } from "@/constants/theme";
+import { useSound } from "@/contexts/SoundContext";
 import type { Player } from "@/types/game";
 import { getAccountStatus } from "@/types/game";
+import { useEffect } from "react";
 import { ScrollView, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -31,15 +34,14 @@ function noteFor(player: Player): string {
   return "Debt-free";
 }
 
+function unsoldDealsNote(player: Player): string | null {
+  if (!player.deals.length) return null;
+  const worth = player.deals.reduce((sum, deal) => sum + deal.sellPrice, 0);
+  return `$${worth.toLocaleString("en-US")} worth of deals not sold`;
+}
+
 const initialOf = (player: Player) =>
   player.name?.trim()?.[0]?.toUpperCase() || "?";
-
-const CONFETTI = [
-  { top: 16, left: 26, color: SD.debt, round: false, rotate: "20deg" },
-  { top: 34, right: 36, color: SD.blue, round: true, rotate: "0deg" },
-  { top: 54, left: 52, color: SD.primary, round: false, rotate: "40deg" },
-  { top: 22, right: 70, color: SD.purple, round: true, rotate: "0deg" },
-] as const;
 
 export default function GameOverModal({
   players,
@@ -47,6 +49,13 @@ export default function GameOverModal({
   onRematch,
   onClose,
 }: GameOverModalProps) {
+  const { playResult } = useSound();
+
+  useEffect(() => {
+    playResult();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   // Bankrupt players always rank below solvent ones
   const ranked = [...players].sort((a, b) => {
     if (a.bankrupt !== b.bankrupt) return a.bankrupt ? 1 : -1;
@@ -63,22 +72,6 @@ export default function GameOverModal({
       <ScreenBackground>
         <SafeAreaView style={styles.screen}>
           <View style={styles.header}>
-            {CONFETTI.map((c, i) => (
-              <View
-                key={i}
-                style={[
-                  styles.confetti,
-                  {
-                    top: c.top,
-                    left: "left" in c ? c.left : undefined,
-                    right: "right" in c ? c.right : undefined,
-                    backgroundColor: c.color,
-                    borderRadius: c.round ? 6 : 2,
-                    transform: [{ rotate: c.rotate }],
-                  },
-                ]}
-              />
-            ))}
             <Typography design="body" weight={800} style={styles.headerEyebrow}>
               {totalMonths} {totalMonths === 1 ? "MONTH" : "MONTHS"} · FINAL STANDINGS
             </Typography>
@@ -107,6 +100,11 @@ export default function GameOverModal({
               <Typography design="body" weight={700} style={styles.winnerNote}>
                 {noteFor(winner)}
               </Typography>
+              {unsoldDealsNote(winner) && (
+                <Typography design="body" weight={700} style={styles.winnerNote}>
+                  {unsoldDealsNote(winner)}
+                </Typography>
+              )}
               <Typography design="money" style={styles.winnerTotal}>
                 {money(netWorth(winner))}
               </Typography>
@@ -130,6 +128,11 @@ export default function GameOverModal({
                     <Typography design="body" weight={700} style={styles.standingNote}>
                       {noteFor(player)}
                     </Typography>
+                    {unsoldDealsNote(player) && (
+                      <Typography design="body" weight={700} style={styles.standingNote}>
+                        {unsoldDealsNote(player)}
+                      </Typography>
+                    )}
                   </View>
                   <Typography design="money" style={styles.standingTotal}>
                     {money(netWorth(player))}
@@ -169,6 +172,7 @@ export default function GameOverModal({
           </View>
         </SafeAreaView>
       </ScreenBackground>
+      <ConfettiRain />
     </View>
   );
 }
@@ -187,11 +191,6 @@ const styles = StyleSheet.create({
     paddingBottom: 12,
     alignItems: "center",
     overflow: "hidden",
-  },
-  confetti: {
-    position: "absolute",
-    width: 10,
-    height: 10,
   },
   headerEyebrow: {
     fontSize: 11,
