@@ -5,8 +5,9 @@ import EventShell from "@/components/game/events/EventShell";
 import Typography from "@/components/ui/Typography";
 import { GAME_CONFIG } from "@/constants/gameConfig";
 import { SD_EVENT_GRADIENTS } from "@/constants/theme";
+import { useSound } from "@/contexts/SoundContext";
 import type { Player } from "@/types/game";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Pressable, StyleSheet, View } from "react-native";
 
 const BET_STEP = 10;
@@ -40,9 +41,17 @@ export default function SwellfareModal({
   );
   const canBet = isInDebt && maxBet >= BET_STEP;
 
+  const { playDiceRoll, playEventWin } = useSound();
   const [bet, setBet] = useState(BET_STEP);
   const [rolled, setRolled] = useState<DieValue | null>(null);
   const won = rolled !== null && rolled >= 5;
+
+  useEffect(() => {
+    if (!won) return;
+    const t = setTimeout(() => playEventWin(), 500);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [won]);
 
   const initial = player.name?.trim()?.[0]?.toUpperCase() || "?";
 
@@ -88,7 +97,10 @@ export default function SwellfareModal({
               label={`Bet $${bet} & roll`}
               color={GOLD}
               textColor="#5E4700"
-              onPress={() => setRolled((1 + Math.floor(Math.random() * 6)) as DieValue)}
+              onPress={() => {
+                playDiceRoll();
+                setRolled((1 + Math.floor(Math.random() * 6)) as DieValue);
+              }}
             />
           ) : (
             <EventButton

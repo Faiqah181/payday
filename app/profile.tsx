@@ -5,8 +5,18 @@ import Typography from "@/components/ui/Typography";
 import { mixHex, SD, SD_AVATAR_COLORS } from "@/constants/theme";
 import { useProfile } from "@/contexts/ProfileContext";
 import { useSound } from "@/contexts/SoundContext";
+import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import { Pressable, StyleSheet, TextInput, View } from "react-native";
+import { useRef, useState } from "react";
+import {
+  Modal,
+  Pressable,
+  StyleSheet,
+  TextInput,
+  useWindowDimensions,
+  View,
+} from "react-native";
+import Animated, { FadeInUp } from "react-native-reanimated";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 const GOOGLE_BLUE = "#4285F4";
@@ -17,6 +27,9 @@ export default function Profile() {
   const { playClick } = useSound();
   const { name, initial, isSignedIn, avatarIdx, avatarColor, setAvatarIdx, setName } =
     useProfile();
+  const { height } = useWindowDimensions();
+  const [editingName, setEditingName] = useState(false);
+  const nameInputRef = useRef<TextInput>(null);
 
   return (
     <ScreenBackground>
@@ -154,22 +167,74 @@ export default function Profile() {
             </View>
           </View>
 
-          <View style={styles.nameCard}>
+          <Pressable
+            style={styles.nameCard}
+            onPress={() => {
+              playClick();
+              setEditingName(true);
+            }}
+          >
             <Typography design="title" weight={800} style={styles.nameTitle}>
               Display name
             </Typography>
-            <TextInput
-              value={name}
-              onChangeText={setName}
-              placeholder="Your name"
-              placeholderTextColor={SD.soft}
-              maxLength={16}
-              selectTextOnFocus
-              style={styles.nameInput}
-            />
-          </View>
+            <View style={styles.nameValueRow}>
+              <Typography design="title" weight={800} style={styles.nameValue}>
+                {name}
+              </Typography>
+              <Ionicons name="pencil" size={15} color={SD.soft} />
+            </View>
+          </Pressable>
         </View>
       </SafeAreaView>
+
+      <Modal
+        visible={editingName}
+        transparent
+        animationType="fade"
+        statusBarTranslucent
+        onRequestClose={() => setEditingName(false)}
+        onShow={() => setTimeout(() => nameInputRef.current?.focus(), 60)}
+      >
+        <Pressable
+          style={styles.editBackdrop}
+          onPress={() => setEditingName(false)}
+        >
+          <Animated.View
+            entering={FadeInUp.duration(260)}
+            style={[styles.editCardWrap, { marginTop: height * 0.16 }]}
+          >
+            <Pressable style={styles.editCard} onPress={() => {}}>
+              <Typography design="body" weight={800} style={styles.editLabel}>
+                DISPLAY NAME
+              </Typography>
+              <TextInput
+                ref={nameInputRef}
+                value={name}
+                onChangeText={setName}
+                placeholder="Your name"
+                placeholderTextColor={SD.soft}
+                maxLength={16}
+                selectTextOnFocus
+                returnKeyType="done"
+                onSubmitEditing={() => setEditingName(false)}
+                style={styles.editInput}
+              />
+              <ChunkyButton
+                color={SD.primary}
+                depthColor={SD.primaryShadow}
+                depth={4}
+                borderRadius={14}
+                contentStyle={styles.editDoneFace}
+                onPress={() => setEditingName(false)}
+              >
+                <Typography design="title" style={styles.editDoneLabel}>
+                  Done
+                </Typography>
+              </ChunkyButton>
+            </Pressable>
+          </Animated.View>
+        </Pressable>
+      </Modal>
     </ScreenBackground>
   );
 }
@@ -375,13 +440,56 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: SD.ink,
   },
-  nameInput: {
-    flex: 1,
-    marginLeft: 12,
-    textAlign: "right",
+  nameValueRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
+  nameValue: {
     fontSize: 15,
+    color: SD.ink,
+  },
+  editBackdrop: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.55)",
+    alignItems: "center",
+    paddingHorizontal: 26,
+  },
+  editCardWrap: {
+    width: "100%",
+  },
+  editCard: {
+    width: "100%",
+    backgroundColor: SD.surface,
+    borderRadius: 20,
+    padding: 20,
+    gap: 14,
+    elevation: 8,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.25,
+    shadowRadius: 16,
+  },
+  editLabel: {
+    fontSize: 11,
+    letterSpacing: 1.5,
+    color: SD.soft,
+  },
+  editInput: {
+    fontSize: 22,
     fontFamily: "Nunito_800ExtraBold",
     color: SD.ink,
-    paddingVertical: 0,
+    backgroundColor: SD.surface2,
+    borderRadius: 14,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+  },
+  editDoneFace: {
+    paddingVertical: 13,
+    alignItems: "center",
+  },
+  editDoneLabel: {
+    fontSize: 15,
+    color: SD.white,
   },
 });

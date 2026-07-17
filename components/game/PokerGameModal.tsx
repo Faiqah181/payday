@@ -9,6 +9,7 @@ import {
 import WinnerCelebration from "@/components/game/events/WinnerCelebration";
 import ConfirmDialog from "@/components/ui/ConfirmDialog";
 import Typography from "@/components/ui/Typography";
+import { useSound } from "@/contexts/SoundContext";
 import { SD, SD_EVENT_GRADIENTS } from "@/constants/theme";
 import {
   canFinance,
@@ -44,6 +45,7 @@ export default function PokerGameModal({
   onSkip,
 }: PokerGameModalProps) {
   const isOnline = gameMode === "ONLINE";
+  const { playDiceRoll } = useSound();
   const [phase, setPhase] = useState<PokerPhase>("join");
   // null = hasn't decided yet
   const [decisions, setDecisions] = useState<(boolean | null)[]>(
@@ -112,6 +114,7 @@ export default function PokerGameModal({
   }
 
   function handleRoll() {
+    playDiceRoll();
     const value = Math.floor(Math.random() * 6) + 1;
     const newRolls = [...rolls];
     newRolls[activeRollSlot] = value;

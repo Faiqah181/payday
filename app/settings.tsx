@@ -4,6 +4,7 @@ import ToggleSwitch from "@/components/ui/ToggleSwitch";
 import Typography from "@/components/ui/Typography";
 import { SD } from "@/constants/theme";
 import { useSound } from "@/contexts/SoundContext";
+import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import * as StoreReview from "expo-store-review";
 import { ReactNode } from "react";
@@ -12,19 +13,30 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 const FEEDBACK_EMAIL = "kamranasad7@gmail.com";
 
-function IconTile({ color, glyph }: { color: string; glyph: string }) {
+function IconTile({
+  color,
+  glyph,
+  icon,
+}: {
+  color: string;
+  glyph?: string;
+  icon?: ReactNode;
+}) {
   return (
     <View style={[styles.iconTile, { backgroundColor: color }]}>
-      <Typography design="title" style={styles.iconGlyph}>
-        {glyph}
-      </Typography>
+      {icon ?? (
+        <Typography design="title" style={styles.iconGlyph}>
+          {glyph}
+        </Typography>
+      )}
     </View>
   );
 }
 
 interface SettingsRowProps {
   tileColor: string;
-  glyph: string;
+  glyph?: string;
+  icon?: ReactNode;
   title: string;
   subtitle: string;
   right?: ReactNode;
@@ -35,6 +47,7 @@ interface SettingsRowProps {
 function SettingsRow({
   tileColor,
   glyph,
+  icon,
   title,
   subtitle,
   right,
@@ -44,7 +57,7 @@ function SettingsRow({
   const { playClick } = useSound();
   const content = (
     <>
-      <IconTile color={tileColor} glyph={glyph} />
+      <IconTile color={tileColor} glyph={glyph} icon={icon} />
       <View style={styles.rowText}>
         <Typography design="title" weight={800} style={styles.rowTitle}>
           {title}
@@ -191,7 +204,7 @@ export default function Settings() {
           />
           <SettingsRow
             tileColor={SD.primary}
-            glyph="✉"
+            icon={<Ionicons name="mail" size={20} color={SD.white} />}
             title="Give Feedback"
             subtitle="Get a reply directly from the game developer"
             divider

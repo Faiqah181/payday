@@ -2,7 +2,9 @@ import ChunkyButton from "@/components/ui/ChunkyButton";
 import PopCard from "@/components/ui/PopCard";
 import Typography from "@/components/ui/Typography";
 import { SD } from "@/constants/theme";
+import { useSound } from "@/contexts/SoundContext";
 import type { DealCard } from "@/types/game";
+import { useEffect } from "react";
 import { StyleSheet, View } from "react-native";
 
 interface DealCardModalProps {
@@ -19,6 +21,13 @@ export default function DealCardModal({
   onBuy,
   onDiscard,
 }: DealCardModalProps) {
+  const { playDealOffer } = useSound();
+
+  useEffect(() => {
+    playDealOffer();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   return (
     <PopCard tone={SD.purple} eyebrow="DEAL CARD">
       <Typography design="title" style={styles.title}>

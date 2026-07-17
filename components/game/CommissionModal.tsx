@@ -8,6 +8,7 @@ import {
 } from "@/components/game/events/useDelayedReveal";
 import WinnerCelebration from "@/components/game/events/WinnerCelebration";
 import { SD_EVENT_GRADIENTS } from "@/constants/theme";
+import { useSound } from "@/contexts/SoundContext";
 import type { Player } from "@/types/game";
 import { useState } from "react";
 import { ScrollView } from "react-native";
@@ -39,8 +40,10 @@ export default function CommissionModal({
   const [tieIndices, setTieIndices] = useState<number[] | null>(null);
   const [winnerIndex, setWinnerIndex] = useState<number | null>(null);
   const [revealPending, reveal] = useDelayedReveal();
+  const { playDiceRoll } = useSound();
 
   function handleRoll() {
+    playDiceRoll();
     const value = Math.floor(Math.random() * 6) + 1;
     const newRolls = [...rolls];
     newRolls[activeIndex] = value;

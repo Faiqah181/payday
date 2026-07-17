@@ -107,7 +107,6 @@ export default function DiceRoller({
     const flyIn = { duration: FLY_IN_MS, easing: FLY_IN_EASING };
     const spin = { duration: SPIN_MS, easing: SPIN_EASING };
 
-    playDiceRoll();
     backdrop.value = withTiming(1, { duration: 250 });
     translateX.value = withTiming(0, flyIn);
     translateY.value = withTiming(0, flyIn);
@@ -116,6 +115,8 @@ export default function DiceRoller({
     rotationY.value = withDelay(FLY_IN_MS, withTiming(totals.current.y, spin));
 
     timers.current = [
+      // Clip's dead air was trimmed, so fire it as the die lands center-screen
+      setTimeout(playDiceRoll, FLY_IN_MS),
       setTimeout(() => {
         setCanDismiss(true);
         impactHaptic();

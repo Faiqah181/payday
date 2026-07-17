@@ -7,8 +7,9 @@ import { SD } from "@/constants/theme";
 import { useProfile } from "@/contexts/ProfileContext";
 import { Ionicons } from "@expo/vector-icons";
 import { useFocusEffect, useRouter } from "expo-router";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
+  AppState,
   BackHandler,
   ImageBackground,
   Pressable,
@@ -36,6 +37,15 @@ export default function Index() {
       return () => sub.remove();
     }, []),
   );
+
+  // If the OS only backgrounds the app on exit (some Android skins) instead of
+  // killing it, clear the dialog so a resume lands on the menu, not the modal.
+  useEffect(() => {
+    const sub = AppState.addEventListener("change", (state) => {
+      if (state !== "active") setConfirmExit(false);
+    });
+    return () => sub.remove();
+  }, []);
 
   return (
     <ImageBackground
@@ -162,7 +172,10 @@ export default function Index() {
             body="You'll leave Salary Day and return to your home screen."
             confirmLabel="Exit"
             cancelLabel="Stay"
-            onConfirm={() => BackHandler.exitApp()}
+            onConfirm={() => {
+              setConfirmExit(false);
+              BackHandler.exitApp();
+            }}
             onCancel={() => setConfirmExit(false)}
           />
         )}

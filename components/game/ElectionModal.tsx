@@ -8,6 +8,7 @@ import {
 } from "@/components/game/events/useDelayedReveal";
 import WinnerCelebration from "@/components/game/events/WinnerCelebration";
 import { SD_EVENT_GRADIENTS } from "@/constants/theme";
+import { useSound } from "@/contexts/SoundContext";
 import type { Player } from "@/types/game";
 import { useState } from "react";
 import { ScrollView } from "react-native";
@@ -36,6 +37,7 @@ export default function ElectionModal({
   currentPlayerIndex,
   onFinish,
 }: ElectionModalProps) {
+  const { playDiceRoll } = useSound();
   const [phase, setPhase] = useState<ElectionPhase>("race");
   // Lander rolls first, then turn order
   const [rollOrder] = useState<number[]>(() => {
@@ -56,6 +58,7 @@ export default function ElectionModal({
   const winner = winnerIndex !== null ? players[winnerIndex] : null;
 
   function handleRoll() {
+    playDiceRoll();
     const value = Math.floor(Math.random() * 6) + 1;
     setRolls((r) => ({ ...r, [activeIndex]: value }));
     setRollSeq((s) => ({ ...s, [activeIndex]: (s[activeIndex] ?? 0) + 1 }));

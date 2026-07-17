@@ -14,6 +14,7 @@ import diceRollSound from "@/assets/sounds/patrigrief__dice1.wav";
 import cashRegisterSound from "@/assets/sounds/disman_cash-register-chching.mp3";
 import coinsSound from "@/assets/sounds/noisyredfox__coins2.wav";
 import mailSound from "@/assets/sounds/esperar_bird-2-c.mp3";
+import dealOfferSound from "@/assets/sounds/female_hi.wav";
 import resultSound from "@/assets/sounds/dzedenz__result-7.mp3";
 import eventWinSound from "@/assets/sounds/mihacappy__sfx_win_3.wav";
 import cashWinSound from "@/assets/sounds/wagna__collect.wav";
@@ -39,6 +40,9 @@ interface SoundContextType {
 
   /** Chirp for drawing a mail card. */
   playMail: () => void;
+
+  /** Greeting when a deal offer card opens. */
+  playDealOffer: () => void;
 
   /** Fanfare for the final results screen. */
   playResult: () => void;
@@ -68,6 +72,7 @@ const SoundContext = createContext<SoundContextType>({
   playCashRegister: () => {},
   playCoins: () => {},
   playMail: () => {},
+  playDealOffer: () => {},
   playResult: () => {},
   playEventWin: () => {},
   playCashWin: () => {},
@@ -90,6 +95,7 @@ export function SoundProvider({ children }: { children: ReactNode }) {
   const cashRegisterPlayer = useAudioPlayer(cashRegisterSound);
   const coinsPlayer = useAudioPlayer(coinsSound);
   const mailPlayer = useAudioPlayer(mailSound);
+  const dealOfferPlayer = useAudioPlayer(dealOfferSound);
   const resultPlayer = useAudioPlayer(resultSound);
   const eventWinPlayer = useAudioPlayer(eventWinSound);
   const cashWinPlayer = useAudioPlayer(cashWinSound);
@@ -134,6 +140,7 @@ export function SoundProvider({ children }: { children: ReactNode }) {
   const playCashRegister = () => playSound(cashRegisterPlayer);
   const playCoins = () => playSound(coinsPlayer);
   const playMail = () => playSound(mailPlayer);
+  const playDealOffer = () => playSound(dealOfferPlayer);
   const playResult = () => playSound(resultPlayer);
   const playEventWin = () => playSound(eventWinPlayer);
   const playCashWin = () => playSound(cashWinPlayer);
@@ -160,6 +167,7 @@ export function SoundProvider({ children }: { children: ReactNode }) {
         playCashRegister,
         playCoins,
         playMail,
+        playDealOffer,
         playResult,
         playEventWin,
         playCashWin,

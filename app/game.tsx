@@ -1266,9 +1266,10 @@ export default function Game() {
         tickets={currentPlayer.lotteryTickets.filter(
           (t) => t.monthReceived === currentPlayer.currentMonth,
         )}
-        onRedeem={(ticketIds) =>
-          dispatch({ type: "REDEEM_LOTTERY", ticketIds })
-        }
+        onRedeem={(ticketIds) => {
+          if (ticketIds.length > 0) playCashRegister();
+          dispatch({ type: "REDEEM_LOTTERY", ticketIds });
+        }}
       />
     ) : null;
 
