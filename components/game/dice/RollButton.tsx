@@ -19,10 +19,16 @@ export default function RollButton({
 }: RollButtonProps) {
   const slotRef = useRef<View>(null);
 
+  // measureInWindow right after mount (post-LoadingScreen) can return 0 on
+  // Android — defer past the frame and retry until it reports a real size.
   const measureSlot = () => {
-    slotRef.current?.measureInWindow((x, y, width, height) => {
-      onAnchorChange({ x, y, width, height });
-    });
+    const run = (retries: number) => {
+      slotRef.current?.measureInWindow((x, y, width, height) => {
+        if (width > 0) onAnchorChange({ x, y, width, height });
+        else if (retries > 0) requestAnimationFrame(() => run(retries - 1));
+      });
+    };
+    requestAnimationFrame(() => run(5));
   };
 
   return (

@@ -55,9 +55,13 @@ export default function DiceRoller({
   // Both anchor and layer are measured in window coordinates, so the
   // dock offset stays correct regardless of insets or edge-to-edge.
   const measureLayer = () => {
-    layerRef.current?.measureInWindow((x, y, width, height) => {
-      setLayer({ x, y, width, height });
-    });
+    const run = (retries: number) => {
+      layerRef.current?.measureInWindow((x, y, width, height) => {
+        if (width > 0) setLayer({ x, y, width, height });
+        else if (retries > 0) requestAnimationFrame(() => run(retries - 1));
+      });
+    };
+    requestAnimationFrame(() => run(5));
   };
 
   const home =
