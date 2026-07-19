@@ -37,9 +37,10 @@ const STEP_DURATION = 140; // ms per one-cell glide
 const GAP = BOARD_CELL_GAP;
 // Must match BoardCell's TokenStack: 19px tokens overlapping 7px,
 // anchored 4px from the cell's top-right corner
-const TOKEN_SIZE = 19;
-const TOKEN_INSET = 4;
+const TOKEN_SIZE = 24;
 const TOKEN_OVERLAP_STEP = TOKEN_SIZE - 7;
+// Tokens cluster in a 2-wide grid: p1 p2 on top, p3 p4 below.
+const TOKEN_COLS = 2;
 
 /**
  * The mover's exact slot within the token stack on this day's cell, so the
@@ -66,17 +67,24 @@ function getMoverSlot(
       ? [...others, moverIndex].sort((a, b) => a - b)
       : [...others, moverIndex];
   const rank = stack.indexOf(moverIndex);
-  const stackWidth = TOKEN_SIZE + (stack.length - 1) * TOKEN_OVERLAP_STEP;
+  const count = stack.length;
+  const cols = Math.min(count, TOKEN_COLS);
+  const rows = Math.ceil(count / TOKEN_COLS);
+  const clusterW = TOKEN_SIZE + (cols - 1) * TOKEN_OVERLAP_STEP;
+  const clusterH = TOKEN_SIZE + (rows - 1) * TOKEN_OVERLAP_STEP;
+  const c = rank % TOKEN_COLS;
+  const r = Math.floor(rank / TOKEN_COLS);
   const cellWidth =
     space.type === "salary-day" ? cellSize * 4 + GAP * 3 : cellSize;
   return {
     x:
       space.col * (cellSize + GAP) +
-      cellWidth -
-      TOKEN_INSET -
-      stackWidth +
-      rank * TOKEN_OVERLAP_STEP,
-    y: space.row * (ch + GAP) + TOKEN_INSET,
+      (cellWidth - clusterW) / 2 +
+      c * TOKEN_OVERLAP_STEP,
+    y:
+      space.row * (ch + GAP) +
+      (ch - clusterH) / 2 +
+      r * TOKEN_OVERLAP_STEP,
   };
 }
 
@@ -286,7 +294,7 @@ const styles = StyleSheet.create({
   movingToken: {
     width: TOKEN_SIZE,
     height: TOKEN_SIZE,
-    borderRadius: 10,
+    borderRadius: 12,
     borderWidth: 2,
     borderColor: SD.white,
     alignItems: "center",
@@ -298,7 +306,7 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
   },
   movingTokenText: {
-    fontSize: 9,
+    fontSize: 11,
     color: SD.white,
   },
 });

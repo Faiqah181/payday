@@ -117,6 +117,8 @@ export interface EventMessage {
   title: string;
   description: string;
   amount: number;
+  /** Skip the instant-cash sound on dismiss (a sound already played, e.g. deal sell). */
+  silentCash?: boolean;
 }
 
 /** How this match is played — drives turn-taking vs simultaneous flows. */

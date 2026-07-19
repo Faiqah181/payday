@@ -1,3 +1,4 @@
+import DaylightSavingIcon from "@/components/game/DaylightSavingIcon";
 import { EventButton } from "@/components/game/events/EventFooter";
 import EventPlayerRow from "@/components/game/events/EventPlayerRow";
 import EventShell from "@/components/game/events/EventShell";
@@ -61,7 +62,7 @@ export default function DaylightSavingModal({
   return (
     <EventShell
       gradient={SD_EVENT_GRADIENTS.daylight}
-      emblem="🕐"
+      emblem={<DaylightSavingIcon size={62} />}
       eyebrow="DAYLIGHT SAVINGS"
       title="Fall back!"
       subtitle="Every player moves back one space and follows it"

@@ -129,41 +129,43 @@ export default function Index() {
               </Typography>
             </ChunkyButton>
           </View>
+        </View>
 
-          <View style={styles.smallRow}>
-            <ChunkyButton
-              color={SD.white}
-              depthColor="rgba(0,0,0,0.12)"
-              depth={4}
-              borderRadius={16}
-              style={styles.smallButton}
-              contentStyle={styles.smallCard}
-              onPress={() => router.push("/how-to-play")}
-            >
-              <Typography design="title" style={[styles.smallGlyph, { color: SD.blue }]}>
-                ?
-              </Typography>
-              <Typography design="title" style={styles.smallLabel}>
-                How to play
-              </Typography>
-            </ChunkyButton>
-            <ChunkyButton
-              color={SD.white}
-              depthColor="rgba(0,0,0,0.12)"
-              depth={4}
-              borderRadius={16}
-              style={styles.smallButton}
-              contentStyle={styles.smallCard}
-              onPress={() => router.push("/settings")}
-            >
-              <Typography design="title" style={[styles.smallGlyph, { color: SD.soft }]}>
-                ⚙
-              </Typography>
-              <Typography design="title" style={styles.smallLabel}>
-                Settings
-              </Typography>
-            </ChunkyButton>
-          </View>
+        <View style={styles.spacer} />
+
+        <View style={styles.smallRow}>
+          <ChunkyButton
+            color={SD.white}
+            depthColor="rgba(0,0,0,0.12)"
+            depth={4}
+            borderRadius={16}
+            style={styles.smallButton}
+            contentStyle={styles.smallCard}
+            onPress={() => router.push("/how-to-play")}
+          >
+            <Typography design="title" style={[styles.smallGlyph, { color: SD.blue }]}>
+              ?
+            </Typography>
+            <Typography design="title" style={styles.smallLabel}>
+              How to play
+            </Typography>
+          </ChunkyButton>
+          <ChunkyButton
+            color={SD.white}
+            depthColor="rgba(0,0,0,0.12)"
+            depth={4}
+            borderRadius={16}
+            style={styles.smallButton}
+            contentStyle={styles.smallCard}
+            onPress={() => router.push("/settings")}
+          >
+            <Typography design="title" style={[styles.smallGlyph, { color: SD.soft }]}>
+              ⚙
+            </Typography>
+            <Typography design="title" style={styles.smallLabel}>
+              Settings
+            </Typography>
+          </ChunkyButton>
         </View>
 
         {confirmExit && (
@@ -229,7 +231,7 @@ const styles = StyleSheet.create({
     minHeight: 24,
   },
   menu: {
-    gap: 12,
+    gap: 20,
     paddingHorizontal: 16,
     paddingBottom: 18,
   },
@@ -290,6 +292,8 @@ const styles = StyleSheet.create({
   smallRow: {
     flexDirection: "row",
     gap: 12,
+    paddingHorizontal: 16,
+    paddingBottom: 18,
   },
   smallButton: {
     flex: 1,

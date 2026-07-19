@@ -140,8 +140,8 @@ interface EventShellProps {
   eyebrow: string;
   title: string;
   subtitle: string;
-  /** Large emoji rendered above the eyebrow (eyebrow text stays small). */
-  emblem?: string;
+  /** Large emblem above the eyebrow — an emoji string or a custom node (e.g. an SVG). */
+  emblem?: ReactNode;
   pot?: { label: string; value: string };
   children?: ReactNode;
   footer?: ReactNode;
@@ -173,10 +173,12 @@ export default function EventShell({
       >
         <SafeAreaView style={styles.screen}>
           <View style={styles.header}>
-            {emblem && (
+            {typeof emblem === "string" ? (
               <Typography design="body" style={styles.emblem}>
                 {emblem}
               </Typography>
+            ) : (
+              emblem && <View style={styles.emblemNode}>{emblem}</View>
             )}
             <Typography design="body" weight={800} style={styles.eyebrow}>
               {eyebrow}
@@ -241,6 +243,9 @@ const styles = StyleSheet.create({
   emblem: {
     fontSize: 34,
     lineHeight: 42,
+    marginBottom: 6,
+  },
+  emblemNode: {
     marginBottom: 6,
   },
   eyebrow: {

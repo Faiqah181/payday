@@ -62,7 +62,7 @@ export default function AnimatedCash({
   value,
   prefix = "$",
   signed = false,
-  duration = 550,
+  duration = 950,
   style,
   numberOfLines,
 }: AnimatedCashProps) {

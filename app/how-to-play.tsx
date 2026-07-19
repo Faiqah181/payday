@@ -315,7 +315,7 @@ export default function HowToPlay() {
               ‹
             </Typography>
           </ChunkyButton>
-          <Typography design="money" style={styles.screenTitle}>
+          <Typography design="title" style={styles.screenTitle}>
             How to Play
           </Typography>
         </View>

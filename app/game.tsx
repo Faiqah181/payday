@@ -35,7 +35,7 @@ import {
   BOARD_FRAME_BORDER,
   BOARD_FRAME_PADDING,
   BOARD_ROWS,
-  SPACE_EVENTS,
+  CELL_INFO,
   getSpaceByDay,
   getSpaceDetail,
   type SpaceDetail,
@@ -214,7 +214,7 @@ function resolveLanding(state: GameState): GameState {
   const playerIndex = state.currentPlayerIndex;
   const player = state.players[playerIndex];
   const space = getSpaceByDay(player.position);
-  const event = space ? SPACE_EVENTS[space.type] : undefined;
+  const event = space ? CELL_INFO[space.type].event : undefined;
 
   // Deal space: draw a card from the deck
   if (space?.type === "deal") {
@@ -478,6 +478,7 @@ function coreReducer(state: GameState, action: GameAction): GameState {
           title: "Deal Sold!",
           description: `${deal.title} went to the buyer — $${deal.sellPrice - deal.buyPrice} profit`,
           amount: deal.sellPrice,
+          silentCash: true,
         },
       };
     }
@@ -980,7 +981,7 @@ export default function Game() {
         (width - sidebarWidth - 12 - BOARD_CHROME_H - insets.left - insets.right) /
           BOARD_COLS,
       )
-    : (width - 16 - BOARD_CHROME_H) / BOARD_COLS;
+    : (width - 8 - BOARD_CHROME_H) / BOARD_COLS;
 
   // Portrait: cells grow taller to fill available vertical space
   const portraitCellHeight =
@@ -1142,8 +1143,10 @@ export default function Game() {
    */
   const settleInstantCash = () => {
     const amount = gameState.eventMessage?.amount ?? 0;
-    if (amount < 0) playCoins();
-    else if (amount > 0) playCashWin();
+    if (!gameState.eventMessage?.silentCash) {
+      if (amount < 0) playCoins();
+      else if (amount > 0) playCashWin();
+    }
     dispatch({ type: "DISMISS_EVENT" });
   };
 
@@ -1505,7 +1508,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     paddingVertical: 8,
-    paddingHorizontal: 10,
+    paddingHorizontal: 4,
   },
   topBar: {
     flexDirection: "row",
@@ -1540,6 +1543,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     gap: 8,
     marginHorizontal: 14,
+    marginTop: 8,
   },
   quickBtn: {
     flex: 1,
@@ -1587,9 +1591,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     paddingTop: 9,
     paddingBottom: 14,
-    marginTop: 9,
-    borderTopWidth: 2,
-    borderTopColor: SD.line,
+    marginTop: 8,
   },
   endBtn: {
     flex: 1,

@@ -1,38 +1,104 @@
 import type { BoardSpace, EventMessage, SpaceType } from "@/types/game";
-import { Ionicons } from "@expo/vector-icons";
+import type { ImageStyle, StyleProp } from "react-native";
 import { GAME_CONFIG } from "./gameConfig";
 import { SD_CATEGORY } from "./theme";
 
+/** Which icon component a tile draws — BoardCell maps these keys to components. */
+export type CellIcon =
+  | "coin"
+  | "bill"
+  | "die"
+  | "election"
+  | "birthday"
+  | "daylight";
 
-export const SPACE_CONFIG: Record<
-  SpaceType,
-  { icon: keyof typeof Ionicons.glyphMap; color: string; label: string }
-> = {
-  start: { icon: "flag", color: "#43A047", label: "START" },
-  "post-mail": { icon: "mail", color: "#1E88E5", label: "Mail" },
-  deal: { icon: "briefcase", color: "#43A047", label: "Deal" },
-  "asset-buyer": { icon: "cart", color: "#8E24AA", label: "Buyer" },
-  "lazy-sunday": { icon: "bed", color: "#78909C", label: "Rest" },
-  "birthday-gift": { icon: "gift", color: "#E91E63", label: "B-Day" },
-  "visitor-surprise": { icon: "people", color: "#EF6C00", label: "Visit" },
-  "performance-bonus": { icon: "trophy", color: "#F9A825", label: "Bonus" },
-  "poker-game": { icon: "game-controller", color: "#00897B", label: "Poker" },
-  "school-reunion": { icon: "shirt", color: "#AD1457", label: "Reun." },
-  "household-essentials": { icon: "home", color: "#EF6C00", label: "Bills" },
-  "home-rent": { icon: "key", color: "#6D4C41", label: "Rent" },
-  election: { icon: "megaphone", color: "#1565C0", label: "Election" },
-  "daylight-saving": { icon: "sunny", color: "#FFA000", label: "DST" },
-  "lottery-result": { icon: "ticket", color: "#F9A825", label: "Lotto" },
-  "salary-day": { icon: "cash", color: "#2E7D32", label: "PAY" },
-};
+/** Everything about a board space in one place. Add a cell = add one entry. */
+export interface CellInfo {
+  /** Design-system category — drives tile color & art. */
+  category: keyof typeof SD_CATEGORY;
+  /** Text shown at the bottom of the tile (icon cells without an amount pill). */
+  label?: string;
+  /** Full-bleed tile artwork (takes priority over `icon`). */
+  image?: number;
+  /** Enlarge the artwork by this factor via layout (stays sharp — unlike a
+   *  transform scale, which upscales the already-rasterized bitmap). */
+  imageScale?: number;
+  /** Per-cell overrides for the artwork (inset, opacity…), merged over the default. */
+  imageStyle?: StyleProp<ImageStyle>;
+  /** Drawn icon when there's no `image`. */
+  icon?: CellIcon;
+  /** Amount pill on the tile / instant cash for election & salary. */
+  amount?: number;
+  /** Instant cash event resolved on landing (birthdays, bonuses, bills). */
+  event?: EventMessage;
+}
 
-export const SPACE_EVENTS: Partial<Record<SpaceType, EventMessage>> = {
-  "birthday-gift": { title: "Happy Birthday!", description: "It's your birthday! 🎂", amount: 400 },
-  "performance-bonus": { title: "Performance Bonus!", description: "Great work this month! 🏆", amount: 100 },
-  "visitor-surprise": { title: "Surprise Visitor!", description: "An unexpected guest drops by 👋", amount: -50 },
-  "school-reunion": { title: "School Reunion!", description: "Dinner with old friends 🎓", amount: -40 },
-  "household-essentials": { title: "Household Bills!", description: "Time to restock supplies 🏠", amount: -75 },
-  "home-rent": { title: "Rent Due!", description: "Monthly rent payment 🔑", amount: -50 },
+export const CELL_INFO: Record<SpaceType, CellInfo> = {
+  start: { category: "start" },
+  "post-mail": {
+    label: "Mail",
+    category: "mail",
+    image: require("@/assets/images/board-cells/3.Mail.png"),
+    imageScale: 1.2,
+  },
+  deal: {
+    label: "Deal",
+    category: "deal",
+    image: require("@/assets/images/board-cells/4.Deal.png"),
+    imageScale: 1.5,
+  },
+  "asset-buyer": {
+    label: "Buyer",
+    category: "buyer",
+    image: require("@/assets/images/board-cells/2.buyer.png"),
+    imageScale: 1.2,
+  },
+  "lazy-sunday": {
+    label: "Sunday",
+    category: "rest",
+    image: require("@/assets/images/board-cells/1.lazy sunday.png"),
+    imageScale: 1.2,
+  },
+  "birthday-gift": {
+    category: "collect",
+    icon: "birthday",
+    event: { title: "Happy Birthday!", description: "It's your birthday! 🎂", amount: 400 },
+  },
+  "performance-bonus": {
+    category: "collect",
+    icon: "coin",
+    event: { title: "Performance Bonus!", description: "Great work this month! 🏆", amount: 100 },
+  },
+  "visitor-surprise": {
+    category: "bill",
+    icon: "bill",
+    event: { title: "Surprise Visitor!", description: "An unexpected guest drops by 👋", amount: -40 },
+  },
+  "school-reunion": {
+    category: "bill",
+    icon: "bill",
+    event: { title: "School Reunion!", description: "Dinner with old friends 🎓", amount: -40 },
+  },
+  "household-essentials": {
+    category: "bill",
+    icon: "bill",
+    event: { title: "Household Bills!", description: "Time to restock supplies 🏠", amount: -75 },
+  },
+  "home-rent": {
+    category: "bill",
+    icon: "bill",
+    event: { title: "Rent Due!", description: "Monthly rent payment 🔑", amount: -60 },
+  },
+  "poker-game": { category: "event", label: "Poker", icon: "die" },
+  election: { category: "election", label: "Elections", icon: "election", amount: -50 },
+  "daylight-saving": { category: "daylight", label: "Daylight Savings", icon: "daylight" },
+  "lottery-result": {
+    label: "Lottery",
+    category: "event",
+    image: require("@/assets/images/board-cells/lottery.png"),
+    imageScale: 1.7,
+  },
+  "salary-day": { category: "pay", amount: GAME_CONFIG.salary },
 };
 
 // Salary Day board layout as a calendar grid
@@ -88,41 +154,14 @@ export const DAY_HEADERS = ["S", "M", "T", "W", "T", "F", "S"];
 
 export const BOARD_ROWS = 5;
 export const BOARD_COLS = 7;
-export const BOARD_CELL_GAP = 6;
-export const BOARD_FRAME_PADDING = 9;
-export const BOARD_FRAME_BORDER = 3;
-
-// Design-system category per space type (drives tile color, icon, art)
-export const SPACE_CATEGORY: Record<SpaceType, keyof typeof SD_CATEGORY> = {
-  start: "start",
-  "post-mail": "mail",
-  deal: "deal",
-  "asset-buyer": "buyer",
-  "lazy-sunday": "rest",
-  "birthday-gift": "collect",
-  "performance-bonus": "collect",
-  "visitor-surprise": "bill",
-  "school-reunion": "bill",
-  "household-essentials": "bill",
-  "home-rent": "bill",
-  "poker-game": "event",
-  election: "election",
-  "daylight-saving": "daylight",
-  "lottery-result": "event",
-  "salary-day": "pay",
-};
-
-// Labels shown on icon cells that carry no amount pill
-export const SPACE_CELL_LABELS: Partial<Record<SpaceType, string>> = {
-  "poker-game": "Poker",
-  "daylight-saving": "Daylight",
-};
+export const BOARD_CELL_GAP = 4;
+export const BOARD_FRAME_PADDING = 6;
+export const BOARD_FRAME_BORDER = 2;
 
 // Instant cash change shown as the cell's amount pill
 export function getCellAmount(type: SpaceType): number {
-  if (type === "election") return -50;
-  if (type === "salary-day") return GAME_CONFIG.salary;
-  return SPACE_EVENTS[type]?.amount ?? 0;
+  const info = CELL_INFO[type];
+  return info.amount ?? info.event?.amount ?? 0;
 }
 
 export interface SpaceDetail {
@@ -177,7 +216,7 @@ const SPACE_TITLES: Record<SpaceType, { title: string; sub: string; rule?: strin
 };
 
 export function getSpaceDetail(type: SpaceType): SpaceDetail {
-  const category = SPACE_CATEGORY[type];
+  const category = CELL_INFO[type].category;
   const { title, sub, rule } = SPACE_TITLES[type];
   return {
     kind: title.toUpperCase(),

@@ -1,12 +1,15 @@
+import ComingSoonBadge from "@/components/menu/ComingSoonBadge";
 import ChunkyButton from "@/components/ui/ChunkyButton";
 import PlayerToken from "@/components/ui/PlayerToken";
 import ScreenBackground from "@/components/ui/ScreenBackground";
 import Typography from "@/components/ui/Typography";
 import { FONTS } from "@/constants/fonts";
 import { mixHex, SD, SD_TOKEN_COLORS } from "@/constants/theme";
+import { useProfile } from "@/contexts/ProfileContext";
+import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import { ReactNode, useState } from "react";
-import { StyleSheet, TextInput, View } from "react-native";
+import { ReactNode, useRef, useState } from "react";
+import { Pressable, StyleSheet, TextInput, View } from "react-native";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -35,10 +38,12 @@ function Section({ label, children }: { label: string; children: ReactNode }) {
 
 export default function GameSetup() {
   const router = useRouter();
+  const { name: userName } = useProfile();
+  const inputRefs = useRef<(TextInput | null)[]>([]);
   const [playerCount, setPlayerCount] = useState(2);
   const [monthCount, setMonthCount] = useState(3);
-  const [playerNames, setPlayerNames] = useState<string[]>(
-    Array.from({ length: 4 }, (_, i) => `Player ${i + 1}`),
+  const [playerNames, setPlayerNames] = useState<string[]>(() =>
+    Array.from({ length: 4 }, (_, i) => (i === 0 ? userName : `Player ${i + 1}`)),
   );
 
   const updateName = (index: number, name: string) => {
@@ -204,6 +209,9 @@ export default function GameSetup() {
                   <View key={i} style={styles.playerRow}>
                     <PlayerToken initial={initial} color={token.color} size={28} />
                     <TextInput
+                      ref={(el) => {
+                        inputRefs.current[i] = el;
+                      }}
                       style={styles.playerNameInput}
                       value={playerNames[i]}
                       onChangeText={(text) => updateName(i, text)}
@@ -212,6 +220,12 @@ export default function GameSetup() {
                       maxLength={15}
                       underlineColorAndroid="transparent"
                     />
+                    <Pressable
+                      hitSlop={8}
+                      onPress={() => inputRefs.current[i]?.focus()}
+                    >
+                      <Ionicons name="pencil" size={14} color={SD.soft} />
+                    </Pressable>
                   </View>
                 );
               })}
@@ -219,23 +233,26 @@ export default function GameSetup() {
           </Section>
 
           <Section label="MODE">
-            <View style={styles.modeCard}>
-              <View style={styles.modeTile}>
-                <Typography design="title" style={styles.modeTileGlyph}>
-                  ▦
+            <View>
+              <ComingSoonBadge />
+              <View style={styles.modeCard}>
+                <View style={styles.modeTile}>
+                  <Typography design="title" style={styles.modeTileGlyph}>
+                    ▦
+                  </Typography>
+                </View>
+                <View style={styles.modeText}>
+                  <Typography design="title" style={styles.modeTitle}>
+                    Pass & Play
+                  </Typography>
+                  <Typography design="body" weight={700} style={styles.modeSub}>
+                    One device, take turns
+                  </Typography>
+                </View>
+                <Typography design="body" weight={800} style={styles.modeLink}>
+                  Play online ›
                 </Typography>
               </View>
-              <View style={styles.modeText}>
-                <Typography design="title" style={styles.modeTitle}>
-                  Pass & Play
-                </Typography>
-                <Typography design="body" weight={700} style={styles.modeSub}>
-                  One device, take turns
-                </Typography>
-              </View>
-              <Typography design="body" weight={800} style={styles.modeLink}>
-                Play online ›
-              </Typography>
             </View>
           </Section>
         </KeyboardAwareScrollView>

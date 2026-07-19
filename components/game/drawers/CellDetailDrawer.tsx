@@ -35,7 +35,7 @@ export default function CellDetailDrawer({ detail, onClose }: CellDetailDrawerPr
           </Typography>
           {amountText !== "" && (
             <Typography
-              design="title"
+              design="money"
               style={[
                 styles.amount,
                 { color: detail.amount > 0 ? SD.primary : SD.debt },

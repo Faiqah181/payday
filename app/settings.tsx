@@ -133,7 +133,7 @@ export default function Settings() {
             ‹
           </Typography>
         </ChunkyButton>
-        <Typography design="money" style={styles.screenTitle}>
+        <Typography design="title" style={styles.screenTitle}>
           Settings
         </Typography>
       </View>

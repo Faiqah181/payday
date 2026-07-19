@@ -1,3 +1,4 @@
+import ElectionIcon from "@/components/game/ElectionIcon";
 import { DieValue } from "@/components/game/dice/DiceCube";
 import { EventButton } from "@/components/game/events/EventFooter";
 import EventPlayerRow from "@/components/game/events/EventPlayerRow";
@@ -87,7 +88,7 @@ export default function ElectionModal({
   return (
     <EventShell
       gradient={SD_EVENT_GRADIENTS.election}
-      emblem="🗳️"
+      emblem={<ElectionIcon size={64} />}
       eyebrow="TOWN ELECTION"
       title={title}
       subtitle={subtitle}

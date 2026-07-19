@@ -1,12 +1,21 @@
+import BirthdayIcon from "@/components/game/BirthdayIcon";
+import DaylightSavingIcon from "@/components/game/DaylightSavingIcon";
+import ElectionIcon from "@/components/game/ElectionIcon";
 import Typography from "@/components/ui/Typography";
-import {
-  getCellAmount,
-  SPACE_CATEGORY,
-  SPACE_CELL_LABELS,
-} from "@/constants/board";
+import { CELL_INFO, getCellAmount, type CellIcon } from "@/constants/board";
 import { mixHex, SD, SD_CATEGORY } from "@/constants/theme";
 import type { SpaceType } from "@/types/game";
 import { Image, Pressable, StyleSheet, View } from "react-native";
+import Animated, {
+  useAnimatedStyle,
+  withTiming,
+} from "react-native-reanimated";
+
+// Kept in sync with Board.tsx (getMoverSlot) so static tokens land where the
+// flying pawn does. Tokens cluster 2-wide: p1 p2 on top, p3 p4 below.
+const TOKEN_SIZE = 24;
+const TOKEN_STEP = TOKEN_SIZE - 7;
+const TOKEN_COLS = 2;
 
 export interface CellToken {
   color: string;
@@ -25,14 +34,6 @@ interface BoardCellProps {
   cellHeight?: number;
   onPress?: () => void;
 }
-
-const CELL_IMAGES: Partial<Record<SpaceType, ReturnType<typeof require>>> = {
-  "lazy-sunday": require("@/assets/images/board-cells/1.lazy sunday.png"),
-  "asset-buyer": require("@/assets/images/board-cells/2.buyer.png"),
-  "post-mail": require("@/assets/images/board-cells/3.Mail.png"),
-  deal: require("@/assets/images/board-cells/4.Deal.png"),
-  "lottery-result": require("@/assets/images/board-cells/lottery.png"),
-};
 
 function CoinIcon({ color }: { color: string }) {
   return (
@@ -74,15 +75,6 @@ function DieIcon({ color }: { color: string }) {
   );
 }
 
-function ClockIcon({ color }: { color: string }) {
-  return (
-    <View style={[styles.clock, { borderColor: color }]}>
-      <View style={[styles.clockHandV, { backgroundColor: color }]} />
-      <View style={[styles.clockHandH, { backgroundColor: color }]} />
-    </View>
-  );
-}
-
 function CheckerStrip({ width }: { width: number }) {
   const cols = Math.max(8, Math.ceil(width / 4.5));
   const size = width / cols;
@@ -112,9 +104,9 @@ function AmountPill({ amount }: { amount: number }) {
   const tone = positive ? SD.primary : SD.debt;
   return (
     <View
-      style={[styles.amountPill, { backgroundColor: mixHex(tone, SD.surface, 0.78) }]}
+      style={[styles.amountPill, { backgroundColor: mixHex(tone, SD.surface, 1) }]}
     >
-      <Typography design="money" style={[styles.amountPillText, { color: tone }]}>
+      <Typography design="title" style={[styles.amountPillText, { color: tone }]}>
         {positive ? `+$${amount}` : `-$${Math.abs(amount)}`}
       </Typography>
     </View>
@@ -128,26 +120,65 @@ function tokenOpacity(token: CellToken): number {
 }
 
 function TokenStack({ tokens }: { tokens: CellToken[] }) {
+  const cols = Math.min(tokens.length, TOKEN_COLS);
+  const rows = Math.ceil(tokens.length / TOKEN_COLS);
+  const clusterW = TOKEN_SIZE + (cols - 1) * TOKEN_STEP;
+  const clusterH = TOKEN_SIZE + (rows - 1) * TOKEN_STEP;
   return (
     <View style={styles.tokenStack}>
-      {tokens.map((token, i) => (
-        <View
-          key={i}
-          style={[
-            styles.miniToken,
-            {
-              backgroundColor: token.color,
-              marginLeft: i > 0 ? -7 : 0,
-              opacity: tokenOpacity(token),
-            },
-          ]}
-        >
-          <Typography design="title" style={styles.miniTokenText}>
-            {token.initial}
-          </Typography>
-        </View>
-      ))}
+      <View style={{ width: clusterW, height: clusterH }}>
+        {tokens.map((token, i) => (
+          <View
+            key={i}
+            style={[
+              styles.miniToken,
+              {
+                position: "absolute",
+                left: (i % TOKEN_COLS) * TOKEN_STEP,
+                top: Math.floor(i / TOKEN_COLS) * TOKEN_STEP,
+                backgroundColor: token.color,
+                opacity: tokenOpacity(token),
+              },
+            ]}
+          >
+            <Typography design="title" style={styles.miniTokenText}>
+              {token.initial}
+            </Typography>
+          </View>
+        ))}
+      </View>
     </View>
+  );
+}
+
+function renderIcon(icon: CellIcon, cellSize: number, color: string) {
+  switch (icon) {
+    case "coin":
+      return <CoinIcon color={color} />;
+    case "bill":
+      return <BillIcon color={color} />;
+    case "die":
+      return <DieIcon color={color} />;
+    case "birthday":
+      return <BirthdayIcon size={Math.max(38, cellSize * 0.6)} />;
+    case "election":
+      return <ElectionIcon size={Math.max(40, cellSize * 0.9)} />;
+    case "daylight":
+      return <DaylightSavingIcon size={Math.max(40, cellSize)} />;
+  }
+}
+
+/** A player-colored ring drawn only on occupied cells. Absolute overlay so
+ *  animating its width never shifts contents; fades to 0 when the cell empties. */
+function CellRing({ active, color }: { active: boolean; color: string }) {
+  const style = useAnimatedStyle(() => ({
+    borderWidth: withTiming(active ? 2.75 : 0, { duration: 180 }),
+  }));
+  return (
+    <Animated.View
+      pointerEvents="none"
+      style={[styles.ring, { borderColor: color }, style]}
+    />
   );
 }
 
@@ -155,26 +186,28 @@ export default function BoardCell({
   day,
   type,
   playerTokens,
-  isCurrentCell,
   cellSize,
   cellHeight,
   onPress,
 }: BoardCellProps) {
+  const info = CELL_INFO[type];
   const ch = cellHeight ?? cellSize;
-  const cat = SD_CATEGORY[SPACE_CATEGORY[type]];
+  const cat = SD_CATEGORY[info.category];
+  // The ring shows only on occupied cells, in the (first) player's color.
+  const occupant = playerTokens.find((t) => !t.hidden);
   const tileBg = mixHex(cat, SD.surface, 0.84);
-  const cellImage = CELL_IMAGES[type] ?? null;
+  const cellImage = info.image ?? null;
   const amount = getCellAmount(type);
-  const label = SPACE_CELL_LABELS[type];
+  const label = info.label;
+  // Single word → one line (shrink to fit, never split the word); multi-word wraps.
+  const labelLines = label?.includes(" ") ? 2 : 1;
 
   const frame = [
     styles.tile,
     {
       width: cellSize,
       height: ch,
-      backgroundColor: tileBg,
-      borderColor: cat,
-      borderWidth: isCurrentCell ? 2.5 : 1.5,
+      backgroundColor: '#fff6e4',
       shadowColor: mixHex(cat, "#000000", 0.12),
     },
   ];
@@ -192,6 +225,7 @@ export default function BoardCell({
           </Typography>
         </View>
         {playerTokens.length > 0 && <TokenStack tokens={playerTokens} />}
+        <CellRing active={!!occupant} color={occupant?.color ?? cat} />
       </Pressable>
     );
   }
@@ -215,6 +249,7 @@ export default function BoardCell({
           </View>
         </View>
         {playerTokens.length > 0 && <TokenStack tokens={playerTokens} />}
+        <CellRing active={!!occupant} color={occupant?.color ?? cat} />
       </Pressable>
     );
   }
@@ -223,7 +258,7 @@ export default function BoardCell({
     <Pressable style={frame} onPress={onPress}>
       <View style={[styles.dayChip, { shadowColor: "#000" }]}>
         <Typography
-          design="money"
+          design="title"
           style={[styles.dayChipText, { color: mixHex(cat, "#000000", 0.18) }]}
         >
           {String(day)}
@@ -234,46 +269,59 @@ export default function BoardCell({
 
       <View style={styles.illo}>
         {cellImage ? (
-          <Image source={cellImage} style={styles.cellImage} resizeMode="contain" />
-        ) : type === "birthday-gift" || type === "performance-bonus" ? (
-          <CoinIcon color={cat} />
-        ) : type === "election" ? (
-          <CoinIcon color={cat} />
-        ) : type === "poker-game" ? (
-          <DieIcon color={cat} />
-        ) : type === "daylight-saving" ? (
-          <ClockIcon color={cat} />
-        ) : (
-          <BillIcon color={cat} />
-        )}
+          <Image
+            source={cellImage}
+            style={[
+              {
+                width: cellSize * (info.imageScale ?? 1),
+                height: cellSize * (info.imageScale ?? 1),
+              },
+              info.imageStyle,
+            ]}
+            resizeMode="contain"
+          />
+        ) : info.icon ? (
+          renderIcon(info.icon, cellSize, cat)
+        ) : null}
       </View>
 
       <View style={styles.bottom}>
-        {amount !== 0 ? (
-          <AmountPill amount={amount} />
-        ) : label ? (
+        {label ? (
           <Typography
             design="title"
             style={[styles.label, { color: mixHex(cat, "#2A2118", 0.42) }]}
-            numberOfLines={1}
+            numberOfLines={labelLines}
+            adjustsFontSizeToFit
+            minimumFontScale={0.6}
           >
             {label}
           </Typography>
+        ) : amount !== 0 ? (
+          <AmountPill amount={amount} />
         ) : null}
       </View>
+      <CellRing active={!!occupant} color={occupant?.color ?? cat} />
     </Pressable>
   );
 }
 
 const styles = StyleSheet.create({
   tile: {
-    borderRadius: 11,
+    borderRadius: 12,
     overflow: "hidden",
     padding: 3,
     elevation: 2,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 1,
     shadowRadius: 0,
+  },
+  ring: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    borderRadius: 12,
   },
   dayChip: {
     position: "absolute",
@@ -292,19 +340,23 @@ const styles = StyleSheet.create({
     shadowRadius: 2,
   },
   dayChipText: {
-    fontSize: 8,
+    fontSize: 10,
   },
   tokenStack: {
     position: "absolute",
-    top: 4,
-    right: 4,
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
     zIndex: 5,
     flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
   },
   miniToken: {
-    width: 19,
-    height: 19,
-    borderRadius: 10,
+    width: TOKEN_SIZE,
+    height: TOKEN_SIZE,
+    borderRadius: 12,
     borderWidth: 2,
     borderColor: SD.white,
     alignItems: "center",
@@ -316,7 +368,7 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
   },
   miniTokenText: {
-    fontSize: 9,
+    fontSize: 11,
     color: SD.white,
   },
   illo: {
@@ -325,6 +377,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     paddingTop: 6,
     minHeight: 0,
+    transform: [{ translateY: 6 }],
   },
   cellImage: {
     position: "absolute",
@@ -343,14 +396,15 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 10,
     lineHeight: 12,
+    textAlign: "center",
   },
   amountPill: {
-    paddingVertical: 2,
-    paddingHorizontal: 7,
+    paddingVertical: 0,
+    paddingHorizontal: 4,
     borderRadius: 999,
   },
   amountPillText: {
-    fontSize: 8,
+    fontSize: 10,
   },
   coin: {
     width: 27,
@@ -403,28 +457,6 @@ const styles = StyleSheet.create({
     borderRadius: 2,
     backgroundColor: SD.white,
   },
-  clock: {
-    width: 27,
-    height: 27,
-    borderRadius: 14,
-    borderWidth: 3,
-  },
-  clockHandV: {
-    position: "absolute",
-    left: 9.5,
-    top: 3,
-    width: 2.5,
-    height: 8,
-    borderRadius: 2,
-  },
-  clockHandH: {
-    position: "absolute",
-    left: 10,
-    top: 9.5,
-    width: 8,
-    height: 2.5,
-    borderRadius: 2,
-  },
   checkerStrip: {
     position: "absolute",
     top: 0,
@@ -469,7 +501,7 @@ const styles = StyleSheet.create({
   startText: {
     fontSize: 8.5,
     letterSpacing: 0.5,
-    color: SD.white,
+    color: SD.ink,
     textShadowColor: "rgba(0,0,0,0.25)",
     textShadowOffset: { width: 0, height: 1.5 },
     textShadowRadius: 0,
@@ -484,12 +516,12 @@ const styles = StyleSheet.create({
     gap: 2,
   },
   payEyebrow: {
-    fontSize: 7,
+    fontSize: 8,
     letterSpacing: 1,
     color: "#7A4E00",
   },
   payTitle: {
-    fontSize: 11,
+    fontSize: 14,
     lineHeight: 13,
     color: SD.ink,
   },
@@ -497,12 +529,12 @@ const styles = StyleSheet.create({
     position: "absolute",
     right: 8,
     backgroundColor: SD.primary,
-    paddingVertical: 2,
-    paddingHorizontal: 7,
+    paddingVertical: 0,
+    paddingHorizontal: 11,
     borderRadius: 999,
   },
   payPillText: {
-    fontSize: 8,
+    fontSize: 12,
     color: SD.white,
   },
 });
